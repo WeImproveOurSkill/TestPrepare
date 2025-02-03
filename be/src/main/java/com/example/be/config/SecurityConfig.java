@@ -1,5 +1,8 @@
 package com.example.be.config;
 
+import com.example.be.common.domain.utils.handler.OAuth2SuccessHandler;
+import com.example.be.common.domain.utils.jwt.JwtAuthFilter;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -7,6 +10,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 
@@ -16,13 +20,22 @@ import java.util.List;
 
 @Configuration
 @EnableWebSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
 
+    private final String[] permitOrigin = {
+            "http://localhost:8080",
+            "http://localhost:3000",
+            "https://localhost:3000",
+    };
 
-    private final String[] permitOrigin = {};
+    private final String[] permitAllArray = {
+            "/oauth2/authorization/**",
+    };
 
-    private final String[] permitAllArray = {};
+    private final OAuth2SuccessHandler oAuth2SuccessHandler;
 
+    private final JwtAuthFilter jwtAuthFilter;
 
     CorsConfigurationSource corsConfigurationSource() {
         return request -> {
@@ -49,6 +62,11 @@ public class SecurityConfig {
                 auth.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers(permitAllArray).permitAll()
                         .anyRequest().authenticated());
+
+        http.oauth2Login(loginConf ->
+                loginConf.successHandler(oAuth2SuccessHandler));
+
+        http.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
