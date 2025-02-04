@@ -32,30 +32,30 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
     private final JwtUtil jwtUtil;
 
     @Override
-    public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authentication) throws IOException, ServletException {
+    public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
         OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
         OAuth2UserInfo oAuth2UserInfo = null;
-        String registrationId = oAuth2User.getAttribute("registration_id");
-
-        if (registrationId.equals("kakao")) {
-            oAuth2UserInfo = new KakaoUserInfo(oAuth2User.getAttributes());
-        }else{
-            System.out.println("로그인 실패");
+        
+        Map<String, Object> attributes = oAuth2User.getAttributes();
+        if (attributes.containsKey("kakao_account")) {
+            oAuth2UserInfo = new KakaoUserInfo(attributes);
+        } else {
+            throw new IllegalArgumentException("지원하지 않는 소셜 로그인입니다.");
         }
+        
         String oauth2Id = getOauth2Id(oAuth2UserInfo);
-//        Optional<User> findUser = userService.findByOauth2Id(oauth2Id);
-        User user = userService.existByOauth2Id(oauth2Id) ? userService.findByOauth2Id(oauth2Id) :userService.signupByOAuth(oAuth2UserInfo);
+        User user = userService.existByOauth2Id(oauth2Id) ? 
+            userService.findByOauth2Id(oauth2Id) : 
+            userService.signupByOAuth(oAuth2UserInfo);
 
         String token = jwtUtil.createToken(user.getUsername(), String.valueOf(user.getRole()));
-        Cookie cookie = new Cookie("token", token);
-        cookie.setPath("/");
-        response.addCookie(cookie);
+        
+        // 프론트엔드로 리다이렉트
+        String targetUrl = UriComponentsBuilder.fromUriString("http://localhost:3000")
+            .queryParam("token", token)
+            .build().toUriString();
 
-        String targetUrl = "http://localhost:3000"; //redirect 시킬 react 경로
-        String redirectUrl = UriComponentsBuilder.fromUriString(targetUrl)
-                .build().toUriString();
-
-        getRedirectStrategy().sendRedirect(request, response, redirectUrl);
+        getRedirectStrategy().sendRedirect(request, response, targetUrl);
     }
     private static String getOauth2Id(OAuth2UserInfo oAuth2UserInfo) {
         return oAuth2UserInfo.getProvider() + "_" + oAuth2UserInfo.getProviderId();

@@ -13,6 +13,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -27,25 +28,30 @@ public class SecurityConfig {
             "http://localhost:8080",
             "http://localhost:3000",
             "https://localhost:3000",
+            "https://kauth.kakao.com/**"
     };
 
     private final String[] permitAllArray = {
             "/oauth2/authorization/**",
+            "/login/oauth2/code/**",
+            "/"
     };
 
     private final OAuth2SuccessHandler oAuth2SuccessHandler;
 
     private final JwtAuthFilter jwtAuthFilter;
 
-    CorsConfigurationSource corsConfigurationSource() {
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
         return request -> {
             CorsConfiguration config = new CorsConfiguration();
             config.setAllowedHeaders(Collections.singletonList("*"));
-            config.setAllowedMethods(Collections.singletonList("*"));
+            config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
             config.setAllowedOrigins(List.of(permitOrigin));
-            config.setAllowedOriginPatterns(List.of(permitAllArray));
             config.setAllowCredentials(true);
             config.setExposedHeaders(Arrays.asList("Authorization", "Refresh"));
+
+
             return config;
         };
     }
