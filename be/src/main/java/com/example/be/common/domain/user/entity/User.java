@@ -1,9 +1,6 @@
 package com.example.be.common.domain.user.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -15,6 +12,11 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Entity
 public class User {
+
+    public enum Role {
+        COMMON,ADMIN
+    }
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -22,10 +24,13 @@ public class User {
     private String username;
     private String password;
 
+    private String email;
+    private String nickname;
+
     private String oauth2Id;
 
-    //    private String email;
-    private String role;
+    @Enumerated(EnumType.STRING) // Role을 문자열로 저장
+    private Role role;
 
     private String provider;
     private String providerId;
