@@ -3,11 +3,11 @@ package com.example.be.common.domain.exam.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+@Entity
 @Getter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Entity
 public class Question {
 
     public enum QuestionType {
@@ -20,6 +20,8 @@ public class Question {
 
     @Enumerated(EnumType.STRING)
     private QuestionType questionType;
+
+    private String questionContent;
 
     @Lob
     private String choices; // JSON 형식 저장

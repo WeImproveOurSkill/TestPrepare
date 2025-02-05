@@ -45,5 +45,6 @@ public class User {
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "certification_id")
     )
+    @Builder.Default
     private Set<Certification> certifications = new HashSet<>();
 }
