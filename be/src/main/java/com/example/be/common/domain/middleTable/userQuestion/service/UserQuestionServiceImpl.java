@@ -25,7 +25,7 @@ public class UserQuestionServiceImpl implements UserQuestionService {
     private final QuestionService questionService;
 
     @Override
-    @Transactional
+    @Transactional // 시험 문제 풀이 처리 서비스 코드
     public void processAnswers(User user, List<AnswerSubmitDTO> answers) {
         List<UserQuestion> list = new ArrayList<>();
         for (AnswerSubmitDTO answer : answers) {
@@ -42,7 +42,6 @@ public class UserQuestionServiceImpl implements UserQuestionService {
                 .question(question)
                 .user(user)
                 .solveTime(LocalDateTime.now())
-                .isRequest(false)
                 .isBookmarked(false)
                 .status(status)
                 .build();
@@ -71,6 +70,31 @@ public class UserQuestionServiceImpl implements UserQuestionService {
         userQuestionRepository.save(userQuestion);
     }
 
+    @Override
+    @Transactional
+    public void updateBookMark(User user, Long questionId) {
+        Question byId = questionService.findById(questionId);
+
+        if(userQuestionRepository.existsByUserAndQuestion(user, byId)){
+            UserQuestion byUserAndQuestion = userQuestionRepository.findByUserAndQuestion(user, byId);
+            byUserAndQuestion.updateBookmark();
+        }else{
+            UserQuestion userQuestion = UserQuestion.builder()
+                    .isBookmarked(true)
+                    .question(byId)
+                    .user(user)
+                    .solveTime(LocalDateTime.now())
+                    .status(UserQuestion.Status.UNANSWERED)
+                    .build();
+            userQuestionRepository.save(userQuestion);
+        }
+    }
+
+    @Override
+    public List<QuestionDto> getBookMarkQuestion(User user, Long certificationId) {
+        return userQuestionRepository.getBookMarkQuestion(user, certificationId);
+    }
+
     private static UserQuestion getUserQuestion(User user, AnswerRecordDto answer, Question question) {
         UserQuestion userQuestion = UserQuestion.builder()
                 .user(user)
@@ -78,7 +102,6 @@ public class UserQuestionServiceImpl implements UserQuestionService {
                 .status(answer.getStatus())
                 .solveTime(LocalDateTime.now())
                 .isBookmarked(false)
-                .isRequest(false)
                 .build();
         return userQuestion;
     }

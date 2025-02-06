@@ -14,4 +14,8 @@ public interface UserQuestionService {
     void processAnswers(User user, List<AnswerSubmitDTO> answers);
 
     void recordSolveQuestion(User user, AnswerRecordDto answer);
+
+    void updateBookMark(User user, Long questionId);
+
+    List<QuestionDto> getBookMarkQuestion(User user, Long certificationId);
 }

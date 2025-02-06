@@ -50,19 +50,17 @@ public class ExamController {
 
     // 문제 풀이 제출 - 시험 모드
     @PostMapping("/submit/test")
-    public ResponseEntity<ExamResultDTO> submitAnswers(@AuthenticationPrincipal UserDetailsImpl userDetails, @RequestBody List<AnswerSubmitDTO> answers) {
+    public ResponseEntity<ResponseStatus> submitAnswers(@AuthenticationPrincipal UserDetailsImpl userDetails, @RequestBody List<AnswerSubmitDTO> answers) {
         userQuestionService.processAnswers(userDetails.getUser(), answers);
         return ResponseEntity.ok().build();
     }
 
     // 일반 문제풀이 문제 제출
     @PostMapping("/submit/normal")
-    public ResponseEntity checkAnswer(@AuthenticationPrincipal UserDetailsImpl userDetails, @RequestBody AnswerRecordDto answer) {
+    public ResponseEntity<ResponseStatus> checkAnswer(@AuthenticationPrincipal UserDetailsImpl userDetails, @RequestBody AnswerRecordDto answer) {
         userQuestionService.recordSolveQuestion(userDetails.getUser(), answer);
         return ResponseEntity.ok().build();
     }
-
-
 
 
     // 틀린 문제 조회 (퀵 모드)
@@ -72,4 +70,21 @@ public class ExamController {
             @RequestParam UserQuestion.Status status) {
         return ResponseEntity.ok(userQuestionService.getWrongQuestions(userDetails.getUser(), status));
     }
+
+    @PatchMapping("/book-mark")
+    public ResponseEntity<ResponseStatus> updateBookMark(@AuthenticationPrincipal UserDetailsImpl userDetails, @RequestParam Long questionId) {
+        userQuestionService.updateBookMark(userDetails.getUser(), questionId);
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/book-mark/question")
+    public ResponseEntity<List<QuestionDto>> getBookMarkQuestions(@AuthenticationPrincipal UserDetailsImpl userDetails, @RequestParam Long certificationId) {
+        return ResponseEntity.ok(userQuestionService.getBookMarkQuestion(userDetails.getUser(), certificationId));
+    }
+
+
+
+
+
+
 }

@@ -15,10 +15,11 @@ import java.time.LocalDateTime;
 @Table(name = "user_question")
 public class UserQuestion {
 
-    public enum Status {
-        CORRECT, WRONG, UNANSWERED
-    }
 
+
+    public enum Status {
+        CORRECT, WRONG, UNANSWERED;
+    }
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -36,7 +37,13 @@ public class UserQuestion {
     @Enumerated(EnumType.STRING)
     private Status status;
 
-    private boolean isBookmarked; // 북마크 용도
+    private Boolean isBookmarked; // 북마크 용도
 
-    private boolean isRequest; // 사용자 요청을 통한 요청 금지 문제 표현
+    public void updateBookmark() {
+        if(!this.isBookmarked){
+            this.isBookmarked = true;
+        }else{
+            this.isBookmarked = false;
+        }
+    }
 }

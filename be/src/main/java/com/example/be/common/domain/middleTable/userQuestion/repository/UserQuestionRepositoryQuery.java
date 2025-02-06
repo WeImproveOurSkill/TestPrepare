@@ -9,4 +9,5 @@ import java.util.List;
 public interface UserQuestionRepositoryQuery {
     List<QuestionDto> findAllAboutWrongQuestionByStatus(User attr0, UserQuestion.Status status);
 
+    List<QuestionDto> getBookMarkQuestion(User user, Long certificationId);
 }
