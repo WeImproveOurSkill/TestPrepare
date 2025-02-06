@@ -28,23 +28,38 @@ public class UserQuestionServiceImpl implements UserQuestionService {
     @Transactional
     public void processAnswers(User user, List<AnswerSubmitDTO> answers) {
         List<UserQuestion> list = new ArrayList<>();
-        for(AnswerSubmitDTO answer : answers) {
+        for (AnswerSubmitDTO answer : answers) {
             Question question = questionService.findById(answer.getQuestionId());
-            UserQuestion.Status status = answer.getAnswer().equals(answer.getUserAnswer())
-                    ? UserQuestion.Status.CORRECT
-                    : answer.getUserAnswer().isEmpty() ? UserQuestion.Status.UNANSWERED : UserQuestion.Status.WRONG;
-
-            UserQuestion userQuestion = UserQuestion.builder()
-                    .question(question)
-                    .user(user)
-                    .solveTime(LocalDateTime.now())
-                    .isRequest(false)
-                    .isBookmarked(false)
-                    .status(status)
-                    .build();
+            UserQuestion.Status status = getStatus(answer);
+            UserQuestion userQuestion = getUserQuestion(user, question, status);
             list.add(userQuestion);
         }
         userQuestionRepository.saveAll(list);
+    }
+
+    private static UserQuestion getUserQuestion(User user, Question question, UserQuestion.Status status) {
+        UserQuestion userQuestion = UserQuestion.builder()
+                .question(question)
+                .user(user)
+                .solveTime(LocalDateTime.now())
+                .isRequest(false)
+                .isBookmarked(false)
+                .status(status)
+                .build();
+        return userQuestion;
+    }
+
+    private static UserQuestion.Status getStatus(AnswerSubmitDTO answer) {
+        UserQuestion.Status status;
+
+        if (answer.getAnswer().equals(answer.getUserAnswer())) {
+            status = UserQuestion.Status.CORRECT;
+        } else if (answer.getUserAnswer().isEmpty()) {
+            status = UserQuestion.Status.UNANSWERED;
+        } else {
+            status = UserQuestion.Status.WRONG;
+        }
+        return status;
     }
 
     @Override
