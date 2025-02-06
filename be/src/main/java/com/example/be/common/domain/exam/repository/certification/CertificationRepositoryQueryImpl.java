@@ -1,5 +1,6 @@
 package com.example.be.common.domain.exam.repository.certification;
 
+import com.example.be.common.domain.exam.dtos.CertificationDto;
 import com.example.be.common.domain.exam.dtos.QuestionDto;
 import com.example.be.common.domain.exam.entity.Certification;
 import com.example.be.common.domain.exam.entity.QAnswer;
@@ -43,5 +44,18 @@ public class CertificationRepositoryQueryImpl implements CertificationRepository
 
 //        List<QuestionDto> questionDtos = new ArrayList<>();
         return questionDtos;
+    }
+
+    @Override
+    public List<CertificationDto> findAllByCertificationInformation() {
+        return jpaQueryFactory.select(Projections.constructor(
+                CertificationDto.class,
+                certification.id,
+                certification.name))
+                .from(certification)
+                .fetch();
+
+
+//        return null;
     }
 }

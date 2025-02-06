@@ -9,11 +9,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Getter
 @Builder
-public class CheckScoreDTO {
-
-    private String subjectName;
-    private Integer score;
-    private Boolean result; // 과락체크 용
-
-
+public class SubjectDto {
+    private Long SubjectId;
+    private String SubjectName;
 }

@@ -14,7 +14,7 @@ import java.util.List;
 public class AnswerSubmitDTO {
 
 
-    private int questionId;
+    private Long questionId;
     private String answer;
     private String userAnswer;
 

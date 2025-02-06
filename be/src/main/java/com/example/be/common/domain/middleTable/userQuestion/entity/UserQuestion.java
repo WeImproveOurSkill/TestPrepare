@@ -5,6 +5,8 @@ import com.example.be.common.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Getter
 @Builder
@@ -25,6 +27,8 @@ public class UserQuestion {
     @JoinColumn(name = "user_id")
     private User user;
 
+    private LocalDateTime solveTime; // 최근 푼 문제 조회를 위한 시간변
+
     @ManyToOne
     @JoinColumn(name = "question_id")
     private Question question;
@@ -32,6 +36,7 @@ public class UserQuestion {
     @Enumerated(EnumType.STRING)
     private Status status;
 
-    private int attemptCount;
-    private boolean isBookmarked;
+    private boolean isBookmarked; // 북마크 용도
+
+    private boolean isRequest; // 사용자 요청을 통한 요청 금지 문제 표현
 }

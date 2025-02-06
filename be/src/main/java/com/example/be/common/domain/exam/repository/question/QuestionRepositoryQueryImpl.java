@@ -4,7 +4,6 @@ import com.example.be.common.domain.exam.dtos.QuestionDto;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
-import org.springframework.expression.spel.ast.Projection;
 
 import static com.example.be.common.domain.exam.entity.QAnswer.answer;
 import static com.example.be.common.domain.exam.entity.QQuestion.question;
@@ -16,7 +15,7 @@ public class QuestionRepositoryQueryImpl implements QuestionRepositoryQuery {
 
 
     @Override
-    public QuestionDto findByQuestionBySubjectSizeCount(Long subjectId, Long questionId, int problemCount) {
+    public QuestionDto findByQuestionBySubjectSizeCount(Long subjectId, Long questionId) {
         QuestionDto questionDto = (QuestionDto) jpaQueryFactory.select(Projections.constructor(
                         QuestionDto.class,
                         question.id.as("questionId"),
