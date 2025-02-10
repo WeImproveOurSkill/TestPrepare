@@ -1,11 +1,11 @@
 import React from 'react';
+import { View, Text, StyleSheet, Pressable, SafeAreaView } from 'react-native';
 import DeviceInfo from 'react-native-device-info';
 import { StackScreenProps } from '@react-navigation/stack';
-import { AuthStackParamList } from '../navigation/AuthStackNavigator';
-import { View, Text, StyleSheet, Pressable, SafeAreaView } from 'react-native';
-import { authNavigation } from '../constants';
+import { AuthStackParamList } from '../../navigation/AuthStackNavigator';
+import { authNavigation } from '../../constants';
 
-type AuthHomeScreenProps = StackScreenProps<AuthStackParamList>;
+export type AuthHomeScreenProps = StackScreenProps<AuthStackParamList>;
 
 function AuthHomeScreen({navigation}:AuthHomeScreenProps) {
 
