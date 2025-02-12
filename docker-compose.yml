@@ -1,8 +1,9 @@
-version: '3.8'
+volumes:
+  mysql_data: {}
 
 services:
   nginx:
-    image: nginx:alpine
+    image: nginx
     ports:
       - "80:80"
       - "443:443"
@@ -12,8 +13,46 @@ services:
       - ./nginx/html:/usr/share/nginx/html
     networks:
       - app_network
+
+  mysql:
+    image: mysql:8.0
+    container_name: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: 1234
+      MYSQL_DATABASE: project
+      MYSQL_USER: user
+      MYSQL_PASSWORD: 1234
+      TZ: Asia/Seoul
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+    networks:
+      - app_network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "user", "--password=1234"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  spring-app:
+
+    container_name: spring_app
+
+    ports:
+      - "8080:8080"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - app-network
     restart: unless-stopped
 
 networks:
   app_network:
-    driver: bridge 
+    driver: bridge
+
+
