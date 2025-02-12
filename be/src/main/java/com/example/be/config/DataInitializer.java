@@ -3,7 +3,7 @@ package com.example.be.config;
 import com.example.be.common.domain.exam.entity.Answer;
 import com.example.be.common.domain.exam.entity.Certification;
 import com.example.be.common.domain.exam.entity.Question;
-import com.example.be.common.domain.exam.entity.Subject;
+import com.example.be.common.domain.exam.entity.SubjectExam;
 import com.example.be.common.domain.exam.repository.certification.CertificationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
@@ -14,7 +14,7 @@ import java.util.Arrays;
 
 @Component
 @RequiredArgsConstructor
-@Profile("dev") // 개발 환경에서만 실행되도록 설정
+//@Profile({"dev", "docker"})  // docker 프로필 추가
 public class DataInitializer implements CommandLineRunner {
 
     private final CertificationRepository certificationRepository;
@@ -31,9 +31,9 @@ public class DataInitializer implements CommandLineRunner {
             .name("정보처리기사")
             .year(2024)
             .session("1회차")
-            .subjects(Arrays.asList(
+            .subjectExams(Arrays.asList(
                 // 1. 소프트웨어 설계 과목
-                Subject.builder()
+                SubjectExam.builder()
                     .name("소프트웨어 설계")
                     .questions(Arrays.asList(
                         Question.builder()
@@ -52,7 +52,7 @@ public class DataInitializer implements CommandLineRunner {
                     .build(),
                 
                 // 2. 소프트웨어 개발 과목
-                    Subject.builder()
+                    SubjectExam.builder()
                     .name("소프트웨어 개발")
                     .questions(Arrays.asList(
                         Question.builder()
@@ -71,7 +71,7 @@ public class DataInitializer implements CommandLineRunner {
                     .build(),
                 
                 // 3. 데이터베이스 구축 과목
-                    Subject.builder()
+                    SubjectExam.builder()
                     .name("데이터베이스 구축")
                     .questions(Arrays.asList(
                         Question.builder()

@@ -7,7 +7,7 @@ import lombok.RequiredArgsConstructor;
 
 import static com.example.be.common.domain.exam.entity.QAnswer.answer;
 import static com.example.be.common.domain.exam.entity.QQuestion.question;
-import static com.example.be.common.domain.exam.entity.QSubject.subject;
+import static com.example.be.common.domain.exam.entity.QSubjectExam.subjectExam;
 
 @RequiredArgsConstructor
 public class QuestionRepositoryQueryImpl implements QuestionRepositoryQuery {
@@ -24,11 +24,13 @@ public class QuestionRepositoryQueryImpl implements QuestionRepositoryQuery {
                         question.choices,
                         answer.answerText.as("answer"),
                         answer.explanation))
-                .from(subject)
-                .leftJoin(subject.questions, question)
+                .from(subjectExam)
+                .leftJoin(subjectExam.questions, question)
                 .leftJoin(question.answer, answer)
-                .where(subject.id.eq(subjectId), question.id.eq(questionId+1))
+                .where(subjectExam.id.eq(subjectId), question.id.eq(questionId+1))
                 .fetch();
         return questionDto;
+
+
     }
 }

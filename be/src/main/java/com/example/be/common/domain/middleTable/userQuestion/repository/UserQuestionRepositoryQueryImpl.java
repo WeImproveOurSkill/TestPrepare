@@ -14,7 +14,8 @@ import java.util.List;
 import static com.example.be.common.domain.exam.entity.QAnswer.answer;
 import static com.example.be.common.domain.exam.entity.QCertification.certification;
 import static com.example.be.common.domain.exam.entity.QQuestion.question;
-import static com.example.be.common.domain.exam.entity.QSubject.subject;
+//import static com.example.be.common.domain.exam.entity.QSubject.subject;
+import static com.example.be.common.domain.exam.entity.QSubjectExam.subjectExam;
 import static com.example.be.common.domain.middleTable.userQuestion.entity.QUserQuestion.userQuestion;
 
 @RequiredArgsConstructor
@@ -38,6 +39,7 @@ public class UserQuestionRepositoryQueryImpl implements UserQuestionRepositoryQu
                 .where(userQuestion.status.eq(status),
                         userQuestion.user.id.eq(user.getId()))
                 .fetch();
+//        return null;
     }
 
     @Override
@@ -51,11 +53,13 @@ public class UserQuestionRepositoryQueryImpl implements UserQuestionRepositoryQu
                         answer.answerText.as("answer"),
                         answer.explanation
                 )).from(question)
-                .rightJoin(question.subject, subject)
-                .rightJoin(subject.certification, certification).where(
+                .rightJoin(question.subjectExam, subjectExam)
+                .rightJoin(subjectExam.certification, certification).where(
                         userQuestion.user.eq(user),
                         userQuestion.isBookmarked.eq(true),
                         certification.id.eq(certificationId)
                 ).fetch();
+//        return null;
+
     }
 }

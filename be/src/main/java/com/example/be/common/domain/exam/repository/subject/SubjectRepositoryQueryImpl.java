@@ -7,7 +7,8 @@ import lombok.RequiredArgsConstructor;
 
 import java.util.List;
 
-import static com.example.be.common.domain.exam.entity.QSubject.subject;
+import static com.example.be.common.domain.exam.entity.QSubjectExam.subjectExam;
+
 
 @RequiredArgsConstructor
 public class SubjectRepositoryQueryImpl implements SubjectRepositoryQuery {
@@ -16,10 +17,12 @@ public class SubjectRepositoryQueryImpl implements SubjectRepositoryQuery {
     public List<SubjectDto> getSubjectByCertificationId(Long certificationId) {
         return jpaQueryFactory.select(Projections.constructor(
                 SubjectDto.class,
-                subject.id,
-                subject.name
-        )).from(subject)
-                .where(subject.certification.id.eq(certificationId)).fetch();
+                        subjectExam.id,
+                        subjectExam.name
+        )).from(subjectExam)
+                .where(subjectExam.certification.id.eq(certificationId)).fetch();
+//        return null;
+
     }
 
 }

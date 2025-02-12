@@ -27,5 +27,5 @@ public class Certification {
     private String session;
 
     @OneToMany(mappedBy = "certification", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Subject> subjects;
+    private List<SubjectExam> subjectExams;
 }

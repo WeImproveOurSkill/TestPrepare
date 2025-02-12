@@ -30,7 +30,7 @@ public class Question {
 
     @ManyToOne
     @JoinColumn(name = "subject_id")
-    private Subject subject;
+    private SubjectExam subjectExam;
 
     @OneToOne(mappedBy = "question", cascade = CascadeType.ALL, orphanRemoval = true)
     private Answer answer;
