@@ -59,7 +59,7 @@ jobs:
         context: ./be
         push: true
         platforms: linux/arm64/v8,linux/amd64
-        tags: ./be/testprepare:${{ github.sha }}, ${{ secrets.DOCKER_REPOSITORY_USERNAME }}/testprepare:latest
+        tags: ${{ secrets.DOCKER_REPOSITORY_USERNAME }}/testprepare:${{ github.sha }}, ${{ secrets.DOCKER_REPOSITORY_USERNAME }}/testprepare:latest
         
 
     # - name : git 워크스페이스 검사
