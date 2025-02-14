@@ -1,76 +1,79 @@
-// src/styles/colors.ts
-
-export type Colors = {
-  primary: string;
-  secondary: string;
-  background: {
-    default: string;
-    grey: string;
-    dark: string;
-  };
-  text: {
-    primary: string;
-    secondary: string;
-    light: string;
-    white: string;
-  };
-  theme: {
-    electricity: string;
-    architecture: string;
-    interior: string;
-    default: string;
-  };
-  border: string;
-  shadow: string;
-  overlay: string;
+const common = {
+  MAIN: '#FF984A',
+  PINK_200: '#FAE2E9',
+  PINK_400: '#EC87A5',
+  PINK_500: '#BF5C79',
+  PINK_700: '#C63B64',
+  BLUE_500: '#0D8AFF',
+  RED_500: '#FF5F5F',
+  RED_300: '#FFB4B4',
+  BLUE_400: '#B4E0FF',
+  GREEN_400: '#CCE6BA',
+  YELLOW_300: '#FFE594',
+  YELLOW_400: '#FEE500',
+  YELLOW_500: '#FACC15',
+  PURPLE_400: '#C4C4E7',
+  UNCHANGE_WHITE: '#FFF',
+  UNCHANGE_BLACK: '#000',
+  electricity: '#4A90E2', // 파란색
+  architecture: '#9B59B6', // 보라색
+  interior: '#2ECC71', // 초록색
+  default: '#2980B9', // 청록색
 };
-
 const colors = {
-  // 메인 컬러
-  primary: '#FF984A',
-  secondary: '#4A90E2',
-
-  // 배경색
-  background: {
-    default: '#e1e1e1',
-    white: '#FFFFFF',
-    grey: '#F5F5F5',
-    dark: '#333333',
+  light: {
+    WHITE: '#FFF',
+    GRAY_50: '#E7E7E7',
+    GRAY_100: '#F8F8F8',
+    GRAY_150: '#EFEFEF',
+    GRAY_200: '#E7E7E7',
+    GRAY_250: '#DEDEDE',
+    GRAY_300: '#D8D8D8',
+    GRAY_350: '#C4C4C4',
+    GRAY_400: '#B0B0B0',
+    GRAY_450: '#A0A0A0',
+    GRAY_500: '#8E8E8E',
+    GRAY_550: '#7A7A7A',
+    GRAY_600: '#686868',
+    GRAY_650: '#626262',
+    GRAY_700: '#575757',
+    BLACK: '#161616',
+    ...common,
   },
-
-  // 텍스트 컬러
-  text: {
-    primary: '#333333',
-    secondary: '#666666',
-    light: '#999999',
-    white: '#FFFFFF',
+  dark: {
+    WHITE: '#161616',
+    GRAY_50: '#575757',
+    GRAY_100: '#626262',
+    GRAY_150: '#686868',
+    GRAY_200: '#7A7A7A',
+    GRAY_250: '#8E8E8E',
+    GRAY_300: '#A0A0A0',
+    GRAY_350: '#B0B0B0',
+    GRAY_400: '#C4C4C4',
+    GRAY_450: '#D8D8D8',
+    GRAY_500: '#DEDEDE',
+    GRAY_550: '#E7E7E7',
+    GRAY_600: '#EFEFEF',
+    GRAY_650: '#F8F8F8',
+    GRAY_700: '#FCFCFC',
+    BLACK: '#FFF',
+    ...common,
   },
-
-  // 테마 컬러 (자격증 별 색상)
-  theme: {
-    electricity: '#4A90E2',    // 전기 계열
-    architecture: '#9B59B6',   // 건축 계열
-    interior: '#2ECC71',       // 인테리어 계열
-    default: '#2980B9',        // 기본 색상
-  },
-
-  // 상태 컬러
-  status: {
-    success: '#27AE60',
-    warning: '#F1C40F',
-    error: '#E74C3C',
-    info: '#3498DB',
-  },
-
-  // 경계선 컬러
-  border: '#E1E1E1',
-
-  // 그림자 컬러
-  shadow: 'rgba(0, 0, 0, 0.1)',
-
-  // 모달 오버레이
-  overlay: 'rgba(0, 0, 0, 0.5)',
 } as const;
 
-// 타입 추출
-export default colors;
+const colorHex = {
+  RED: colors.light.PINK_400,
+  BLUE: colors.light.BLUE_400,
+  GREEN: colors.light.GREEN_400,
+  YELLOW: colors.light.YELLOW_400,
+  PURPLE: colors.light.PURPLE_400,
+} as const;
+
+// const license = {
+//   electricity: '#4A90E2', // 파란색
+//   architecture: '#9B59B6', // 보라색
+//   interior: '#2ECC71', // 초록색
+//   default: '#2980B9', // 청록색
+// } as const;
+
+export {colors, colorHex};

@@ -7,6 +7,8 @@ import {
   StyleSheet,
   Platform,
 } from 'react-native';
+import useThemeStore, { themeMode } from '../../../store/useThemeStore';
+import { colors } from '../../../constants/colors';
 
 type SelectModeModalProps = {
   isVisible: boolean;
@@ -25,6 +27,9 @@ const SelectModeModal = ({
   onStudyPress,
   onExamPress,
 }: SelectModeModalProps) => {
+
+  const {theme} = useThemeStore();
+  const styles = styling(theme);
 
   const handleQuizMode = () => {
     onClose();
@@ -81,7 +86,7 @@ const SelectModeModal = ({
   );
 };
 
-const styles = StyleSheet.create({
+const styling = (theme: themeMode) => StyleSheet.create({
   overlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
@@ -109,24 +114,25 @@ const styles = StyleSheet.create({
     }),
   },
   modalContent: {
-    backgroundColor: 'white',
+    backgroundColor: colors[theme].WHITE,
     borderRadius: 10,
     overflow: 'hidden',
   },
   header: {
     padding: 15,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomColor: colors[theme].GRAY_200,
   },
   title: {
     fontSize: 18,
     fontWeight: 'bold',
     textAlign: 'center',
+    color: colors[theme].GRAY_700,
   },
   body: {
     padding: 15,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomColor: colors[theme].GRAY_200,
     alignItems: 'center',
   },
   footer: {
@@ -136,15 +142,16 @@ const styles = StyleSheet.create({
   modeButtonText: {
     fontSize: 20,
     fontWeight: '400',
+    color: colors[theme].GRAY_700,
   },
   button: {
     paddingVertical: 10,
     paddingHorizontal: 20,
-    backgroundColor: '#007AFF',
+    backgroundColor: colors[theme].MAIN,
     borderRadius: 5,
   },
   buttonText: {
-    color: 'white',
+    color: colors[theme].WHITE,
     fontSize: 16,
     fontWeight: '600',
   },
