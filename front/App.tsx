@@ -1,17 +1,16 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import AuthStackNavigator from './src/navigation/AuthStackNavigator';
-import { ThemeProvider } from './src/contexts/ThemeContext';
+// import { StatusBar } from 'react-native';
 
 
 function App(): React.JSX.Element {
 
   return (
-    <ThemeProvider>
+    // <StatusBar /> // 다크모드 적용시키기
       <NavigationContainer>
         <AuthStackNavigator />
       </NavigationContainer>
-    </ThemeProvider>
   );
 }
 
