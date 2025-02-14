@@ -1,18 +1,19 @@
 import React from 'react';
-import { View, Text, StyleSheet, Pressable, Platform} from 'react-native';
+import { View, Text, StyleSheet, Pressable } from 'react-native';
 import DeviceInfo from 'react-native-device-info';
 import { StackScreenProps } from '@react-navigation/stack';
 import { AuthStackParamList } from '../../navigation/AuthStackNavigator';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import BookView from './components/BookView';
 import { authNavigation } from '../../constants';
-// import { useTheme } from '../../contexts/ThemeContext';
+import { colors } from '../../constants/colors';
+import useThemeStore, { themeMode } from '../../store/useThemeStore';
 
 type AuthHomeScreenProps = StackScreenProps<AuthStackParamList>;
 
-
 const HomeScreen = ({navigation}:AuthHomeScreenProps) => {
-  // const { theme, isDark, toggleTheme } = useTheme();
+  const {theme} = useThemeStore();
+  const styles = styling(theme);
   const isTablet = DeviceInfo.isTablet();
 
   const insets = useSafeAreaInsets();
@@ -65,10 +66,10 @@ const HomeScreen = ({navigation}:AuthHomeScreenProps) => {
   );
 };
 
-const styles = StyleSheet.create({
+const styling = (theme: themeMode) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#ffffff',
+    backgroundColor: colors[theme].WHITE,
   },
   header: {
     flexDirection: 'row',
@@ -76,18 +77,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 12,
     paddingHorizontal: 20,
-    backgroundColor: '#ffffff',
-    borderBottomColor: '#e1e1e1',
+    backgroundColor: colors[theme].WHITE,
+    borderBottomColor: colors[theme].GRAY_50,
     borderBottomWidth: 1,
   },
   title: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#FF984A',
+    color: colors[theme].MAIN,
   },
   loginButton: {
     fontSize: 16,
-    color: '#666666',
+    color: colors[theme].GRAY_600,
   },
   tabletContainer: {
     flexDirection: 'row-reverse',
@@ -95,55 +96,8 @@ const styles = StyleSheet.create({
   },
   testLayout: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: colors[theme].GRAY_50,
     // padding: 30,
-  },
-  testContainer: {
-    height: 200,
-    width: 200,
-    backgroundColor: 'blue',
-  },
-  bookCover: {
-    width: 150,
-    height: 200,
-    backgroundColor: '#e74c3c',
-    borderRadius: 5,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: {
-          width: 0,
-          height: 4,
-        },
-        shadowOpacity: 0.3,
-        shadowRadius: 4,
-      },
-      android: {
-        elevation: 5,
-      },
-    }),
-  },
-  bookSpine: {
-    position: 'absolute',
-    // bottom: 2,
-    // left: -13,
-    width: 20,
-    height: '100%',
-    backgroundColor: '#c0392b',
-    // transform: [
-    //   { skewY: '10deg' },
-    // ],
-  },
-  bookPages: {
-    position: 'absolute',
-    right: 0,
-    width: 3,
-    height: '96%',
-    top: '2%',
-    backgroundColor: '#fff',
-    // transform: [
-    //   { skewY: '-5deg' },
-    // ],
   },
   navItemTablet: {
     height: 60,
@@ -151,23 +105,15 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     justifyContent: 'center',
     borderBottomWidth: 1,
-    borderBottomColor: '#e1e1e1',
+    borderBottomColor: colors[theme].GRAY_50,
   },
   bottomNav: {
     flexDirection: 'row',
     justifyContent: 'space-around',
     paddingVertical: 8,
     borderTopWidth: 1,
-    borderTopColor: '#e1e1e1',
-    backgroundColor: '#ffffff',
-  },
-  menuItem: {
-    fontSize: 16,
-    paddingVertical: 24,
-    textAlign: 'center',
-    color: '#333333',
-    borderBottomColor: '#e1e1e1',
-    borderBottomWidth: 1,
+    borderTopColor: colors[theme].GRAY_50,
+    backgroundColor: colors[theme].WHITE,
   },
   loadingText: {
     flex: 1,
@@ -179,11 +125,11 @@ const styles = StyleSheet.create({
     height: 32,
     justifyContent: 'center',
     borderRightWidth: 1,
-    borderRightColor: '#e1e1e1',
+    borderRightColor: colors[theme].GRAY_50,
   },
   navText: {
     fontSize: 14,
-    color: '#666666',
+    color: colors[theme].GRAY_700,
     textAlign: 'center',
   },
 });

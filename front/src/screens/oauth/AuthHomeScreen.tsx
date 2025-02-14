@@ -4,10 +4,14 @@ import DeviceInfo from 'react-native-device-info';
 import { StackScreenProps } from '@react-navigation/stack';
 import { AuthStackParamList } from '../../navigation/AuthStackNavigator';
 import { authNavigation } from '../../constants';
+import useThemeStore, { themeMode } from '../../store/useThemeStore';
+import { colors } from '../../constants/colors';
 
 export type AuthHomeScreenProps = StackScreenProps<AuthStackParamList>;
 
 function AuthHomeScreen({navigation}:AuthHomeScreenProps) {
+  const {theme} = useThemeStore();
+  const styles = styling(theme);
 
   const isTablet = DeviceInfo.isTablet();
 
@@ -66,10 +70,10 @@ function AuthHomeScreen({navigation}:AuthHomeScreenProps) {
   );
 }
 
-const styles = StyleSheet.create({
+const styling = (theme: themeMode) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#ffffff',
+    backgroundColor: colors[theme].GRAY_100,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -80,7 +84,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 40,
   },
   title: {
-    color: '#4A6FFF',
+    color: colors[theme].MAIN,
     marginBottom: 40,
     textAlign: 'center',
   },
@@ -106,15 +110,15 @@ const styles = StyleSheet.create({
     maxWidth: 320,
   },
   tabletButton: {
-    maxWidth: 480,
+    maxWidth: 580,
   },
   kakaoButton: {
-    backgroundColor: '#FEE500',
+    backgroundColor: colors[theme].YELLOW_400,
   },
   googleButton: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors[theme].UNCHANGE_WHITE,
     borderWidth: 1,
-    borderColor: '#E1E1E1',
+    borderColor: colors[theme].GRAY_250,
   },
   buttonPressed: {
     opacity: 0.8,
@@ -122,12 +126,10 @@ const styles = StyleSheet.create({
   kakaoButtonText: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#000000',
   },
   googleButtonText: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#000000',
   },
   nonLoginButton: {
     padding: 10,
@@ -137,7 +139,7 @@ const styles = StyleSheet.create({
   },
   nonLoginButtonText: {
     fontSize: 14,
-    color: '#666666',
+    color: colors[theme].GRAY_400,
   },
 });
 
