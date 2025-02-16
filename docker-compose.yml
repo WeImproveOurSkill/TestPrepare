@@ -39,7 +39,7 @@ services:
       retries: 5
 
   spring-app:
-
+    image: skyriv213/testprepare:latest
     container_name: spring_app
 
     ports:
@@ -48,7 +48,7 @@ services:
       mysql:
         condition: service_healthy
     networks:
-      - app-network
+      - app_network
     restart: unless-stopped
 
 networks:
