@@ -16,7 +16,7 @@ services:
 
   mysql:
     image: mysql:8.0
-    container_name: mysql
+    container_name: database
     environment:
       MYSQL_ROOT_PASSWORD: 1234
       MYSQL_DATABASE: project
@@ -41,7 +41,6 @@ services:
   spring-app:
     image: skyriv213/testprepare:latest
     container_name: spring_app
-
     ports:
       - "8080:8080"
     depends_on:
