@@ -13,6 +13,11 @@ function AuthHomeScreen({navigation}:AuthHomeScreenProps) {
   const {theme} = useThemeStore();
   const styles = styling(theme);
 
+  // const handleLogin = () => {
+  //   // 로그인 로직 처리 (예: API 호출 후 로그인 성공 시)
+  //   navigation.replace('BottomTabs'); // 뒤로 가기 방지
+  // };
+
   const isTablet = DeviceInfo.isTablet();
 
   const handleKakaoLogin = () => {
@@ -73,7 +78,7 @@ function AuthHomeScreen({navigation}:AuthHomeScreenProps) {
 const styling = (theme: themeMode) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors[theme].GRAY_100,
+    backgroundColor: colors[theme].WHITE,
     justifyContent: 'center',
     alignItems: 'center',
   },
