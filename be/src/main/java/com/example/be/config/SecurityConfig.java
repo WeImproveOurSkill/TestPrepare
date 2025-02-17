@@ -35,7 +35,8 @@ public class SecurityConfig {
     private final String[] permitAllArray = {
             "/oauth2/authorization/**",
             "/login/oauth2/code/**",
-            "/"
+            "/",
+            "/exam"
     };
 
     private final OAuth2SuccessHandler oAuth2SuccessHandler;
