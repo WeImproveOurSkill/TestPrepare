@@ -1,5 +1,5 @@
 const common = {
-  MAIN: '#FF984A',
+  MAIN: '#3D6CE5',
   PINK_200: '#FAE2E9',
   PINK_400: '#EC87A5',
   PINK_500: '#BF5C79',
