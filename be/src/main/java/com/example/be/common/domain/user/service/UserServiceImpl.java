@@ -3,9 +3,9 @@ package com.example.be.common.domain.user.service;
 import com.example.be.common.domain.user.entity.User;
 import com.example.be.common.domain.user.repository.UserRepository;
 import com.example.be.common.domain.utils.oauth2.OAuth2UserInfo;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.beans.Transient;
 import java.util.NoSuchElementException;
@@ -38,17 +38,20 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public User findByUsername(String username) {
         return userRepository.findByUsername(username).orElseThrow(()->new NoSuchElementException("user not found"));
     }
 
     @Override
+    @Transactional(readOnly = true)
     public User findByOauth2Id(String oauth2Id) {
         return userRepository.findByOauth2Id(oauth2Id).orElseThrow(()->new NoSuchElementException("user not found"));
     }
 
 
     @Override
+    @Transactional(readOnly = true)
     public boolean existByOauth2Id(String username) {
         return userRepository.existsByUsername(username);
     }

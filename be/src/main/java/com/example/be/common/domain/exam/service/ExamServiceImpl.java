@@ -9,6 +9,7 @@ import com.example.be.common.domain.exam.repository.question.QuestionRepository;
 import com.example.be.common.domain.exam.repository.subject.SubjectRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -28,6 +29,7 @@ public class ExamServiceImpl implements ExamService {
      * @return List<QuestionDto>
      */
     @Override
+    @Transactional(readOnly = true)
     public List<QuestionDto> getQuestionsByCertification(String name, int year, String session) {
         return certificationRepository.findAllQuestionByNameAndYearAndSession(name,year,session) ;
     }
@@ -38,16 +40,19 @@ public class ExamServiceImpl implements ExamService {
      * @return
      */
     @Override
+    @Transactional(readOnly = true)
     public QuestionDto getRandomQuestionsBySubject(Long subjectId,Long questionId) {
         return questionRepository.findByQuestionBySubjectSizeCount(subjectId, questionId);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<CertificationDto> getCertificationList() {
         return certificationRepository.findAllByCertificationInformation();
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<SubjectDto> getSubject(Long certificationId) {
         return subjectRepository.getSubjectByCertificationId(certificationId);
     }
