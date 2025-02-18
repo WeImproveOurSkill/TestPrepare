@@ -1,0 +1,2 @@
+python-jose[cryptography]  # JWT 검증용
+python-dotenv  # 환경변수 관리 
