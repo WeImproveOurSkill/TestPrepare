@@ -5,6 +5,14 @@ const authNavigation = {
   EXAM: 'Exam',
   STUDY: 'Study',
   QUIZ: 'Quiz',
+  BottomTabNavigator: 'BottomTabNavigator',
 } as const;
 
-export { authNavigation };
+const BottomTabNavigation = {
+  HOME: 'Home',
+  EXAM: 'Exam',
+  STUDY: 'Study',
+  QUIZ: 'Quiz',
+} as const;
+
+export { authNavigation, BottomTabNavigation };

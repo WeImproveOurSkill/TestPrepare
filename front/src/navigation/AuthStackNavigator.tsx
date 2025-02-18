@@ -2,10 +2,10 @@ import React from 'react';
 import { authNavigation } from '../constants';
 import { createStackNavigator } from '@react-navigation/stack';
 import AuthHomeScreen from '../screens/oauth/AuthHomeScreen';
-import HomeScreen from '../screens/home/HomeScreen';
 import examScreen from '../screens/exam/ExamScreen';
 import StudyScreen from '../screens/study/StudyScreen';
 import QuizScreen from '../screens/quiz/QuizScreen';
+import BottomTabNavigator from './BottomTabNavigator';
 
 
 export type AuthStackParamList = {
@@ -15,6 +15,7 @@ export type AuthStackParamList = {
   Exam: undefined;
   Study: undefined;
   Quiz: undefined;
+  BottomTabNavigator: undefined;
 }
 
 const Stack = createStackNavigator<AuthStackParamList>();
@@ -32,7 +33,7 @@ function AuthStackNavigator() {
         />
       <Stack.Screen
         name={authNavigation.HOME}
-        component={HomeScreen}
+        component={BottomTabNavigator}
         />
       <Stack.Screen
         name={authNavigation.EXAM}

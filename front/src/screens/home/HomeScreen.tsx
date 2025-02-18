@@ -31,7 +31,6 @@ const HomeScreen = ({navigation}:AuthHomeScreenProps) => {
         paddingTop: insets.top,
         paddingLeft: insets.left,
         paddingRight: insets.right,
-        ...(!isTablet && {paddingBottom: insets.bottom}),
       }]}>
         <View style={styles.header}>
           <Text style={styles.title}>기한82</Text>
@@ -47,7 +46,7 @@ const HomeScreen = ({navigation}:AuthHomeScreenProps) => {
             </Pressable>
           )}
           </View>
-            <View style={ !isTablet && styles.bottomNav }>
+            {/* <View style={ !isTablet && styles.bottomNav }>
               <Pressable style={ !isTablet ? styles.navItem : styles.navItemTablet }>
                 <Text style={styles.navText}>홈</Text>
               </Pressable>
@@ -60,7 +59,7 @@ const HomeScreen = ({navigation}:AuthHomeScreenProps) => {
               <Pressable style={ !isTablet ? styles.navItem : styles.navItemTablet }>
                 <Text style={styles.navText}>마이페이지</Text>
               </Pressable>
-            </View>
+            </View> */}
         </View>
     </View>
   );
@@ -78,7 +77,7 @@ const styling = (theme: themeMode) => StyleSheet.create({
     padding: 12,
     paddingHorizontal: 20,
     backgroundColor: colors[theme].WHITE,
-    borderBottomColor: colors[theme].GRAY_50,
+    borderBottomColor: colors[theme].WHITE,
     borderBottomWidth: 1,
   },
   title: {
@@ -96,7 +95,7 @@ const styling = (theme: themeMode) => StyleSheet.create({
   },
   testLayout: {
     flex: 1,
-    backgroundColor: colors[theme].GRAY_50,
+    backgroundColor: colors[theme].WHITE,
     // padding: 30,
   },
   navItemTablet: {

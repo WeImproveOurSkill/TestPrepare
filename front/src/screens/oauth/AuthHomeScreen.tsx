@@ -6,6 +6,8 @@ import { AuthStackParamList } from '../../navigation/AuthStackNavigator';
 import { authNavigation } from '../../constants';
 import useThemeStore, { themeMode } from '../../store/useThemeStore';
 import { colors } from '../../constants/colors';
+import KakaoLogin from './KakaoLogin';
+
 
 export type AuthHomeScreenProps = StackScreenProps<AuthStackParamList>;
 
@@ -13,11 +15,12 @@ function AuthHomeScreen({navigation}:AuthHomeScreenProps) {
   const {theme} = useThemeStore();
   const styles = styling(theme);
 
-  const isTablet = DeviceInfo.isTablet();
+  // const handleLogin = () => {
+  //   // 로그인 로직 처리 (예: API 호출 후 로그인 성공 시)
+  //   navigation.replace('BottomTabs'); // 뒤로 가기 방지
+  // };
 
-  const handleKakaoLogin = () => {
-    // 카카오 로그인 처리
-  };
+  const isTablet = DeviceInfo.isTablet();
 
   const handleGoogleLogin = () => {
     // 구글 로그인 처리
@@ -29,32 +32,21 @@ function AuthHomeScreen({navigation}:AuthHomeScreenProps) {
   };
 
   return (
-    <SafeAreaView style={[styles.container, isTablet ? styles.tabletContainer : styles.phoneContainer]}>
+    <SafeAreaView style={styles.container}>
       <Text style={[styles.title, isTablet ? styles.tabletTitle : styles.phoneTitle]}>
         기사는 한방에 기한82
       </Text>
-      <View style={styles.buttonContainer}>
-        <Pressable
-          style={({pressed}) => [
-            styles.button,
-            styles.kakaoButton,
-            isTablet ? styles.tabletButton : styles.phoneButton,
-            pressed && styles.buttonPressed,
-          ]}
-          onPress={handleKakaoLogin}
-        >
-          <Text style={styles.kakaoButtonText}>카카오 계정으로 계속하기</Text>
-        </Pressable>
+      <View style={[styles.buttonContainer, isTablet ? styles.tabletButton : styles.phoneButton]}>
+        <KakaoLogin />
         <Pressable
           style={({pressed}) => [
             styles.button,
             styles.googleButton,
-            isTablet ? styles.tabletButton : styles.phoneButton,
             pressed && styles.buttonPressed,
           ]}
           onPress={handleGoogleLogin}
         >
-          <Text style={styles.googleButtonText}>구글 계정으로 계속하기</Text>
+          <Text style={isTablet ? styles.tabletButtonText : styles.buttonText}>구글 계정으로 계속하기</Text>
         </Pressable>
         <Pressable
           style={({pressed}) => [
@@ -73,15 +65,9 @@ function AuthHomeScreen({navigation}:AuthHomeScreenProps) {
 const styling = (theme: themeMode) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors[theme].GRAY_100,
+    backgroundColor: colors[theme].WHITE,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  phoneContainer: {
-    paddingHorizontal: 20,
-  },
-  tabletContainer: {
-    paddingHorizontal: 40,
   },
   title: {
     color: colors[theme].MAIN,
@@ -110,10 +96,7 @@ const styling = (theme: themeMode) => StyleSheet.create({
     maxWidth: 320,
   },
   tabletButton: {
-    maxWidth: 580,
-  },
-  kakaoButton: {
-    backgroundColor: colors[theme].YELLOW_400,
+    maxWidth: 680,
   },
   googleButton: {
     backgroundColor: colors[theme].UNCHANGE_WHITE,
@@ -123,12 +106,12 @@ const styling = (theme: themeMode) => StyleSheet.create({
   buttonPressed: {
     opacity: 0.8,
   },
-  kakaoButtonText: {
+  buttonText: {
     fontSize: 16,
     fontWeight: '500',
   },
-  googleButtonText: {
-    fontSize: 16,
+  tabletButtonText: {
+    fontSize: 20,
     fontWeight: '500',
   },
   nonLoginButton: {
