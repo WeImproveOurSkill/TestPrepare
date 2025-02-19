@@ -60,6 +60,11 @@ dependencies {
 	// OAuth2 라이브러리
 	implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
 
+	// RestTemplate 라이브러리
+//	implementation 'org.apache.httpcomponents.client5:httpclient5:5.2.1'
+//	implementation 'org.apache.httpcomponents.core5:httpcore5:5.2.1'
+//	implementation 'org.apache.httpcomponents.core5:httpcore5-h2:5.2.1'
+
 
 }
 

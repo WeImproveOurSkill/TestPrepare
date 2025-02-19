@@ -2,20 +2,36 @@ package com.example.be.common.domain.user.service;
 
 import com.example.be.common.domain.user.entity.User;
 import com.example.be.common.domain.user.repository.UserRepository;
+import com.example.be.common.domain.utils.jwt.JwtUtil;
+import com.example.be.common.domain.utils.oauth2.KakaoUserInfo;
 import com.example.be.common.domain.utils.oauth2.OAuth2UserInfo;
 import lombok.RequiredArgsConstructor;
+import net.minidev.json.JSONObject;
+import net.minidev.json.parser.JSONParser;
+import net.minidev.json.parser.ParseException;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
 
 import java.beans.Transient;
+import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+
+import static com.example.be.common.domain.utils.handler.OAuth2SuccessHandler.getOauth2Id;
 
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
+    private final JwtUtil jwtUtil;
+    private final RestTemplate restTemplate;
 
     @Override
     @Transactional
@@ -40,15 +56,16 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional(readOnly = true)
     public User findByUsername(String username) {
-        return userRepository.findByUsername(username).orElseThrow(()->new NoSuchElementException("user not found"));
+        return userRepository.findByUsername(username)
+            .orElseThrow(() -> new UsernameNotFoundException("User not found"));
     }
 
     @Override
     @Transactional(readOnly = true)
     public User findByOauth2Id(String oauth2Id) {
-        return userRepository.findByOauth2Id(oauth2Id).orElseThrow(()->new NoSuchElementException("user not found"));
+        return userRepository.findByOauth2Id(oauth2Id)
+            .orElseThrow(() -> new UsernameNotFoundException("User not found"));
     }
-
 
     @Override
     @Transactional(readOnly = true)
@@ -56,7 +73,37 @@ public class UserServiceImpl implements UserService {
         return userRepository.existsByUsername(username);
     }
 
-    private static String getOauth2Id(OAuth2UserInfo oAuth2UserInfo) {
-        return oAuth2UserInfo.getProvider() + "_" + oAuth2UserInfo.getProviderId();
+    @Override
+    public JSONObject kakaoCallback(JSONObject object) throws ParseException {
+        String accessToken = (String) object.get("accessToken");
+        
+        // 카카오 API로 사용자 정보 조회
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Bearer " + accessToken);
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+        
+        ResponseEntity<Map> userInfoResponse = restTemplate.exchange(
+            "https://kapi.kakao.com/v2/user/me",
+            HttpMethod.GET,
+            entity,
+            Map.class
+        );
+        
+        Map<String, Object> attributes = userInfoResponse.getBody();
+        KakaoUserInfo kakaoUserInfo = new KakaoUserInfo(attributes);
+        
+        // 사용자 정보 저장 또는 조회
+        String oauth2Id = kakaoUserInfo.getProvider() + "_" + kakaoUserInfo.getProviderId();
+        User user = userRepository.findByOauth2Id(oauth2Id)
+            .orElseGet(() -> signupByOAuth(kakaoUserInfo));
+        
+        // JWT 토큰 생성
+        String token = jwtUtil.createToken(user.getUsername(), String.valueOf(user.getRole()));
+        
+        JSONObject response = new JSONObject();
+        response.put("token", token);
+        response.put("user", user);
+        
+        return response;
     }
 }
