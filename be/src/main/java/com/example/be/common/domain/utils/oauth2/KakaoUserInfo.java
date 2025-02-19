@@ -1,9 +1,15 @@
 package com.example.be.common.domain.utils.oauth2;
 
 import com.nimbusds.openid.connect.sdk.claims.UserInfo;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.NoArgsConstructor;
+import org.springframework.context.annotation.Bean;
 
 import java.util.Map;
-
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class KakaoUserInfo implements OAuth2UserInfo {
 
     private Map<String, Object> attributes;

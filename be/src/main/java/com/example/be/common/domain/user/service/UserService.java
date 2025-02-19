@@ -2,6 +2,8 @@ package com.example.be.common.domain.user.service;
 
 import com.example.be.common.domain.user.entity.User;
 import com.example.be.common.domain.utils.oauth2.OAuth2UserInfo;
+import net.minidev.json.JSONObject;
+import net.minidev.json.parser.ParseException;
 
 import java.util.Optional;
 
@@ -14,4 +16,6 @@ public interface UserService {
     User findByOauth2Id(String username);
 
     boolean existByOauth2Id(String username);
+
+    JSONObject kakaoCallback(JSONObject object) throws ParseException;
 }

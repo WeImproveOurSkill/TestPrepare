@@ -1,5 +1,6 @@
 volumes:
-  mysql_data: {}
+  mysql_master_data: {}
+  mysql_slave_data: {}
 
 services:
   nginx:
@@ -13,10 +14,9 @@ services:
       - ./nginx/html:/usr/share/nginx/html
     networks:
       - app_network
-
-  mysql:
+  mysql-master:
     image: mysql:8.0
-    container_name: database
+    container_name: database-master
     environment:
       MYSQL_ROOT_PASSWORD: 1234
       MYSQL_DATABASE: project
@@ -24,12 +24,15 @@ services:
       MYSQL_PASSWORD: 1234
       TZ: Asia/Seoul
     ports:
-      - "3306:3306"
+      - "3307:3306"
     volumes:
-      - mysql_data:/var/lib/mysql
+      - mysql_master_data:/var/lib/mysql
     command:
       - --character-set-server=utf8mb4
       - --collation-server=utf8mb4_unicode_ci
+      - --server-id=1
+      - --log-bin=mysql-bin
+      - --binlog-format=row
     networks:
       - app_network
     healthcheck:
@@ -38,13 +41,37 @@ services:
       timeout: 5s
       retries: 5
 
+  mysql-slave:
+    image: mysql:8.0
+    container_name: database-slave
+    environment:
+      MYSQL_ROOT_PASSWORD: 1234
+      MYSQL_DATABASE: project
+      MYSQL_USER: user
+      MYSQL_PASSWORD: 1234
+      TZ: Asia/Seoul
+    ports:
+      - "3308:3306"
+    volumes:
+      - mysql_slave_data:/var/lib/mysql
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --server-id=2
+      - --relay-log=mysql-relay-bin
+    depends_on:
+      mysql-master:
+        condition: service_healthy
+    networks:
+      - app_network
+
   spring-app:
     image: skyriv213/testprepare:latest
     container_name: spring_app
     ports:
       - "8080:8080"
     depends_on:
-      mysql:
+      mysql-master:
         condition: service_healthy
     networks:
       - app_network

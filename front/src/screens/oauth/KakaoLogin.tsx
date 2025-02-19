@@ -18,7 +18,7 @@ const KakaoLogin = () => {
 
   const sendTokensToBackend = async (accessToken: string, refreshToken: string) => {
     try {
-      const response = await fetch('https://localhost:8080/oauth/kakao/login', {
+      const response = await fetch('http://localhost:8080/oauth/callback/kakao', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -31,12 +31,14 @@ const KakaoLogin = () => {
 
       const data = await response.json();
       if (response.ok) {
-        console.log('Backend response:', data);
+        // JWT 토큰 저장
+        // AsyncStorage나 다른 저장소에 토큰 저장
+        console.log('Login success:', data);
       } else {
-        console.error('Failed to send tokens to backend:', data);
+        console.error('Login failed:', data);
       }
     } catch (error) {
-      console.error('Error sending tokens to backend:', error);
+      console.error('Error:', error);
     }
   };
 

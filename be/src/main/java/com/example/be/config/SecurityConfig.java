@@ -36,7 +36,8 @@ public class SecurityConfig {
             "/oauth2/authorization/**",
             "/login/oauth2/code/**",
             "/",
-            "/exam"
+            "/exam",
+            "/oauth/callback/**"
     };
 
     private final OAuth2SuccessHandler oAuth2SuccessHandler;
