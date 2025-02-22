@@ -1,6 +1,6 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text } from 'react-native';
-import { login, getProfile, KakaoProfile, KakaoOAuthToken, getAccessToken, KakaoAccessTokenInfo } from '@react-native-seoul/kakao-login';
+import { login, getProfile, KakaoProfile, KakaoOAuthToken } from '@react-native-seoul/kakao-login';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import DeviceInfo from 'react-native-device-info';
@@ -9,57 +9,58 @@ import useThemeStore, { themeMode } from '../../store/useThemeStore';
 import { AuthStackParamList } from '../../navigation/AuthStackNavigator';
 import { setEncryptStorage } from '../../util/encryptStorage';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import Config from 'react-native-config';
 
 type KakaoLoginResponse = {
   token: KakaoOAuthToken;
   profile: KakaoProfile;
-  accessToken: KakaoAccessTokenInfo;
+  accessToken: string;
 }
 
 const KakaoLogin = () => {
   const {theme} = useThemeStore();
   const styles = styling(theme);
-  const queryClient = useQueryClient();
   const isTablet = DeviceInfo.isTablet();
+  const queryClient = useQueryClient();
   const navigation = useNavigation<StackNavigationProp<AuthStackParamList>>();
+
 
   // 카카오 로그인 정보를 백엔드로 전송하는 mutation
   const { mutate: sendTokensToBackend } = useMutation({
     mutationFn: async (loginData: KakaoLoginResponse) => {
-      const response = await fetch('https://localhost:8080/oauth/callback/kakao', {
+      const response = await fetch(`${Config.BASE_URL}oauth/callback/kakao`, {
         method: 'POST',
         headers: {
+          'Authorization' : `Bearer ${loginData.accessToken}`,
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify(loginData),
       });
-
-      if (!response.ok) {
-        throw new Error('Failed to send tokens to backend');
-      }
 
       return response.json();
     },
     onSuccess: async (data) => {
-      if (data.jwtToken) {
-        await setEncryptStorage('user_jwt', data.jwtToken);
+      console.log(data);
+
+      if (data.token) {
+        await setEncryptStorage('user_jwt', data.token);
         queryClient.setQueryData(['user'], data.user);
         navigation.navigate('Home');
       }
     },
     onError: (error) => {
-      console.error('Login error:', error);
+      console.log('Login error:', error);
     },
   });
-  // console.log(sendTokensToBackend);
-
+  console.log(Config.BASE_URL);
 
   // 카카오 로그인 mutation
   const { mutate: handleKakaoLogin } = useMutation<KakaoLoginResponse, Error>({
     mutationFn: async () => {
       const token = await login();
       const profile = await getProfile();
-      const accessToken = await getAccessToken();
+      const accessToken = token.accessToken;
 
       return {
         token,
@@ -76,51 +77,6 @@ const KakaoLogin = () => {
     },
   });
 
-  // const sendTokensToBackend = async (token: KakaoOAuthToken, accessToken: KakaoAccessTokenInfo, profile: KakaoProfile) => {
-  //   try {
-  //     const response = await fetch('https://localhost:8080/oauth/callback/kakao', {
-  //       method: 'POST',
-  //       headers: {
-  //         'Content-Type': 'application/json',
-  //       },
-  //       body: JSON.stringify({
-  //         token,
-  //         accessToken,
-  //         profile,
-  //       }),
-  //     });
-
-  //     const data = await response.json();
-  //     if (response.ok) {
-  //       console.log('Backend response:', data);
-  //       if (data.jwtToken) {
-  //         await setEncryptStorage('userJwt', data.jwtToken);
-  //       }
-  //     } else {
-  //       console.error('Failed to send tokens to backend:', data);
-  //     }
-  //   } catch (error) {
-  //     console.error('Error sending tokens to backend:', error);
-  //   }
-  // };
-
-  // const handleKakaoLogin = async () => {
-  //   try {
-  //     const token = await login();
-  //     const profile = await getProfile();
-  //     const accessToken = await getAccessToken();
-
-  //     console.log('login: ', token);
-  //     console.log('Access Token:', accessToken);
-  //     console.log('Profile: ', profile);
-
-  //     // 백엔드로 토큰 전달
-  //     await sendTokensToBackend(token, accessToken, profile);
-  //     navigation.navigate('Home');
-  //   } catch (error) {
-  //     console.log('Kakao login failed:', error);
-  //   }
-  // };
 
   return (
             <Pressable

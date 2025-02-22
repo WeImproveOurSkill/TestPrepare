@@ -7,6 +7,7 @@ import { authNavigation } from '../../constants';
 import useThemeStore, { themeMode } from '../../store/useThemeStore';
 import { colors } from '../../constants/colors';
 import KakaoLogin from './KakaoLogin';
+import GoogleLogin from './GoogleLogin';
 
 
 export type AuthHomeScreenProps = StackScreenProps<AuthStackParamList>;
@@ -22,10 +23,6 @@ function AuthHomeScreen({navigation}:AuthHomeScreenProps) {
 
   const isTablet = DeviceInfo.isTablet();
 
-  const handleGoogleLogin = () => {
-    // 구글 로그인 처리
-  };
-
   const handleNonLogin = () => {
     // 비로그인 처리
     navigation.navigate(authNavigation.HOME);
@@ -38,7 +35,8 @@ function AuthHomeScreen({navigation}:AuthHomeScreenProps) {
       </Text>
       <View style={[styles.buttonContainer, isTablet ? styles.tabletButton : styles.phoneButton]}>
         <KakaoLogin />
-        <Pressable
+        <GoogleLogin />
+        {/* <Pressable
           style={({pressed}) => [
             styles.button,
             styles.googleButton,
@@ -47,7 +45,7 @@ function AuthHomeScreen({navigation}:AuthHomeScreenProps) {
           onPress={handleGoogleLogin}
         >
           <Text style={isTablet ? styles.tabletButtonText : styles.buttonText}>구글 계정으로 계속하기</Text>
-        </Pressable>
+        </Pressable> */}
         <Pressable
           style={({pressed}) => [
             styles.nonLoginButton,

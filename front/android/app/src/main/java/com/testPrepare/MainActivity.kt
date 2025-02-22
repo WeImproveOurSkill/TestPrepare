@@ -1,4 +1,4 @@
-package com.front
+package com.testprepare
 
 import com.facebook.react.ReactActivity
 import android.os.Bundle;
