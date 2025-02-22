@@ -1,6 +1,7 @@
 {
   "extends": "@react-native/typescript-config/tsconfig.json",
   "compilerOptions": {
-    "allowJs": true  // 기존 JS 파일 허용
+    "allowJs": true,  // 기존 JS 파일 허용
+    "esModuleInterop": true
   }
 }
