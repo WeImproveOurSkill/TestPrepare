@@ -15,16 +15,9 @@ export type AuthHomeScreenProps = StackScreenProps<AuthStackParamList>;
 function AuthHomeScreen({navigation}:AuthHomeScreenProps) {
   const {theme} = useThemeStore();
   const styles = styling(theme);
-
-  // const handleLogin = () => {
-  //   // 로그인 로직 처리 (예: API 호출 후 로그인 성공 시)
-  //   navigation.replace('BottomTabs'); // 뒤로 가기 방지
-  // };
-
   const isTablet = DeviceInfo.isTablet();
 
-  const handleNonLogin = () => {
-    // 비로그인 처리
+  const handleNonLogin = () => { // 비로그인 처리
     navigation.navigate(authNavigation.HOME);
   };
 
@@ -36,16 +29,6 @@ function AuthHomeScreen({navigation}:AuthHomeScreenProps) {
       <View style={[styles.buttonContainer, isTablet ? styles.tabletButton : styles.phoneButton]}>
         <KakaoLogin />
         <GoogleLogin />
-        {/* <Pressable
-          style={({pressed}) => [
-            styles.button,
-            styles.googleButton,
-            pressed && styles.buttonPressed,
-          ]}
-          onPress={handleGoogleLogin}
-        >
-          <Text style={isTablet ? styles.tabletButtonText : styles.buttonText}>구글 계정으로 계속하기</Text>
-        </Pressable> */}
         <Pressable
           style={({pressed}) => [
             styles.nonLoginButton,
@@ -83,34 +66,11 @@ const styling = (theme: themeMode) => StyleSheet.create({
     alignItems: 'center',
     gap: 10,
   },
-  button: {
-    width: '100%',
-    padding: 15,
-    borderRadius: 25,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   phoneButton: {
     maxWidth: 320,
   },
   tabletButton: {
     maxWidth: 680,
-  },
-  googleButton: {
-    backgroundColor: colors[theme].UNCHANGE_WHITE,
-    borderWidth: 1,
-    borderColor: colors[theme].GRAY_250,
-  },
-  buttonPressed: {
-    opacity: 0.8,
-  },
-  buttonText: {
-    fontSize: 16,
-    fontWeight: '500',
-  },
-  tabletButtonText: {
-    fontSize: 20,
-    fontWeight: '500',
   },
   nonLoginButton: {
     padding: 10,
