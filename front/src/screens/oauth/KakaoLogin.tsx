@@ -47,6 +47,10 @@ const KakaoLogin = () => {
         await setEncryptStorage('user_jwt', data.token);
         queryClient.setQueryData(['user'], data.user);
         navigation.navigate('Home');
+        // navigation.reset({
+        //   index: 0,
+        //   routes: [{ name: 'Home' }],
+        // });
       }
     },
     onError: (error) => {
