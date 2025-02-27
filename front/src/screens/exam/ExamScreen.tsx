@@ -1,14 +1,15 @@
 import React from 'react';
-import {StyleSheet, Text, View} from 'react-native';
+import {Text, View} from 'react-native';
+import { ScaledSheet } from 'react-native-size-matters';
 import DeviceInfo from 'react-native-device-info';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+// import useThemeStore, { themeMode } from '../../store/useThemeStore';
 
-interface examScreenProps {
 
-}
-
-function ExamScreen({}: examScreenProps) {
+function ExamScreen() {
   const isTablet = DeviceInfo.isTablet();
+  // const {theme} = useThemeStore();
+  const styles = styling();
 
   const insets = useSafeAreaInsets();
   return (
@@ -21,7 +22,7 @@ function ExamScreen({}: examScreenProps) {
   );
 }
 
-const styles = StyleSheet.create({
+const styling = () => ScaledSheet.create({
   container: {
     flex:1,
   },

@@ -1,7 +1,8 @@
 import React from 'react';
-import { View, Text, StyleSheet, Pressable, useWindowDimensions } from 'react-native';
+import { View, Text, Pressable, useWindowDimensions } from 'react-native';
 import DeviceInfo from 'react-native-device-info';
 import { StackScreenProps } from '@react-navigation/stack';
+import { ScaledSheet } from 'react-native-size-matters';
 import { AuthStackParamList } from '../../navigation/AuthStackNavigator';
 import BookView from './components/BookView';
 import { authNavigation } from '../../constants';
@@ -26,7 +27,7 @@ const HomeScreen = ({navigation}:AuthHomeScreenProps) => {
 
   return (
     <View style={styles.container}>
-        <View style={isTablet && width >= 600 ? styles.tabletContainer : styles.contentContainer}>
+        <View style={isTablet && width >= 600 ? styles.tabletContainer : styles.container}>
           <View style={styles.testLayout}>
           {title ? (
             <BookView title={title} coverColor={title} navigation={navigation} />
@@ -41,54 +42,23 @@ const HomeScreen = ({navigation}:AuthHomeScreenProps) => {
   );
 };
 
-const styling = (theme: themeMode) => StyleSheet.create({
+const styling = (theme: themeMode) => ScaledSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors[theme].WHITE,
+    // backgroundColor: colors[theme].WHITE,
   },
   tabletContainer: {
     flexDirection: 'row-reverse',
-    flex: 1,
-  },
-  contentContainer: {
     flex: 1,
   },
   testLayout: {
     flex: 1,
     backgroundColor: colors[theme].WHITE,
   },
-  navItemTablet: {
-    height: 60,
-    width: 160,
-    paddingVertical: 12,
-    justifyContent: 'center',
-    borderBottomWidth: 1,
-    borderBottomColor: colors[theme].GRAY_50,
-  },
-  bottomNav: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    paddingVertical: 8,
-    borderTopWidth: 1,
-    borderTopColor: colors[theme].GRAY_50,
-    backgroundColor: colors[theme].WHITE,
-  },
   loadingText: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  navItem: {
-    flex: 1,
-    height: 32,
-    justifyContent: 'center',
-    borderRightWidth: 1,
-    borderRightColor: colors[theme].GRAY_50,
-  },
-  navText: {
-    fontSize: 14,
-    color: colors[theme].GRAY_700,
-    textAlign: 'center',
   },
 });
 

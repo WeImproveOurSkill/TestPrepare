@@ -1,12 +1,6 @@
 import React from 'react';
-import {
-  Modal,
-  View,
-  Text,
-  Pressable,
-  StyleSheet,
-  Platform,
-} from 'react-native';
+import { Modal, View, Text, Pressable, Platform } from 'react-native';
+import { ScaledSheet } from 'react-native-size-matters';
 import useThemeStore, { themeMode } from '../../../store/useThemeStore';
 import { colors } from '../../../constants/colors';
 
@@ -86,7 +80,8 @@ const SelectModeModal = ({
   );
 };
 
-const styling = (theme: themeMode) => StyleSheet.create({
+const styling = (theme: themeMode) => ScaledSheet.create({
+
   overlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
@@ -124,7 +119,7 @@ const styling = (theme: themeMode) => StyleSheet.create({
     borderBottomColor: colors[theme].GRAY_200,
   },
   title: {
-    fontSize: 18,
+    fontSize: '20@ms0.2',
     fontWeight: 'bold',
     textAlign: 'center',
     color: colors[theme].GRAY_700,
@@ -140,7 +135,7 @@ const styling = (theme: themeMode) => StyleSheet.create({
     alignItems: 'center',
   },
   modeButtonText: {
-    fontSize: 20,
+    fontSize: '20@ms0.1',
     fontWeight: '400',
     color: colors[theme].GRAY_700,
   },
@@ -152,7 +147,7 @@ const styling = (theme: themeMode) => StyleSheet.create({
   },
   buttonText: {
     color: colors[theme].WHITE,
-    fontSize: 16,
+    fontSize: '16@ms0.1',
     fontWeight: '600',
   },
 });
