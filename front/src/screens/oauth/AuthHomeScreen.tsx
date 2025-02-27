@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, StyleSheet, Pressable, SafeAreaView } from 'react-native';
+import { View, Text, Pressable, SafeAreaView } from 'react-native';
+import { ScaledSheet } from 'react-native-size-matters';
 import DeviceInfo from 'react-native-device-info';
 import { StackScreenProps } from '@react-navigation/stack';
 import { AuthStackParamList } from '../../navigation/AuthStackNavigator';
@@ -23,10 +24,10 @@ function AuthHomeScreen({navigation}:AuthHomeScreenProps) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={[styles.title, isTablet ? styles.tabletTitle : styles.phoneTitle]}>
+      <Text style={styles.title}>
         기사는 한방에 기한82
       </Text>
-      <View style={[styles.buttonContainer, isTablet ? styles.tabletButton : styles.phoneButton]}>
+      <View style={[styles.buttonContainer, isTablet && styles.tabletButton]}>
         <KakaoLogin />
         <GoogleLogin />
         <Pressable
@@ -43,7 +44,8 @@ function AuthHomeScreen({navigation}:AuthHomeScreenProps) {
   );
 }
 
-const styling = (theme: themeMode) => StyleSheet.create({
+const styling = (theme: themeMode) => ScaledSheet.create({
+
   container: {
     flex: 1,
     backgroundColor: colors[theme].WHITE,
@@ -54,23 +56,15 @@ const styling = (theme: themeMode) => StyleSheet.create({
     color: colors[theme].MAIN,
     marginBottom: 40,
     textAlign: 'center',
-  },
-  phoneTitle: {
-    fontSize: 24,
-  },
-  tabletTitle: {
-    fontSize: 32,
+    fontSize: '24@ms0.2',
   },
   buttonContainer: {
-    width: '100%',
+    width: '80%',
     alignItems: 'center',
     gap: 10,
   },
-  phoneButton: {
-    maxWidth: 320,
-  },
   tabletButton: {
-    maxWidth: 680,
+    maxWidth: 600,
   },
   nonLoginButton: {
     padding: 10,
@@ -79,7 +73,7 @@ const styling = (theme: themeMode) => StyleSheet.create({
     opacity: 0.6,
   },
   nonLoginButtonText: {
-    fontSize: 14,
+    fontSize: '14@ms0.2',
     color: colors[theme].GRAY_400,
   },
 });

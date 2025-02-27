@@ -1,9 +1,9 @@
 import React from 'react';
-import { Pressable, StyleSheet, Text } from 'react-native';
+import { Pressable, Text } from 'react-native';
+import { ScaledSheet } from 'react-native-size-matters';
 import { login, getProfile, KakaoProfile, KakaoOAuthToken } from '@react-native-seoul/kakao-login';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import DeviceInfo from 'react-native-device-info';
 import { colors } from '../../constants/colors';
 import useThemeStore, { themeMode } from '../../store/useThemeStore';
 import { AuthStackParamList } from '../../navigation/AuthStackNavigator';
@@ -20,7 +20,6 @@ type KakaoLoginResponse = {
 const KakaoLogin = () => {
   const {theme} = useThemeStore();
   const styles = styling(theme);
-  const isTablet = DeviceInfo.isTablet();
   const queryClient = useQueryClient();
   const navigation = useNavigation<StackNavigationProp<AuthStackParamList>>();
 
@@ -83,48 +82,33 @@ const KakaoLogin = () => {
 
 
   return (
-            <Pressable
-              style={({pressed}) => [
-                styles.button,
-                pressed && styles.buttonPressed,
-                isTablet ? styles.tabletButton : styles.phoneButton,
-              ]}
-              onPress={() => handleKakaoLogin()}
-            >
-              <Text style={isTablet ? styles.tabletButtonText : styles.phoneButtonText}>카카오 계정으로 계속하기</Text>
-            </Pressable>
+    <Pressable
+      style={({pressed}) => [
+        styles.button,
+        pressed && styles.buttonPressed,
+      ]}
+      onPress={() => handleKakaoLogin()}
+    >
+      <Text style={styles.buttonText}>카카오 계정으로 계속하기</Text>
+    </Pressable>
   );
 };
 
-const styling = (theme: themeMode) => StyleSheet.create({
-  buttonContainer: {
-    width: '100%',
-    alignItems: 'center',
-    gap: 10,
-  },
+const styling = (theme: themeMode) => ScaledSheet.create({
+
   button: {
     width: '100%',
-    padding: 15,
+    padding: '15@ms0.3',
     borderRadius: 25,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: colors[theme].YELLOW_400,
   },
-  phoneButton: {
-    padding: 16,
-  },
-  tabletButton: {
-    padding: 20,
-  },
   buttonPressed: {
     opacity: 0.8,
   },
-  phoneButtonText: {
-    fontSize: 16,
-    fontWeight: '500',
-  },
-  tabletButtonText: {
-    fontSize: 20,
+  buttonText: {
+    fontSize: '16@ms0.2',
     fontWeight: '500',
   },
 });

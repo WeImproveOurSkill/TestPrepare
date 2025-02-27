@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, Platform, Text, Pressable } from 'react-native';
+import { View, Platform, Text, Pressable } from 'react-native';
+import { ScaledSheet } from 'react-native-size-matters';
 import SelectModeModal from './SelectModeModal';
 import { AuthStackParamList } from '../../../navigation/AuthStackNavigator';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -23,6 +24,7 @@ type BookViewProps = {
 
 const BookView = ({ coverColor, title, navigation}: BookViewProps) => {
   const [isVisible, setIsVisible] = useState(false);
+  const styles = styling();
 
   const handleQuizPress = () => {
     navigation.navigate('Quiz');
@@ -109,13 +111,14 @@ const getColor = (color?: ColorKeys | string): string => {
 //     darkerB.toString(16).padStart(2, '0');
 // };
 
-const styles = StyleSheet.create({
+const styling = () => ScaledSheet.create({
+
   container: {
     padding: 30,
   },
   bookCover: {
-    width: 150,
-    height: 200,
+    width: '150@ms0.1',
+    height: '200@mvs0.2',
     borderRadius: 5,
     ...Platform.select({
       ios: {
@@ -162,17 +165,16 @@ const styles = StyleSheet.create({
   },
   titleText: {
     color: '#fff',
-    fontSize: 20,
+    fontSize: '20@ms0.2',
     fontWeight: 'bold',
     textAlign: 'center',
-    // marginBottom: 8,
     textShadowColor: 'rgba(0, 0, 0, 0.3)',
     textShadowOffset: { width: 1, height: 1 },
     textShadowRadius: 1,
   },
   authorText: {
     color: '#fff',
-    fontSize: 12,
+    fontSize: '12@ms0.2',
     textAlign: 'center',
     opacity: 0.8,
     textShadowColor: 'rgba(0, 0, 0, 0.3)',

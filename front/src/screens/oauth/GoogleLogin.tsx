@@ -1,7 +1,7 @@
 import React from 'react';
-import {StyleSheet, Text, Pressable} from 'react-native';
+import { Text, Pressable } from 'react-native';
+import { ScaledSheet } from 'react-native-size-matters';
 import useThemeStore, { themeMode } from '../../store/useThemeStore';
-import DeviceInfo from 'react-native-device-info';
 import { colors } from '../../constants/colors';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import Config from 'react-native-config';
@@ -15,7 +15,6 @@ GoogleSignin.configure({
 function GoogleLogin() {
   const {theme} = useThemeStore();
   const styles = styling(theme);
-  const isTablet = DeviceInfo.isTablet();
 
   const handleGoogleLogin = async () => {
     // try {
@@ -59,36 +58,23 @@ function GoogleLogin() {
    <Pressable
       style={({pressed}) => [
         styles.button,
-        styles.googleButton,
         pressed && styles.buttonPressed,
       ]}
       onPress={handleGoogleLogin}
     >
-      <Text style={isTablet ? styles.tabletButtonText : styles.buttonText}>구글 계정으로 계속하기</Text>
+      <Text style={styles.buttonText}>구글 계정으로 계속하기</Text>
     </Pressable>
   );
 }
 
-const styling = (theme:themeMode) => StyleSheet.create({
-  buttonContainer: {
-    width: '100%',
-    alignItems: 'center',
-    gap: 10,
-  },
+const styling = (theme: themeMode) => ScaledSheet.create({
+
   button: {
     width: '100%',
-    padding: 15,
+    padding: '15@ms0.3',
     borderRadius: 25,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  phoneButton: {
-    maxWidth: 320,
-  },
-  tabletButton: {
-    maxWidth: 680,
-  },
-  googleButton: {
     backgroundColor: colors[theme].UNCHANGE_WHITE,
     borderWidth: 1,
     borderColor: colors[theme].GRAY_250,
@@ -97,11 +83,7 @@ const styling = (theme:themeMode) => StyleSheet.create({
     opacity: 0.8,
   },
   buttonText: {
-    fontSize: 16,
-    fontWeight: '500',
-  },
-  tabletButtonText: {
-    fontSize: 20,
+    fontSize: '16@ms0.2',
     fontWeight: '500',
   },
 });
