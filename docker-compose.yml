@@ -3,17 +3,17 @@ volumes:
   mysql_slave_data: {}
 
 services:
-  nginx:
-    image: nginx
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./nginx/logs:/var/log/nginx
-      - ./nginx/html:/usr/share/nginx/html
-    networks:
-      - app_network
+  # nginx:
+  #   image: nginx
+  #   ports:
+  #     - "80:80"
+  #     - "443:443"
+  #   volumes:
+  #     - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+  #     - ./nginx/logs:/var/log/nginx
+  #     - ./nginx/html:/usr/share/nginx/html
+  #   networks:
+  #     - app_network
   mysql-master:
     image: mysql:8.0
     container_name: database-master
@@ -27,12 +27,16 @@ services:
       - "3307:3306"
     volumes:
       - mysql_master_data:/var/lib/mysql
+      - ./mysql-master-init.sql:/docker-entrypoint-initdb.d/init.sql
     command:
       - --character-set-server=utf8mb4
       - --collation-server=utf8mb4_unicode_ci
       - --server-id=1
       - --log-bin=mysql-bin
       - --binlog-format=row
+      - --gtid_mode=ON
+      - --enforce-gtid-consistency=ON
+      - --log-slave-updates=ON
     networks:
       - app_network
     healthcheck:
@@ -54,28 +58,32 @@ services:
       - "3308:3306"
     volumes:
       - mysql_slave_data:/var/lib/mysql
+      - ./mysql-slave-init.sql:/docker-entrypoint-initdb.d/init.sql
     command:
       - --character-set-server=utf8mb4
       - --collation-server=utf8mb4_unicode_ci
       - --server-id=2
       - --relay-log=mysql-relay-bin
+      - --gtid_mode=ON
+      - --enforce-gtid-consistency=ON
+      - --log-slave-updates=ON
     depends_on:
       mysql-master:
         condition: service_healthy
     networks:
       - app_network
 
-  spring-app:
-    image: skyriv213/testprepare:latest
-    container_name: spring_app
-    ports:
-      - "8080:8080"
-    depends_on:
-      mysql-master:
-        condition: service_healthy
-    networks:
-      - app_network
-    restart: unless-stopped
+  # spring-app:
+  #   image: skyriv213/testprepare:latest
+  #   container_name: spring_app
+  #   ports:
+  #     - "8080:8080"
+  #   depends_on:
+  #     mysql-master:
+  #       condition: service_healthy
+  #   networks:
+  #     - app_network
+  #   restart: unless-stopped
 
 networks:
   app_network:

@@ -28,9 +28,8 @@ public class CertificationRepositoryQueryImpl implements CertificationRepository
         List<QuestionDto> questionDtos = jpaQueryFactory.select(Projections.constructor(
                 QuestionDto.class,
                 question.id.as("questionId"),
-                question.questionContent.as("question"),
-                question.questionType,
-                question.choices,
+                question.content.as("question"),
+
                 answer.answerText.as("answer"),
                 answer.explanation
         )).from(certification)

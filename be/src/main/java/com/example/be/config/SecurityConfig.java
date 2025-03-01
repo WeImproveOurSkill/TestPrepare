@@ -29,7 +29,7 @@ public class SecurityConfig {
             "http://localhost:3000",
             "https://localhost:3000",
             "https://kauth.kakao.com/**",
-            "*"
+            "http://220.85.221.62"
     };
 
     private final String[] permitAllArray = {
