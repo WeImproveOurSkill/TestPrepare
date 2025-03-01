@@ -75,12 +75,24 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public JSONObject kakaoCallback(JSONObject object) throws ParseException {
-        String accessToken = (String) object.get("accessToken");
+        // accessToken 객체에서 토큰 값 추출
+        Object accessTokenObj = object.get("accessToken");
+        String accessToken = accessTokenObj instanceof String ? 
+            (String) accessTokenObj : 
+            String.valueOf(accessTokenObj);
+
+        // 디버깅을 위한 로그 추가
+        System.out.println("Processed access token: " + accessToken);
         
         // 카카오 API로 사용자 정보 조회
         HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", "Bearer " + accessToken);
+        headers.add("Authorization", "Bearer " + accessToken);
+        headers.add("Content-type", "application/x-www-form-urlencoded;charset=utf-8");
+        
         HttpEntity<String> entity = new HttpEntity<>(headers);
+        
+        // API 호출 전 헤더 확인
+        System.out.println("Request headers: " + headers);
         
         ResponseEntity<Map> userInfoResponse = restTemplate.exchange(
             "https://kapi.kakao.com/v2/user/me",

@@ -77,3 +77,17 @@ tasks.named('asciidoctor') {
 	inputs.dir snippetsDir
 	dependsOn test
 }
+
+tasks.withType(JavaCompile).configureEach {
+	options.annotationProcessorGeneratedSourcesDirectory = file("$buildDir/generated/sources/annotationProcessor/java/main")
+}
+
+tasks.register('cleanGenerated', Delete) {
+	delete file("$buildDir/generated")
+}
+
+clean.dependsOn cleanGenerated
+
+
+
+

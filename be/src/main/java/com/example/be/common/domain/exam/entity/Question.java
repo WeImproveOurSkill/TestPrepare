@@ -8,23 +8,16 @@ import lombok.*;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Table(name = "questions")
 public class Question {
-
-    public enum QuestionType {
-        객관식, 주관식
-    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Enumerated(EnumType.STRING)
-    private QuestionType questionType;
-
-    private String questionContent;
-
     @Lob
-    private String choices; // JSON 형식 저장
+    @Column(columnDefinition = "TEXT")
+    private String content; // 문제 내용과 선택지를 포함한 전체 내용
 
     private String imageLink;
 
@@ -34,4 +27,20 @@ public class Question {
 
     @OneToOne(mappedBy = "question", cascade = CascadeType.ALL, orphanRemoval = true)
     private Answer answer;
+
+    // content에서 선택지 부분만 추출하는 메서드
+    public String getChoices() {
+        if (content != null) {
+            return content.replaceAll(".*?(?=1\\)|$)", "");
+        }
+        return null;
+    }
+
+    // content에서 문제 내용만 추출하는 메서드
+    public String getQuestionContent() {
+        if (content != null) {
+            return content.replaceAll("(?:1\\)|2\\)|3\\)|4\\)|5\\)).*", "").trim();
+        }
+        return null;
+    }
 }
