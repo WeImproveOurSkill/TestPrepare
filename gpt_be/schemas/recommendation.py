@@ -2,10 +2,10 @@ from pydantic import BaseModel
 from typing import List, Optional, Dict
 
 class QuestionRecommendation(BaseModel):
-    question_id: int
-    subject_name: str
-    difficulty: float
-    tags: List[str]
+    questionId: int
+    content: str
+    answer: str
+    explanation: str
     
     class Config:
         orm_mode = True
@@ -22,8 +22,16 @@ class ContentRecommendationResponse(BaseModel):
         orm_mode = True
 
 class GptAssistanceRequest(BaseModel):
-    question: str
+    questionId: int
+    content: str
+    answer: str
     context: Optional[Dict[str, str]] = None
 
 class GptAssistanceResponse(BaseModel):
-    answer: str 
+    questionId: int
+    content: str
+    answer: str
+    explanation: str
+    
+    class Config:
+        orm_mode = True 

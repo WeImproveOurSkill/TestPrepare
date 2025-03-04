@@ -2,9 +2,17 @@ from fastapi import FastAPI
 from routers import recommendation
 from middleware.auth_middleware import AuthMiddleware
 from utils.auth import auth_handler
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
 app.add_middleware(AuthMiddleware)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # 실제 운영에서는 특정 도메인만 허용
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @app.get("/")
