@@ -35,7 +35,7 @@ public class SecurityConfig {
     private final String[] permitAllArray = {
             "/oauth2/authorization/**",
             "/login/oauth2/code/**",
-            "/",
+//            "/",
             "/exam",
             "/oauth/callback/**"
     };
