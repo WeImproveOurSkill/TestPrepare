@@ -10,7 +10,7 @@ const createHeaders = async (): Promise<Headers> => {
   try {
     const token = await getEncryptStorage('user_jwt');
     if (token) {
-      headers.append('Authorization', `Bearer ${token}`);
+      headers.append('Authorization', token); // Bearer 제거, 토큰만 사용
     }
   } catch (error) {
     console.log('토큰이 없거나 가져오는 중 오류 발생');
@@ -22,12 +22,14 @@ const createHeaders = async (): Promise<Headers> => {
 // GET 요청
 export const fetchGet = async <T>(endpoint: string): Promise<T> => {
   const headers = await createHeaders();
-
+  console.log('Request Headers:', headers);
 
   const response = await fetch(`${Config.BASE_URL}${endpoint}`, {
     headers,
     credentials: 'include',
   });
+  console.log(`${Config.BASE_URL}${endpoint}`);
+
 
   if (!response.ok) {
     throw new Error(`HTTP error! Status: ${response.status}`);
