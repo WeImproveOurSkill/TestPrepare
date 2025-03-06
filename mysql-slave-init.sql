@@ -5,6 +5,8 @@ CHANGE MASTER TO
     MASTER_HOST='database-master',
     MASTER_USER='repl_user',
     MASTER_PASSWORD='repl_password',
+    MASTER_PORT=3306,
+    GET_MASTER_PUBLIC_KEY=1,
     MASTER_AUTO_POSITION=1;
 
 START SLAVE;

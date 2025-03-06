@@ -37,6 +37,8 @@ services:
       - --gtid_mode=ON
       - --enforce-gtid-consistency=ON
       - --log-slave-updates=ON
+      - --sync_binlog=1
+      - --binlog-do-db=project
     networks:
       - app_network
     healthcheck:
@@ -67,6 +69,8 @@ services:
       - --gtid_mode=ON
       - --enforce-gtid-consistency=ON
       - --log-slave-updates=ON
+      - --read-only=1
+      - --replicate-do-db=project
     depends_on:
       mysql-master:
         condition: service_healthy

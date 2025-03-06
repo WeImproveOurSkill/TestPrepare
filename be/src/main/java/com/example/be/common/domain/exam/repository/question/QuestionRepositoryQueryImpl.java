@@ -15,8 +15,8 @@ public class QuestionRepositoryQueryImpl implements QuestionRepositoryQuery {
     private final JPAQueryFactory jpaQueryFactory;
 
     @Override
-    public QuestionDto findByQuestionBySubjectSizeCount(Long subjectId, Long questionId) {
-        return jpaQueryFactory
+    public QuestionDto findByQuestionBySubjectSizeCount(Long subjectExamId, Long questionId) {
+        QuestionDto questionDto = jpaQueryFactory
                 .select(Projections.constructor(
                         QuestionDto.class,
                         question.id.as("questionId"),
@@ -26,7 +26,12 @@ public class QuestionRepositoryQueryImpl implements QuestionRepositoryQuery {
                 .from(subjectExam)
                 .leftJoin(subjectExam.questions, question)
                 .leftJoin(question.answer, answer)
-                .where(subjectExam.id.eq(subjectId), question.id.eq(questionId+1))
+                .where(
+                        subjectExam.id.eq(subjectExamId),
+                        question.id.eq(questionId + 1))
                 .fetchOne();
+        return questionDto;
     }
+
+
 }

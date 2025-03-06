@@ -44,8 +44,9 @@ public class ExamController {
     @GetMapping("/subject/{subjectId}/random")
     public ResponseEntity<QuestionDto> getRandomQuestionsBySubject(
             @PathVariable Long subjectId,
-            @RequestParam(defaultValue = "-1") Long questionId) {
-        return ResponseEntity.ok(examService.getRandomQuestionsBySubject(subjectId, questionId));
+            @RequestParam(defaultValue = "0") Long questionId) {
+        QuestionDto randomQuestionsBySubject = examService.getRandomQuestionsBySubject(subjectId, questionId);
+        return ResponseEntity.ok(randomQuestionsBySubject);
     }
 
     // 문제 풀이 제출 - 시험 모드
