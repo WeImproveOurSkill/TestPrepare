@@ -17,7 +17,11 @@ type KakaoLoginResponse = {
   accessToken: string;
 }
 
-const KakaoLogin = () => {
+type KakaoLoginProps = {
+  onLoginSuccess?: () => void;
+};
+
+function KakaoLogin({ onLoginSuccess }: KakaoLoginProps) {
   const {theme} = useThemeStore();
   const styles = styling(theme);
   const queryClient = useQueryClient();
@@ -74,6 +78,7 @@ const KakaoLogin = () => {
     onSuccess: (loginData) => {
       console.log('Kakao login success:', loginData);
       sendTokensToBackend(loginData);
+      onLoginSuccess?.();
     },
     onError: (error) => {
       console.error('Kakao login failed:', error);
@@ -92,7 +97,7 @@ const KakaoLogin = () => {
       <Text style={styles.buttonText}>카카오 계정으로 계속하기</Text>
     </Pressable>
   );
-};
+}
 
 const styling = (theme: themeMode) => ScaledSheet.create({
 

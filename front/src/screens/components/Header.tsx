@@ -24,11 +24,8 @@ const styling = (theme: themeMode, insets: EdgeInsets) => ScaledSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    // 동적 safe area 값은 그대로 사용하고, 추가 오프셋은 스케일링 주석 적용
     paddingTop: insets.top + 10,
-    // 세로 패딩은 수직 스케일링 적용(@vs)
     paddingVertical: '10@vs',
-    // 가로 패딩은 가로 스케일링 적용(@s)
     paddingHorizontal: '20@ms',
     backgroundColor: colors[theme].WHITE,
     borderBottomColor: colors[theme].GRAY_200,
@@ -36,7 +33,7 @@ const styling = (theme: themeMode, insets: EdgeInsets) => ScaledSheet.create({
   },
   title: {
     fontSize: '20@ms0.3',
-    fontWeight: 'bold',
+    fontWeight: '600',
     color: colors[theme].MAIN,
   },
   loginButton: {

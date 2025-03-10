@@ -22,7 +22,6 @@ const createHeaders = async (): Promise<Headers> => {
 // GET 요청
 export const fetchGet = async <T>(endpoint: string): Promise<T> => {
   const headers = await createHeaders();
-  console.log('Request Headers:', headers);
 
   const response = await fetch(`${Config.BASE_URL}${endpoint}`, {
     headers,
@@ -43,7 +42,7 @@ export const fetchPost = async <T>(endpoint: string, data: any): Promise<T> => {
   const headers = await createHeaders();
 
 
-  const response = await fetch(`${Config.BASE_URL}/${endpoint}`, {
+  const response = await fetch(`${Config.BASE_URL}${endpoint}`, {
     method: 'POST',
     headers,
     credentials: 'include',
@@ -62,7 +61,7 @@ export const fetchPut = async <T>(endpoint: string, data: any): Promise<T> => {
   const headers = await createHeaders();
 
 
-  const response = await fetch(`${Config.BASE_URL}/${endpoint}`, {
+  const response = await fetch(`${Config.BASE_URL}${endpoint}`, {
     method: 'PUT',
     headers,
     credentials: 'include',
@@ -92,7 +91,7 @@ export const fetchDelete = async <T>(endpoint: string, data?: any): Promise<T> =
     options.body = JSON.stringify(data);
   }
 
-  const response = await fetch(`${Config.BASE_URL}/${endpoint}`, options);
+  const response = await fetch(`${Config.BASE_URL}${endpoint}`, options);
 
   if (!response.ok) {
     throw new Error(`HTTP error! Status: ${response.status}`);

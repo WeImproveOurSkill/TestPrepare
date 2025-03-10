@@ -1,12 +1,12 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import {View, Text, Platform} from 'react-native';
 import { ScaledSheet } from 'react-native-size-matters';
-import PagerView from 'react-native-pager-view';
 import { useQuery } from '@tanstack/react-query';
 import { EdgeInsets, useSafeAreaInsets } from 'react-native-safe-area-context';
 import useThemeStore, { themeMode } from '../../store/useThemeStore';
 import { colors } from '../../constants/colors';
 import ExamHeader from '../components/ExamHeader';
+import CustomPagerView from '../components/CustomPagerView';
 import { fetchGet } from '../../util/api';
 
 type QuestionData = {
@@ -27,7 +27,7 @@ function StudyScreen() {
   // 현재 문제 로드
   const { data: currentQuestion } = useQuery<QuestionData>({
     queryKey: ['questions', 'current'],
-    queryFn: () => fetchGet<QuestionData>('/exam/subject/1/random'),
+    queryFn: () => fetchGet<QuestionData>('exam/subject/1/random'),
   });
 
   // 현재 문제 데이터 처리
@@ -54,8 +54,6 @@ function StudyScreen() {
       }
     }
   }, [currentQuestion, prefetchNextQuestion]);
-  console.log(questions);
-
 
   const handlePageChange = useCallback(async (e: any) => {
     const newPosition = e.nativeEvent.position;
@@ -65,26 +63,28 @@ function StudyScreen() {
     }
   }, [questions.length, prefetchNextQuestion]);
 
+  const renderQuestions = useMemo(() => {
+    return questions.map((question, index) => (
+      <View key={`${question.questionId}_${index}`} style={styles.page}>
+        <View style={styles.QuestionTitle}>
+          <Text style={styles.questionText}>{question.content}</Text>
+        </View>
+        <View style={styles.MultipleChoiceAnswers}>
+          <Text style={styles.answerText}>{question.answer}</Text>
+        </View>
+      </View>
+    ));
+  }, [questions, styles]);
+
   return (
     <View style={styles.container}>
       <ExamHeader />
-      <PagerView
-        style={styles.content}
-        initialPage={0}
-        orientation="vertical"
+      <CustomPagerView
         onPageSelected={handlePageChange}
+        enableAnimation={true}
       >
-        {questions.map((question, index) => (
-          <View key={`${question.questionId}_${index}`} style={styles.page}>
-            <View style={styles.QuestionTitle}>
-              <Text style={styles.questionText}>{question.content}</Text>
-            </View>
-            <View style={styles.MultipleChoiceAnswers}>
-              <Text style={styles.answerText}>{question.answer}</Text>
-            </View>
-          </View>
-        ))}
-      </PagerView>
+        {renderQuestions}
+      </CustomPagerView>
       <View style={styles.explanationButton}>
         <Text style={styles.explanationText}>해설보기</Text>
       </View>
