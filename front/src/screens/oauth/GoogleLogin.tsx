@@ -12,7 +12,13 @@ GoogleSignin.configure({
   iosClientId: Config.IOS_CLIENT_ID,
 });
 
-function GoogleLogin() {
+// type GoogleLoginProps = {
+//   onLoginSuccess?: () => void;
+// };
+
+function GoogleLogin(
+  // { onLoginSuccess }: GoogleLoginProps
+) {
   const {theme} = useThemeStore();
   const styles = styling(theme);
 
@@ -52,6 +58,11 @@ function GoogleLogin() {
     //   //   }
     //   // }
     // }
+     // 로그인 성공 후
+  //    onLoginSuccess?.();
+  //   } catch (error) {
+  //     console.error('Google Login Error:', error);
+  //   }
   };
 
   return (
@@ -89,4 +100,3 @@ const styling = (theme: themeMode) => ScaledSheet.create({
 });
 
 export default GoogleLogin;
-
