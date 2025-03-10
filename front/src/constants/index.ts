@@ -6,6 +6,7 @@ const authNavigation = {
   STUDY: 'Study',
   QUIZ: 'Quiz',
   BottomTabNavigator: 'BottomTabNavigator',
+  SELECT_CERTIFICATION: 'SelectCertification',
 } as const;
 
 const BottomTabNavigation = {

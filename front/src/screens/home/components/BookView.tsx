@@ -7,22 +7,22 @@ import { StackNavigationProp } from '@react-navigation/stack';
 
 
 const COLOR_MAPPING = {
-  electricity: '#4A90E2',  // 전기 계열 파란색
-  architecture: '#9B59B6', // 건축 계열 보라색
-  interior: '#2ECC71',     // 인테리어 계열 초록색
+  '정보처리기사': '#4A90E2',  // 정보처리 계열 파란색
+  '전기기사': '#4A90E2',     // 전기 계열 초록색
+  '인테리어기사': '#2ECC71', // 인테리어 계열 보라색
+  '토목기사': '#E67E22',     // 토목 계열 주황색
+  '건축기사': '#E74C3C',     // 건축 계열 빨간색
   default: '#2980b9',       // 기본 색상
 } as const;
 
 type ColorKeys = keyof typeof COLOR_MAPPING;
 
 type BookViewProps = {
-  // subjectId: string
-  coverColor?: ColorKeys | string;
   title: string;
   navigation: StackNavigationProp<AuthStackParamList>;
 }
 
-const BookView = ({ coverColor, title, navigation}: BookViewProps) => {
+const BookView = ({ title, navigation }: BookViewProps) => {
   const [isVisible, setIsVisible] = useState(false);
   const styles = styling();
 
@@ -38,36 +38,11 @@ const BookView = ({ coverColor, title, navigation}: BookViewProps) => {
     navigation.navigate('Exam');
   };
 
-  // const spineColor = getDarkerColor(coverColor);
-  // const handleSelectLicense = () => {
-  //   navigation.navigate(authNavigation.EXAM, {
-  //     subjectId,
-  //   });
-  // };
-  // 색상 결정 함수
+  const getColor = (title: string) => {
+    return COLOR_MAPPING[title as ColorKeys] || COLOR_MAPPING.default;
+  };
 
-  // getColor 함수의 매개변수 타입을 수정
-const getColor = (color?: ColorKeys | string): string => {
-  // color가 없을 경우 기본 색상 반환
-  if (!color) {
-    return COLOR_MAPPING.default;
-  }
-
-  // COLOR_MAPPING에 있는 키값인지 확인
-  if (color in COLOR_MAPPING) {
-    return COLOR_MAPPING[color as ColorKeys];
-  }
-
-  // 직접 입력된 hex 색상 코드인 경우
-  if (color.startsWith('#')) {
-    return color;
-  }
-
-  // 그 외의 경우 기본 색상 반환
-  return COLOR_MAPPING.default;
-};
-
-  const backgroundColor = getColor(coverColor);
+  const backgroundColor = getColor(title);
 
   return (
     <Pressable style={styles.container} onPress={() => setIsVisible(true)}>
