@@ -47,7 +47,7 @@ public class QuestionRepositoryQueryImpl implements QuestionRepositoryQuery {
                 .leftJoin(question.answer, answer)
                 .where(
                         subjectExam.id.eq(subjectExamId),
-                        question.id.mod(Long.valueOf(integer)).eq(1L)).fetch();
+                        question.id.mod(Long.valueOf(integer)).eq(1L)).limit(20).fetch();
 
         return questionDtos;
     }
