@@ -9,10 +9,12 @@ import java.util.List;
 public interface ExamService {
     List<QuestionDto> getQuestionsByCertification(String name, int year, String session);
 
-    QuestionDto getRandomQuestionsBySubject(Long subjectId, Long questionId);
+    QuestionDto getQuestionsBySubject(Long subjectId, Long questionId);
 
 
     List<CertificationDto> getCertificationList();
 
     List<SubjectDto> getSubject(Long certificationId);
+
+    List<QuestionDto> getRandomQuestionsBySubject(Long subjectId);
 }
