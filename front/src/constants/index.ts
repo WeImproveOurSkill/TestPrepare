@@ -5,12 +5,12 @@ const authNavigation = {
   EXAM: 'Exam',
   STUDY: 'Study',
   QUIZ: 'Quiz',
-  BottomTabNavigator: 'BottomTabNavigator',
+  MainTabNavigator: 'MainTabNavigator',
   SELECT_CERTIFICATION: 'SelectCertification',
 } as const;
 
 const BottomTabNavigation = {
-  HOME: 'Home',
+  HOME: 'TabHome',
   EXAM: 'Exam',
   STUDY: 'Study',
   QUIZ: 'Quiz',
