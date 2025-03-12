@@ -58,4 +58,24 @@ public class UserDetailsImpl implements UserDetails, OAuth2User {
     public String getUsername() {
         return user.getUsername();
     }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;  // 계정 만료 여부
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;  // 계정 잠금 여부
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;  // 비밀번호 만료 여부
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return true;  // 계정 활성화 여부
+    }
 }

@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -41,7 +42,7 @@ public class ExamServiceImpl implements ExamService {
      */
     @Override
     @Transactional(readOnly = true)
-    public QuestionDto getRandomQuestionsBySubject(Long subjectId,Long questionId) {
+    public QuestionDto getQuestionsBySubject(Long subjectId, Long questionId) {
         return questionRepository.findByQuestionBySubjectSizeCount(subjectId, questionId);
     }
 
@@ -55,6 +56,11 @@ public class ExamServiceImpl implements ExamService {
     @Transactional(readOnly = true)
     public List<SubjectDto> getSubject(Long certificationId) {
         return subjectRepository.getSubjectByCertificationId(certificationId);
+    }
+
+    @Override
+    public List<QuestionDto> getRandomQuestionsBySubject(Long subjectId) {
+        return questionRepository.findAllbySubjectIdAndRandomNumber(subjectId, Integer.valueOf(String.valueOf(LocalDateTime.now().getSecond()).substring(1))+1);
     }
 
 }

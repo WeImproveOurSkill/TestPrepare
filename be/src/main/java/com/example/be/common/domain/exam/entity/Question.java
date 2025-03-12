@@ -2,8 +2,10 @@ package com.example.be.common.domain.exam.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import com.querydsl.core.annotations.QueryEntity;
 
 @Entity
+@QueryEntity
 @Getter
 @Builder
 @NoArgsConstructor
@@ -22,7 +24,7 @@ public class Question {
     private String imageLink;
 
     @ManyToOne
-    @JoinColumn(name = "subject_id")
+    @JoinColumn(name = "subject_exam_id")
     private SubjectExam subjectExam;
 
     @OneToOne(mappedBy = "question", cascade = CascadeType.ALL, orphanRemoval = true)

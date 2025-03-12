@@ -29,15 +29,18 @@ public class SecurityConfig {
             "http://localhost:3000",
             "https://localhost:3000",
             "https://kauth.kakao.com/**",
-            "http://220.85.221.62"
+            "http://220.85.221.62",
+            "http://223.131.169.45",
+            "*"
     };
 
     private final String[] permitAllArray = {
             "/oauth2/authorization/**",
             "/login/oauth2/code/**",
-            "/",
-            "/exam",
-            "/oauth/callback/**"
+//            "/",
+            "/exam/*",
+            "/oauth/callback/**",
+            "/*"
     };
 
     private final OAuth2SuccessHandler oAuth2SuccessHandler;
@@ -70,7 +73,8 @@ public class SecurityConfig {
         http.authorizeHttpRequests(auth ->
                 auth.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers(permitAllArray).permitAll()
-                        .anyRequest().authenticated());
+                        .anyRequest().permitAll());
+
 
         http.oauth2Login(loginConf ->
                 loginConf.successHandler(oAuth2SuccessHandler));

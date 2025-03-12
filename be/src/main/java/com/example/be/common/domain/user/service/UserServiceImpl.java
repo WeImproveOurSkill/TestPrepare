@@ -75,47 +75,95 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public JSONObject kakaoCallback(JSONObject object) throws ParseException {
-        // accessToken 객체에서 토큰 값 추출
-        Object accessTokenObj = object.get("accessToken");
-        String accessToken = accessTokenObj instanceof String ? 
-            (String) accessTokenObj : 
-            String.valueOf(accessTokenObj);
+        try {
+            // accessToken 검증 및 추출
+            if (!object.containsKey("accessToken")) {
+                throw new IllegalArgumentException("액세스 토큰이 존재하지 않습니다.");
+            }
 
-        // 디버깅을 위한 로그 추가
-        System.out.println("Processed access token: " + accessToken);
-        
-        // 카카오 API로 사용자 정보 조회
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Authorization", "Bearer " + accessToken);
-        headers.add("Content-type", "application/x-www-form-urlencoded;charset=utf-8");
-        
-        HttpEntity<String> entity = new HttpEntity<>(headers);
-        
-        // API 호출 전 헤더 확인
-        System.out.println("Request headers: " + headers);
-        
-        ResponseEntity<Map> userInfoResponse = restTemplate.exchange(
-            "https://kapi.kakao.com/v2/user/me",
-            HttpMethod.GET,
-            entity,
-            Map.class
-        );
-        
-        Map<String, Object> attributes = userInfoResponse.getBody();
-        KakaoUserInfo kakaoUserInfo = new KakaoUserInfo(attributes);
-        
-        // 사용자 정보 저장 또는 조회
-        String oauth2Id = kakaoUserInfo.getProvider() + "_" + kakaoUserInfo.getProviderId();
-        User user = userRepository.findByOauth2Id(oauth2Id)
-            .orElseGet(() -> signupByOAuth(kakaoUserInfo));
-        
-        // JWT 토큰 생성
-        String token = jwtUtil.createToken(user.getUsername(), String.valueOf(user.getRole()));
-        
-        JSONObject response = new JSONObject();
-        response.put("token", token);
-        response.put("user", user);
-        
-        return response;
+            Object accessTokenObj = object.get("accessToken");
+            String accessToken = accessTokenObj instanceof String ? 
+                (String) accessTokenObj : 
+                String.valueOf(accessTokenObj);
+
+            if (accessToken == null || accessToken.trim().isEmpty()) {
+                throw new IllegalArgumentException("액세스 토큰이 유효하지 않습니다.");
+            }
+
+            // 디버깅을 위한 로그 추가
+            System.out.println("Processed access token: " + accessToken);
+            
+            // 카카오 API로 사용자 정보 조회
+            HttpHeaders headers = new HttpHeaders();
+            headers.add("Authorization", "Bearer " + accessToken);
+            headers.add("Content-type", "application/x-www-form-urlencoded;charset=utf-8");
+            
+            HttpEntity<String> entity = new HttpEntity<>(headers);
+            
+            // API 호출 전 헤더 확인
+            System.out.println("Request headers: " + headers);
+            
+            Map<String, Object> attributes;
+            try {
+                ResponseEntity<Map> userInfoResponse = restTemplate.exchange(
+                    "https://kapi.kakao.com/v2/user/me",
+                    HttpMethod.GET,
+                    entity,
+                    Map.class
+                );
+                attributes = userInfoResponse.getBody();
+                
+                if (attributes == null) {
+                    throw new RuntimeException("카카오 API로부터 사용자 정보를 받아오지 못했습니다.");
+                }
+            } catch (Exception e) {
+                throw new RuntimeException("카카오 API 호출 중 오류 발생: " + e.getMessage(), e);
+            }
+            
+            // 카카오 사용자 정보 변환
+            KakaoUserInfo kakaoUserInfo = new KakaoUserInfo(attributes);
+            
+            // 사용자 정보 저장 또는 조회
+            String oauth2Id = kakaoUserInfo.getProvider() + "_" + kakaoUserInfo.getProviderId();
+            User user;
+            try {
+                user = userRepository.findByOauth2Id(oauth2Id)
+                    .orElseGet(() -> signupByOAuth(kakaoUserInfo));
+            } catch (Exception e) {
+                throw new RuntimeException("사용자 정보 처리 중 오류 발생: " + e.getMessage(), e);
+            }
+            
+            // JWT 토큰 생성
+            String token;
+            try {
+                token = jwtUtil.createToken(user.getUsername(), String.valueOf(user.getRole()));
+            } catch (Exception e) {
+                throw new RuntimeException("JWT 토큰 생성 중 오류 발생: " + e.getMessage(), e);
+            }
+            System.out.println(token);
+            // 응답 객체 생성 (User 객체 직렬화)
+            JSONObject response = new JSONObject();
+            response.put("token", token);
+            
+            // User 객체 필요한 정보만 선택적으로 포함
+            JSONObject userJson = new JSONObject();
+            // userJson.put("id", user.getId());
+            userJson.put("username", user.getUsername());
+            // userJson.put("email", user.getEmail());
+            userJson.put("nickname", user.getNickname());
+            // userJson.put("role", user.getRole().toString());
+            userJson.put("provider", user.getProvider());
+            
+            response.put("user", userJson);
+            
+            return response;
+            
+        } catch (Exception e) {
+            // 최상위 예외 처리
+            JSONObject errorResponse = new JSONObject();
+            errorResponse.put("error", "OAuth 처리 중 오류가 발생했습니다.");
+            errorResponse.put("message", e.getMessage());
+            throw new RuntimeException("OAuth 처리 중 오류: " + e.getMessage(), e);
+        }
     }
 }
