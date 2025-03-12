@@ -1,50 +1,44 @@
 import React from 'react';
 import { View, Text, Pressable, useWindowDimensions, FlatList } from 'react-native';
 import DeviceInfo from 'react-native-device-info';
-import { StackScreenProps } from '@react-navigation/stack';
 import { ScaledSheet } from 'react-native-size-matters';
-import { AuthStackParamList } from '../../navigation/AuthStackNavigator';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { HomeStackParamList } from '../../navigation/HomeStackNavigator';
 import BookView from './components/BookView';
 import { authNavigation } from '../../constants';
 import { colors } from '../../constants/colors';
 import useThemeStore, { themeMode } from '../../store/useThemeStore';
-import { Certification } from '../selectCertification/SelectCertificationScreen';
+import useCertificationStore from '../../store/useCertificationStore';
+import Header from '../components/Header';
 
-type HomeScreenProps = StackScreenProps<AuthStackParamList, 'Home'>;
+// BottomTab의 MainHome 화면 타입 정의
+type HomeScreenProps = NativeStackScreenProps<HomeStackParamList, 'HomeMain'>;
 
-const HomeScreen = ({ navigation, route }: HomeScreenProps) => {
+const HomeScreen = ({ navigation }: HomeScreenProps) => {
   const { theme } = useThemeStore();
   const styles = styling(theme);
   const isTablet = DeviceInfo.isTablet();
   const { width } = useWindowDimensions();
+  const { selectedCertifications } = useCertificationStore();
 
   const handleSelectLicense = () => {
-    navigation.navigate(authNavigation.SELECT_CERTIFICATION);
+    // 상위 네비게이터의 화면으로 이동하기 위해 getParent() 사용
+    const parent = navigation.getParent();
+    if (parent) {
+      parent.navigate(authNavigation.SELECT_CERTIFICATION);
+    }
   };
 
-  // 자격증 처리를 위한 로직
-  let certificationsArray: Certification[] = [];
-
-  // route.params가 있는지 확인
-  if (route.params?.certifications) {
-    const { certifications } = route.params;
-
-    // certifications가 배열인지 단일 객체인지 확인
-    if (Array.isArray(certifications)) {
-      certificationsArray = certifications;
-    } else {
-      // 단일 자격증 객체인 경우 배열로 변환
-      certificationsArray = [certifications];
-    }
-  }
+  console.log('HomeScreen certifications:', selectedCertifications);
 
   return (
     <View style={styles.container}>
+      <Header />
       <View style={isTablet && width >= 600 ? styles.tabletContainer : styles.container}>
         <View style={styles.testLayout}>
-          {certificationsArray.length > 0 ? (
+          {selectedCertifications.length > 0 ? (
             <FlatList
-              data={certificationsArray}
+              data={selectedCertifications}
               keyExtractor={(item) => item.certificationId.toString()}
               renderItem={({ item }) => (
                 <BookView
@@ -76,7 +70,6 @@ const styling = (theme: themeMode) => ScaledSheet.create({
   },
   testLayout: {
     flex: 1,
-    // backgroundColor: colors[theme].WHITE,
   },
   loadingText: {
     flex: 1,

@@ -1,35 +1,29 @@
-// SelectCertification.tsx
 import React, { useState } from 'react';
-import { TextInput, FlatList, Text, TouchableOpacity, View, TouchableWithoutFeedback } from 'react-native';
+import { TextInput, FlatList, Text, Pressable, View, ActivityIndicator } from 'react-native';
 import { ScaledSheet } from 'react-native-size-matters';
 import { useQuery } from '@tanstack/react-query';
-import { StackScreenProps } from '@react-navigation/stack';
 import { useSafeAreaInsets, EdgeInsets } from 'react-native-safe-area-context';
-import { AuthStackParamList } from '../../navigation/AuthStackNavigator';
 import useThemeStore, { themeMode } from '../../store/useThemeStore';
 import { colors } from '../../constants/colors';
-import { authNavigation } from '../../constants';
 import { fetchGet } from '../../util/api';
+import { RootStackParamList } from '../../navigation/RootStackNavigator';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { useNavigation } from '@react-navigation/native';
+import useCertificationStore from '../../store/useCertificationStore';
 
 export interface Certification {
   certificationId: number;
   certificationName: string;
 }
 
-type BaseProps = {
-  onSelectCertification?: (certification: Certification) => void;
-};
-
-type Props = BaseProps & Partial<StackScreenProps<AuthStackParamList, 'SelectCertification'>>;
-
-const SelectCertification = ({ onSelectCertification, navigation }: Props) => {
+const SelectCertificationScreen = () => {
   const { theme } = useThemeStore();
   const insets = useSafeAreaInsets();
   const styles = styling(theme, insets);
+  const navigation = useNavigation<NativeStackScreenProps<RootStackParamList, 'SelectCertification'>['navigation']>();
 
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [isSearchFocused, setIsSearchFocused] = useState(false);
-  const [selectedCertifications, setSelectedCertifications] = useState<Certification[]>([]);
+  const { selectedCertifications, toggleCertification } = useCertificationStore();
 
   // tanstack-query를 사용하여 자격증 목록 가져오기
   const { data: certifications = [], isLoading, isError } = useQuery({
@@ -50,10 +44,7 @@ const SelectCertification = ({ onSelectCertification, navigation }: Props) => {
           { certificationId: 7, certificationName: '전기기사' },
           { certificationId: 8, certificationName: '인테리어기사' },
           { certificationId: 9, certificationName: '토목기사' },
-          { certificationId: 10, certificationName: '건축기사' },
         ];
-
-
       }
     },
     staleTime: 1000 * 60 * 5, // 5분 동안 데이터를 신선한 상태로 유지
@@ -72,148 +63,96 @@ const SelectCertification = ({ onSelectCertification, navigation }: Props) => {
   };
 
   const selectCertification = (cert: Certification): void => {
-    setSelectedCertifications(prev => {
-      const isAlreadySelected = prev.some(item => item.certificationId === cert.certificationId);
-      if (isAlreadySelected) {
-        return prev.filter(item => item.certificationId !== cert.certificationId);
-      }
-      return [...prev, cert];
-    });
-    setIsSearchFocused(false);
+    toggleCertification(cert);
   };
 
   const handleComplete = () => {
-    // 선택된 자격증이 없는 경우
-    if (selectedCertifications.length === 0) {
-      if (onSelectCertification) {
-        // 빈 자격증 객체 생성
-        onSelectCertification({
-          certificationId: -1,
-          certificationName: '',
-        });
-      } else if (navigation) {
-        navigateToHome();
-      }
-      return;
-    }
-
-    // 선택된 자격증이 있는 경우
-    if (onSelectCertification && selectedCertifications.length > 0) {
-      // 첫 번째 자격증만 전달하는 기존 방식 유지 (호환성)
-      onSelectCertification(selectedCertifications[0]);
-    } else if (navigation) {
-      // 여러 자격증을 전달
-      navigateToHome(selectedCertifications);
-    }
-  };
-
-  // 홈 화면으로 이동하는 함수
-  const navigateToHome = (selectedCerts?: Certification | Certification[]) => {
-    navigation?.reset({
-      index: 0,
-      routes: [
-        {
-          name: authNavigation.HOME,
-          ...(selectedCerts && { params: { certifications: selectedCerts } }),
-          state: {
-            routes: [
-              {
-                name: 'Home',
-                ...(selectedCerts && { params: { certifications: selectedCerts } }),
-              },
-            ],
-          },
-        },
-      ],
+    navigation.replace('MainTabNavigator', {
+      certifications: selectedCertifications,
     });
-  };
-
-  const renderSelectedCertifications = () => {
-    if (selectedCertifications.length === 0) {return null;}
-
-    return (
-      <View style={styles.selectedContainer}>
-        {selectedCertifications.map((cert) => (
-          <TouchableOpacity
-            key={cert.certificationId}
-            style={styles.selectedChip}
-            onPress={() => selectCertification(cert)}
-          >
-            <Text style={styles.selectedChipText}>{cert.certificationName}</Text>
-            <Text style={styles.removeIcon}>×</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-    );
-  };
-
-  const handleOutsidePress = () => {
-    setIsSearchFocused(false);
   };
 
   return (
     <View style={styles.container}>
-      <TouchableWithoutFeedback onPress={handleOutsidePress}>
-        <View style={styles.contentContainer}>
-          <Text style={styles.title}>자격증 선택</Text>
-          {renderSelectedCertifications()}
-          <TouchableWithoutFeedback onPress={e => e.stopPropagation()}>
-            <View style={styles.searchContainer}>
-              <TextInput
-                style={[
-                  styles.searchInput,
-                  isSearchFocused && styles.searchInputFocused,
+      <View style={styles.contentContainer}>
+        <Text style={styles.title}>자격증 선택</Text>
+
+        {/* 선택된 자격증 표시 영역 */}
+        {selectedCertifications.length > 0 && (
+          <View style={styles.selectedContainer}>
+            {selectedCertifications.map((cert) => (
+              <Pressable
+                key={cert.certificationId}
+                style={({ pressed }) => [
+                  styles.selectedChip,
+                  pressed && { opacity: 0.7 },
                 ]}
-                placeholder="자격증 검색"
-                value={searchQuery}
-                onChangeText={handleSearch}
-                onFocus={() => setIsSearchFocused(true)}
-                autoCorrect={false}
-                placeholderTextColor={colors[theme].GRAY_400}
+                onPress={() => selectCertification(cert)}
+              >
+                <Text style={styles.selectedChipText}>{cert.certificationName}</Text>
+                <Text style={styles.removeIcon}>×</Text>
+              </Pressable>
+            ))}
+          </View>
+        )}
+
+        {/* 검색 영역 */}
+        <View style={styles.searchContainer}>
+          <TextInput
+            style={styles.searchInput}
+            placeholder="자격증 검색"
+            value={searchQuery}
+            onChangeText={handleSearch}
+            autoCorrect={false}
+            placeholderTextColor={colors[theme].GRAY_400}
+          />
+
+          {/* 검색 결과 목록 */}
+          <View style={styles.resultsContainer}>
+            {isLoading ? (
+              <ActivityIndicator size="large" color={colors[theme].MAIN} />
+            ) : isError ? (
+              <Text style={styles.emptyText}>데이터를 불러오는 중 오류가 발생했습니다.</Text>
+            ) : (
+              <FlatList
+                data={filteredCertifications}
+                keyExtractor={item => item.certificationId.toString()}
+                renderItem={({ item }) => (
+                  <Pressable
+                    style={({ pressed }) => [
+                      styles.itemContainer,
+                      selectedCertifications.some(cert => cert.certificationId === item.certificationId) &&
+                      styles.itemContainerSelected,
+                      pressed && { opacity: 0.7 },
+                    ]}
+                    onPress={() => selectCertification(item)}
+                  >
+                    <Text style={[
+                      styles.itemText,
+                      selectedCertifications.some(cert => cert.certificationId === item.certificationId) &&
+                      styles.itemTextSelected,
+                    ]}>{item.certificationName}</Text>
+                  </Pressable>
+                )}
+                ListEmptyComponent={
+                  <Text style={styles.emptyText}>검색 결과가 없습니다</Text>
+                }
               />
-              {isSearchFocused && (
-                <View style={styles.resultsContainer}>
-                  {isLoading ? (
-                    <Text style={styles.emptyText}>로딩 중...</Text>
-                  ) : isError ? (
-                    <Text style={styles.emptyText}>데이터를 불러오는 중 오류가 발생했습니다.</Text>
-                  ) : (
-                    <FlatList
-                      data={filteredCertifications}
-                      keyExtractor={item => item.certificationId.toString()}
-                      renderItem={({ item }) => (
-                        <TouchableOpacity
-                          style={[
-                            styles.itemContainer,
-                            selectedCertifications.some(cert => cert.certificationId === item.certificationId) &&
-                            styles.itemContainerSelected,
-                          ]}
-                          onPress={() => selectCertification(item)}
-                        >
-                          <Text style={[
-                            styles.itemText,
-                            selectedCertifications.some(cert => cert.certificationId === item.certificationId) &&
-                            styles.itemTextSelected,
-                          ]}>{item.certificationName}</Text>
-                        </TouchableOpacity>
-                      )}
-                      ListEmptyComponent={
-                        <Text style={styles.emptyText}>검색 결과가 없습니다</Text>
-                      }
-                    />
-                  )}
-                </View>
-              )}
-            </View>
-          </TouchableWithoutFeedback>
+            )}
+          </View>
         </View>
-      </TouchableWithoutFeedback>
-      <TouchableOpacity
-        style={styles.completeButton}
+      </View>
+
+      {/* 완료 버튼 */}
+      <Pressable
+        style={({ pressed }) => [
+          styles.completeButton,
+          pressed && { opacity: 0.7 },
+        ]}
         onPress={handleComplete}
       >
         <Text style={styles.completeButtonText}>완료</Text>
-      </TouchableOpacity>
+      </Pressable>
     </View>
   );
 };
@@ -252,18 +191,14 @@ const styling = (theme: themeMode, insets: EdgeInsets) => ScaledSheet.create({
     color: colors[theme].BLACK,
     backgroundColor: colors[theme].WHITE,
   },
-  searchInputFocused: {
-    borderBottomLeftRadius: 0,
-    borderBottomRightRadius: 0,
-  },
   resultsContainer: {
     maxHeight: '300@mvs',
     backgroundColor: colors[theme].WHITE,
     borderColor: colors[theme].GRAY_400,
-    borderBottomLeftRadius: '8@ms',
-    borderBottomRightRadius: '8@ms',
-    borderTopWidth: 0,
+    borderRadius: '8@ms',
     borderWidth: 1,
+    marginTop: '8@ms',
+    overflow: 'hidden',
   },
   itemContainer: {
     padding: '16@ms',
@@ -329,5 +264,4 @@ const styling = (theme: themeMode, insets: EdgeInsets) => ScaledSheet.create({
   },
 });
 
-export default SelectCertification;
-
+export default SelectCertificationScreen;
