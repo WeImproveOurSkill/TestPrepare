@@ -8,7 +8,9 @@ import { Certification } from '../screens/selectCertification/SelectCertificatio
 
 export type HomeStackParamList = {
   HomeMain: { certifications?: Certification[] } | undefined;
-  Study: undefined;
+  Study: {
+    certificationId: number;
+  };
   Quiz: undefined;
   Exam: undefined;
 };
