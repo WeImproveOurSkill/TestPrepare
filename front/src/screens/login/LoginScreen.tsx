@@ -1,20 +1,37 @@
-// LoginPage.tsx
 import React from 'react';
 import { View, SafeAreaView, Text, Pressable } from 'react-native';
 import { ScaledSheet } from 'react-native-size-matters';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../../navigation/RootStackNavigator';
 import useThemeStore, { themeMode } from '../../store/useThemeStore';
 import { colors } from '../../constants/colors';
 import KakaoLogin from '../oauth/KakaoLogin';
+import { useNavigation } from '@react-navigation/native';
 // import GoogleLogin from './GoogleLogin';
 
 interface LoginPageProps {
-  onLoginSuccess: () => void;
-  onNonLogin: () => void;
+  onLoginSuccess?: () => void;
+  // onNonLogin: () => void;
 }
 
 const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
   const { theme } = useThemeStore();
   const styles = styling(theme);
+  const navigation = useNavigation<NativeStackScreenProps<RootStackParamList, 'Login'>['navigation']>();
+
+  const handleSuccess = () => {
+    if (onLoginSuccess) {
+      onLoginSuccess();
+    } else {
+      navigation.navigate('MainTabNavigator');
+    }
+  };
+  // const handleLoginSuccess = () => {
+  //   navigation.reset({
+  //     index: 0,
+  //     routes: [{ name: 'MainTabNavigator' }],
+  //   });
+  // };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -22,7 +39,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
         기사는 한방에 기한82
       </Text>
       <View style={styles.buttonContainer}>
-        <KakaoLogin onLoginSuccess={onLoginSuccess} />
+        <KakaoLogin onLoginSuccess={handleSuccess} />
         {/* <GoogleLogin onLoginSuccess={onLoginSuccess} /> */}
         <Pressable
           style={({pressed}) => [
