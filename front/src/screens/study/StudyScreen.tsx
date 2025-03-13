@@ -8,6 +8,8 @@ import { colors } from '../../constants/colors';
 import ExamHeader from '../components/ExamHeader';
 import CustomPagerView from '../components/CustomPagerView';
 import { fetchGet } from '../../util/api';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { HomeStackParamList } from '../../navigation/HomeStackNavigator';
 
 type QuestionData = {
   questionId: string;
@@ -16,18 +18,22 @@ type QuestionData = {
   explanation: string;
 }
 
+type StudyScreenProps = NativeStackScreenProps<HomeStackParamList, 'Study'>;
+
 const PREFETCH_COUNT = 2; // 미리 로드할 문제 수
 
-function StudyScreen() {
-  const {theme} = useThemeStore();
+const StudyScreen = ({ route }: StudyScreenProps) => {
+  const { certificationId } = route.params;
+  const { theme } = useThemeStore();
   const insets = useSafeAreaInsets();
   const styles = styling(theme, insets);
   const [questions, setQuestions] = useState<QuestionData[]>([]);
 
   // 현재 문제 로드
-  const { data: currentQuestion } = useQuery<QuestionData>({
-    queryKey: ['questions', 'current'],
-    queryFn: () => fetchGet<QuestionData>('exam/subject/1/random'),
+  const { data: currentQuestion, refetch: fetchNextQuestion } = useQuery<QuestionData>({
+    queryKey: ['questions', certificationId, questions.length],
+    queryFn: () => fetchGet<QuestionData>(`exam/subject/${certificationId}/random`),
+    staleTime: Infinity, // 수동으로 무효화하기 전까지는 캐시 유지
   });
 
   // 현재 문제 데이터 처리
@@ -35,33 +41,17 @@ function StudyScreen() {
     if (currentQuestion && !questions.find(q => q.questionId === currentQuestion.questionId)) {
       setQuestions(prev => [...prev, currentQuestion]);
     }
+    console.log('currentQuestion:', currentQuestion);
+
   }, [currentQuestion, questions]);
-
-  // 다음 문제 미리 로드
-  const prefetchNextQuestion = useCallback(async () => {
-    const data = await fetchGet<QuestionData>('exam/subject/1/random');
-    if (data && !questions.find(q => q.questionId === data.questionId)) {
-      setQuestions(prev => [...prev, data]);
-    }
-  }, [questions]);
-
-  // 초기 데이터 설정 및 프리페치
-  React.useEffect(() => {
-    if (currentQuestion) {
-      // 초기 문제 설정 후 다음 문제들 미리 로드
-      for (let i = 0; i < PREFETCH_COUNT; i++) {
-        prefetchNextQuestion();
-      }
-    }
-  }, [currentQuestion, prefetchNextQuestion]);
 
   const handlePageChange = useCallback(async (e: any) => {
     const newPosition = e.nativeEvent.position;
     if (newPosition >= questions.length - PREFETCH_COUNT) {
-      // 남은 프리패치된 문제가 PREFETCH_COUNT개 이하면 새로운 문제 로드
-      prefetchNextQuestion();
+      // 다음 문제 가져오기
+      await fetchNextQuestion();
     }
-  }, [questions.length, prefetchNextQuestion]);
+  }, [questions.length, fetchNextQuestion]);
 
   const renderQuestions = useMemo(() => {
     return questions.map((question, index) => (
@@ -90,7 +80,7 @@ function StudyScreen() {
       </View>
     </View>
   );
-}
+};
 
 const styling = (theme: themeMode, insets: EdgeInsets) => ScaledSheet.create({
   container: {
