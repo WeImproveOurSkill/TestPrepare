@@ -40,14 +40,14 @@ public class ExamController {
     }
 
 
-    // 과목별 문제 조회
-    @GetMapping("/subject/{subjectId}/question")
-    public ResponseEntity<QuestionDto> getQuestionsBySubject(
-            @PathVariable Long subjectId,
-            @RequestParam(defaultValue = "0") Long questionId) {
-        QuestionDto QuestionsBySubject = examService.getQuestionsBySubject(subjectId, questionId);
-        return ResponseEntity.ok(QuestionsBySubject);
-    }
+//    // 과목별 문제 조회
+//    @GetMapping("/subject/{subjectId}/question")
+//    public ResponseEntity<QuestionDto> getQuestionsBySubject(
+//            @PathVariable Long subjectId,
+//            @RequestParam(defaultValue = "0") Long questionId) {
+//        QuestionDto QuestionsBySubject = examService.getQuestionsBySubject(subjectId, questionId);
+//        return ResponseEntity.ok(QuestionsBySubject);
+//    }
 
     // 과목별 랜덤문제 리스트 조회
     @GetMapping("/subject/{subjectId}/random")
