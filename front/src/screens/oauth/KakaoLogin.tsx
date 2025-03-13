@@ -6,7 +6,7 @@ import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { colors } from '../../constants/colors';
 import useThemeStore, { themeMode } from '../../store/useThemeStore';
-import { AuthStackParamList } from '../../navigation/AuthStackNavigator';
+import { RootStackParamList } from '../../navigation/RootStackNavigator';
 import { setEncryptStorage } from '../../util/encryptStorage';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import Config from 'react-native-config';
@@ -25,7 +25,7 @@ function KakaoLogin({ onLoginSuccess }: KakaoLoginProps) {
   const {theme} = useThemeStore();
   const styles = styling(theme);
   const queryClient = useQueryClient();
-  const navigation = useNavigation<StackNavigationProp<AuthStackParamList>>();
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
 
 
   // 카카오 로그인 정보를 백엔드로 전송하는 mutation
@@ -49,18 +49,13 @@ function KakaoLogin({ onLoginSuccess }: KakaoLoginProps) {
       if (data.token) {
         await setEncryptStorage('user_jwt', data.token);
         queryClient.setQueryData(['user'], data.user);
-        navigation.navigate('Home');
-        // navigation.reset({
-        //   index: 0,
-        //   routes: [{ name: 'Home' }],
-        // });
+        navigation.navigate('MainTabNavigator');
       }
     },
     onError: (error) => {
       console.log('Login error:', error);
     },
   });
-  console.log(Config.BASE_URL);
 
   // 카카오 로그인 mutation
   const { mutate: handleKakaoLogin } = useMutation<KakaoLoginResponse, Error>({

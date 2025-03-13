@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { View, Platform, Text, Pressable } from 'react-native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useNavigation } from '@react-navigation/native';
 import { ScaledSheet } from 'react-native-size-matters';
 import SelectModeModal from './SelectModeModal';
-import { AuthStackParamList } from '../../../navigation/AuthStackNavigator';
-import { StackNavigationProp } from '@react-navigation/stack';
+import { HomeStackParamList } from '../../../navigation/HomeStackNavigator';
+import { Certification } from '../../selectCertification/SelectCertificationScreen';
 
 
 const COLOR_MAPPING = {
@@ -17,12 +19,9 @@ const COLOR_MAPPING = {
 
 type ColorKeys = keyof typeof COLOR_MAPPING;
 
-type BookViewProps = {
-  title: string;
-  navigation: StackNavigationProp<AuthStackParamList>;
-}
 
-const BookView = ({ title, navigation }: BookViewProps) => {
+const BookView = ({ certificationId, certificationName }: Certification) => {
+  const navigation = useNavigation<NativeStackNavigationProp<HomeStackParamList>>();
   const [isVisible, setIsVisible] = useState(false);
   const styles = styling();
 
@@ -31,7 +30,9 @@ const BookView = ({ title, navigation }: BookViewProps) => {
   };
 
   const handleStudyPress = () => {
-    navigation.navigate('Study');
+    navigation.navigate('Study', {
+      certificationId: certificationId,
+    });
   };
 
   const handleExamPress = () => {
@@ -42,7 +43,7 @@ const BookView = ({ title, navigation }: BookViewProps) => {
     return COLOR_MAPPING[title as ColorKeys] || COLOR_MAPPING.default;
   };
 
-  const backgroundColor = getColor(title);
+  const backgroundColor = getColor(certificationName);
 
   return (
     <Pressable style={styles.container} onPress={() => setIsVisible(true)}>
@@ -51,7 +52,7 @@ const BookView = ({ title, navigation }: BookViewProps) => {
         <View style={styles.bookPages} /> */}
         <View style={styles.titleContainer}>
           <Text style={styles.titleText} numberOfLines={2}>
-            {title}
+            {certificationName}
           </Text>
           {/* <Text style={styles.authorText}>
             {author}
@@ -59,7 +60,7 @@ const BookView = ({ title, navigation }: BookViewProps) => {
           <SelectModeModal
             isVisible={isVisible}
             onClose={() => setIsVisible(false)}
-            title={title}
+            title={certificationName}
             onQuizPress={handleQuizPress}
             onStudyPress={handleStudyPress}
             onExamPress={handleExamPress}
