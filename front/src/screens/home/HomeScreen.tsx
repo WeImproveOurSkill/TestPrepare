@@ -42,8 +42,8 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
               keyExtractor={(item) => item.certificationId.toString()}
               renderItem={({ item }) => (
                 <BookView
-                  title={item.certificationName}
-                  navigation={navigation}
+                  certificationId={item.certificationId}
+                  certificationName={item.certificationName}
                 />
               )}
               contentContainerStyle={styles.bookList}
