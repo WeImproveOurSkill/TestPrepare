@@ -30,7 +30,7 @@ public class QuestionRepositoryQueryImpl implements QuestionRepositoryQuery {
                 .leftJoin(question.answer, answer)
                 .where(
                         subjectExam.id.eq(subjectExamId),
-                        question.id.eq(questionId + 1))
+                        question.id.eq(questionId))
                 .fetchOne();
         return questionDto;
     }
@@ -46,8 +46,8 @@ public class QuestionRepositoryQueryImpl implements QuestionRepositoryQuery {
                 .leftJoin(subjectExam.questions, question)
                 .leftJoin(question.answer, answer)
                 .where(
-                        subjectExam.id.eq(subjectExamId),
-                        question.id.mod(Long.valueOf(integer)).eq(1L)).limit(20).fetch();
+                        subjectExam.id.eq(subjectExamId))
+                .orderBy(question.randomKey.asc()).limit(20).fetch();
 
         return questionDtos;
     }

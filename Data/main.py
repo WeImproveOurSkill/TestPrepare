@@ -8,6 +8,7 @@ from dataclasses import dataclass, field
 from typing import List, Optional
 import io
 from PIL import Image
+import uuid  # UUID 모듈 추가
 
 @dataclass
 class Answer:
@@ -28,6 +29,7 @@ class Question:
     id: Optional[int] = None
     content: str = ""
     image_link: Optional[str] = None
+    random_key: uuid.UUID = field(default_factory=uuid.uuid4)  # randomKey 추가 (Java와 일치하게)
     subject_exam: Optional['SubjectExam'] = None
     answer: Optional[Answer] = None
 
@@ -36,6 +38,7 @@ class Question:
         [문제 정보]
         - 내용: {self.content[:100]}...
         - 이미지: {self.image_link if self.image_link else '없음'}
+        - UUID: {self.random_key}
         {self.answer if self.answer else '- 답안 정보 없음'}
         """
 
@@ -134,12 +137,13 @@ def create_tables(db):
     )
     """)
     
-    # 문제 테이블
+    # 문제 테이블 - randomKey 필드 추가
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS questions (
         id INT AUTO_INCREMENT PRIMARY KEY,
         content TEXT NOT NULL,
         image_link VARCHAR(255),
+        random_key BINARY(16) NOT NULL,  
         subject_exam_id INT NOT NULL,
         FOREIGN KEY (subject_exam_id) REFERENCES subject_exam(id)
     )
@@ -893,11 +897,17 @@ def process_pdf_with_db(pdf_path, db):
         # 먼저 문제를 모두 저장
         for q in questions:
             try:
-                # 문제 삽입
+                # 각 문제마다 새로운 UUID 생성
+                random_key = uuid.uuid4()
+                
+                # UUID를 bytes로 변환하여 MySQL BINARY(16)에 맞게 저장
+                random_key_bytes = random_key.bytes
+                
+                # 문제 삽입 (랜덤 UUID 포함)
                 cursor.execute("""
-                    INSERT INTO questions (content, image_link, subject_exam_id) 
-                    VALUES (%s, %s, %s)
-                """, (q.get('text'), q.get('image_link'), subject_id))
+                    INSERT INTO questions (content, image_link, random_key, subject_exam_id) 
+                    VALUES (%s, %s, %s, %s)
+                """, (q.get('text'), q.get('image_link'), random_key_bytes, subject_id))
                 question_id = cursor.lastrowid
                 question_id_map[q.get('question_number')] = question_id
                 inserted_questions += 1
