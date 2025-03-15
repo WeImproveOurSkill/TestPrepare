@@ -26,7 +26,9 @@ const BookView = ({ certificationId, certificationName }: Certification) => {
   const styles = styling();
 
   const handleQuizPress = () => {
-    navigation.navigate('Quiz');
+    navigation.navigate('Quiz', {
+      certificationId: certificationId,
+    });
   };
 
   const handleStudyPress = () => {
@@ -36,7 +38,9 @@ const BookView = ({ certificationId, certificationName }: Certification) => {
   };
 
   const handleExamPress = () => {
-    navigation.navigate('Exam');
+    navigation.navigate('Exam', {
+      certificationId: certificationId,
+    });
   };
 
   const getColor = (title: string) => {
