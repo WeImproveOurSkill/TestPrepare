@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useMemo } from 'react';
-import {View, Text, Platform} from 'react-native';
+import {View, Text, Platform, ActivityIndicator} from 'react-native';
 import { ScaledSheet } from 'react-native-size-matters';
 import { useQuery } from '@tanstack/react-query';
 import { EdgeInsets, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -27,31 +27,33 @@ const StudyScreen = ({ route }: StudyScreenProps) => {
   const { theme } = useThemeStore();
   const insets = useSafeAreaInsets();
   const styles = styling(theme, insets);
+  const [currentPage, setCurrentPage] = useState(1);
   const [questions, setQuestions] = useState<QuestionData[]>([]);
 
   // 현재 문제 로드
-  const { data: currentQuestion, refetch: fetchNextQuestion } = useQuery<QuestionData>({
-    queryKey: ['questions', certificationId, questions.length],
-    queryFn: () => fetchGet<QuestionData>(`exam/subject/${certificationId}/random`),
-    staleTime: Infinity, // 수동으로 무효화하기 전까지는 캐시 유지
+  const { data: questionsList, refetch: fetchNextQuestionsList } = useQuery<QuestionData[]>({
+    queryKey: ['questions', certificationId, currentPage],
+    queryFn: () => fetchGet<QuestionData[]>(`exam/subject/${certificationId}/random`),
   });
 
-  // 현재 문제 데이터 처리
+  // questionsList 데이터 처리
   React.useEffect(() => {
-    if (currentQuestion && !questions.find(q => q.questionId === currentQuestion.questionId)) {
-      setQuestions(prev => [...prev, currentQuestion]);
+    if (questionsList && Array.isArray(questionsList)) {
+      setQuestions(prev => {
+        const existingIds = new Set(prev.map(q => q.questionId));
+        const newQuestions = questionsList.filter(q => !existingIds.has(q.questionId));
+        return [...prev, ...newQuestions];
+      });
     }
-    console.log('currentQuestion:', currentQuestion);
+  }, [questionsList]);
 
-  }, [currentQuestion, questions]);
-
-  const handlePageChange = useCallback(async (e: any) => {
-    const newPosition = e.nativeEvent.position;
+  const handlePageChange = useCallback(async (e: number) => {
+    const newPosition = e;
     if (newPosition >= questions.length - PREFETCH_COUNT) {
-      // 다음 문제 가져오기
-      await fetchNextQuestion();
+      setCurrentPage(prev => prev + 1);
+      await fetchNextQuestionsList();
     }
-  }, [questions.length, fetchNextQuestion]);
+  }, [questions.length, fetchNextQuestionsList]);
 
   const renderQuestions = useMemo(() => {
     return questions.map((question, index) => (
@@ -69,12 +71,18 @@ const StudyScreen = ({ route }: StudyScreenProps) => {
   return (
     <View style={styles.container}>
       <ExamHeader />
-      <CustomPagerView
-        onPageSelected={handlePageChange}
-        enableAnimation={true}
-      >
-        {renderQuestions}
-      </CustomPagerView>
+      {questions.length > 0 ? (
+        <CustomPagerView
+          onPageSelected={handlePageChange}
+          enableAnimation={true}
+        >
+          {renderQuestions}
+        </CustomPagerView>
+      ) : (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={colors[theme].MAIN} />
+        </View>
+      )}
       <View style={styles.explanationButton}>
         <Text style={styles.explanationText}>해설보기</Text>
       </View>
@@ -136,6 +144,11 @@ const styling = (theme: themeMode, insets: EdgeInsets) => ScaledSheet.create({
   },
   explanationText: {
     color: colors[theme].WHITE,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
 

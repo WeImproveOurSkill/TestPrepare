@@ -8,7 +8,7 @@ const AnimatedPagerView = Animated.createAnimatedComponent(PagerView);
 type CustomPagerViewProps = {
   children: React.ReactNode;
   currentPage?: number;
-  onPageSelected?: ((page: number) => void) | ((e: any) => void);
+  onPageSelected?: ((page: number) => void) | ((e: number) => void);
   pagerRef?: React.RefObject<PagerView>;
   enableAnimation?: boolean;
   scrollEnabled?: boolean;

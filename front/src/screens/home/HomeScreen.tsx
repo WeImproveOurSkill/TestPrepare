@@ -2,17 +2,18 @@ import React from 'react';
 import { View, Text, Pressable, useWindowDimensions, FlatList } from 'react-native';
 import DeviceInfo from 'react-native-device-info';
 import { ScaledSheet } from 'react-native-size-matters';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { HomeStackParamList } from '../../navigation/HomeStackNavigator';
+// import { NativeStackScreenProps } from '@react-navigation/native-stack';
+// import { HomeStackParamList } from '../../navigation/HomeStackNavigator';
 import BookView from './components/BookView';
 import { authNavigation } from '../../constants';
 import { colors } from '../../constants/colors';
 import useThemeStore, { themeMode } from '../../store/useThemeStore';
 import useCertificationStore from '../../store/useCertificationStore';
-import Header from '../components/Header';
+import { mainTabParamList } from '../../navigation/MainTabNavigator';
+import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 
 // BottomTab의 MainHome 화면 타입 정의
-type HomeScreenProps = NativeStackScreenProps<HomeStackParamList, 'HomeMain'>;
+type HomeScreenProps = BottomTabScreenProps<mainTabParamList, 'TabHome'>;
 
 const HomeScreen = ({ navigation }: HomeScreenProps) => {
   const { theme } = useThemeStore();
@@ -33,7 +34,6 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
 
   return (
     <View style={styles.container}>
-      <Header />
       <View style={isTablet && width >= 600 ? styles.tabletContainer : styles.container}>
         <View style={styles.testLayout}>
           {selectedCertifications.length > 0 ? (
