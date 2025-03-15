@@ -23,15 +23,9 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
     if (onLoginSuccess) {
       onLoginSuccess();
     } else {
-      navigation.navigate('MainTabNavigator');
+      navigation.navigate('HomeStack');
     }
   };
-  // const handleLoginSuccess = () => {
-  //   navigation.reset({
-  //     index: 0,
-  //     routes: [{ name: 'MainTabNavigator' }],
-  //   });
-  // };
 
   return (
     <SafeAreaView style={styles.container}>

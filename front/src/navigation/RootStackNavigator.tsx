@@ -3,14 +3,14 @@ import { createStackNavigator } from '@react-navigation/stack';
 import AuthHomeScreen from '../screens/oauth/AuthHomeScreen';
 import LoginScreen from '../screens/login/LoginScreen';
 import SelectCertificationScreen from '../screens/selectCertification/SelectCertificationScreen';
-import MainTabNavigator from './MainTabNavigator';
-import { Certification } from '../screens/selectCertification/SelectCertificationScreen';
+import HomeStackNavigator, { HomeStackParamList } from './HomeStackNavigator';
+import { NavigatorScreenParams } from '@react-navigation/native';
 
 export type RootStackParamList = {
   AuthHome: undefined;
   Login: undefined;
   SelectCertification: undefined;
-  MainTabNavigator: { certifications?: Certification[] } | undefined;
+  HomeStack: NavigatorScreenParams<HomeStackParamList> | undefined;
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -21,7 +21,7 @@ function RootStackNavigator() {
       <Stack.Screen name="AuthHome" component={AuthHomeScreen} />
       <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="SelectCertification" component={SelectCertificationScreen} />
-      <Stack.Screen name="MainTabNavigator" component={MainTabNavigator} />
+      <Stack.Screen name="HomeStack" component={HomeStackNavigator} />
     </Stack.Navigator>
   );
 }

@@ -67,8 +67,9 @@ const SelectCertificationScreen = () => {
   };
 
   const handleComplete = () => {
-    navigation.replace('MainTabNavigator', {
-      certifications: selectedCertifications,
+    navigation.replace('HomeStack', {
+      screen: 'MainTab',
+      params: { certifications: selectedCertifications },
     });
   };
 
