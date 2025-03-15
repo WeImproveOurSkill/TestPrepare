@@ -2,11 +2,8 @@ import React from 'react';
 import { Pressable, Text } from 'react-native';
 import { ScaledSheet } from 'react-native-size-matters';
 import { login, getProfile, KakaoProfile, KakaoOAuthToken } from '@react-native-seoul/kakao-login';
-import { useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
 import { colors } from '../../constants/colors';
 import useThemeStore, { themeMode } from '../../store/useThemeStore';
-import { RootStackParamList } from '../../navigation/RootStackNavigator';
 import { setEncryptStorage } from '../../util/encryptStorage';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import Config from 'react-native-config';
@@ -25,7 +22,6 @@ function KakaoLogin({ onLoginSuccess }: KakaoLoginProps) {
   const {theme} = useThemeStore();
   const styles = styling(theme);
   const queryClient = useQueryClient();
-  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
 
 
   // 카카오 로그인 정보를 백엔드로 전송하는 mutation
@@ -49,7 +45,6 @@ function KakaoLogin({ onLoginSuccess }: KakaoLoginProps) {
       if (data.token) {
         await setEncryptStorage('user_jwt', data.token);
         queryClient.setQueryData(['user'], data.user);
-        navigation.navigate('MainTabNavigator');
       }
     },
     onError: (error) => {
