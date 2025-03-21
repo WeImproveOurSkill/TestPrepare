@@ -1,8 +1,10 @@
 package com.example.be.common.domain.exam.repository.certification;
 
 import com.example.be.common.domain.exam.dtos.CertificationDto;
+import com.example.be.common.domain.exam.dtos.CertificationTypeDto;
 import com.example.be.common.domain.exam.dtos.QuestionDto;
 import com.example.be.common.domain.exam.entity.Certification;
+import com.example.be.common.domain.exam.entity.CertificationType;
 import com.example.be.common.domain.exam.entity.QAnswer;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -13,6 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.example.be.common.domain.exam.entity.QAnswer.answer;
+import static com.example.be.common.domain.exam.entity.QCertificationType.certificationType;
 import static com.example.be.common.domain.exam.entity.QSubjectExam.subjectExam;
 import static com.example.be.common.domain.exam.entity.QCertification.certification;
 import static com.example.be.common.domain.exam.entity.QQuestion.question;
@@ -24,25 +27,45 @@ public class CertificationRepositoryQueryImpl implements CertificationRepository
     private final JPAQueryFactory jpaQueryFactory;
 
     @Override
-    public List<QuestionDto> findAllQuestionByNameAndYearAndSession(String name, int year, String session) {
+    public List<QuestionDto> findAllQuestionByNameAndYearAndSession(String name, int year, int session) {
+        //1 certification -> question
         List<QuestionDto> questionDtos = jpaQueryFactory.select(Projections.constructor(
-                QuestionDto.class,
-                question.id.as("questionId"),
-                question.content.as("question"),
+                        QuestionDto.class,
+                        question.id.as("questionId"),
+                        question.content.as("question"),
 
-                answer.answerText.as("answer"),
-                answer.explanation
-        )).from(certification)
+                        answer.answerText.as("answer"),
+                        answer.explanation
+                )).from(certification)
+                .leftJoin(certification.certificationTypes, certificationType)
                 .leftJoin(certification.subjectExams, subjectExam)
                 .leftJoin(subjectExam.questions, question)
-                .leftJoin(question.answer,answer)
-                .where(certification.name.eq(name),
-                        certification.year.eq(year),
-                        certification.session.eq(session))
-                .orderBy(subjectExam.id.asc(),question.id.asc())
-                .fetch();
+                .leftJoin(question.answer, answer)
+                .where(certificationType.year.eq(year)
+                        , certificationType.session.eq(session)
+                        , certification.name.eq(name)
+                ).fetch();
 
-//        List<QuestionDto> questionDtos = new ArrayList<>();
+        //2 question -> certification
+//        List<QuestionDto> questionDtos = jpaQueryFactory.select(Projections.constructor(
+//                        QuestionDto.class,
+//                        question.id.as("questionId"),
+//                        question.content.as("question"),
+//
+//                        answer.answerText.as("answer"),
+//                        answer.explanation
+//                )).from(question)
+//                .leftJoin(question.answer, answer)
+//                .rightJoin(question.subjectExam, subjectExam)
+//                .rightJoin(subjectExam.certification, certification)
+//                .rightJoin(certification.certificationTypes, certificationType)
+//                .where(
+//                        certificationType.year.eq(year)
+//                        , certificationType.session.eq(session)
+//                        , certification.name.eq(name)
+//                ).fetch();
+
+
         return questionDtos;
 //        return null;
 
@@ -59,5 +82,16 @@ public class CertificationRepositoryQueryImpl implements CertificationRepository
 
 
 //        return null;
+    }
+
+    @Override
+    public List<CertificationTypeDto> findAllYearAndSessionByCertificationId(Long certificationId) {
+        return jpaQueryFactory.select(Projections.constructor(
+                        CertificationTypeDto.class,
+                        certificationType.year,
+                        certificationType.session
+                )).from(certificationType).
+                leftJoin(certification.certificationTypes, certificationType)
+                .where(certification.id.eq(certificationId)).fetch();
     }
 }

@@ -2,7 +2,10 @@ package com.example.be.common.domain.exam.entity;
 
 import com.example.be.common.domain.middleTable.certificationSubject.entity.CertificationSubject;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 
@@ -11,21 +14,20 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-public class SubjectExam {
+public class CertificationType {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String name;
+    private int year;
+
+    private int session;
 
     @ManyToOne
     @JoinColumn(name = "certification_id")
     private Certification certification;
 
-    @OneToMany(mappedBy = "subjectExam", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Question> questions;
-
-    @OneToMany(mappedBy = "subjectExam", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "certificationType", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<CertificationSubject> certificationSubjects;
 }

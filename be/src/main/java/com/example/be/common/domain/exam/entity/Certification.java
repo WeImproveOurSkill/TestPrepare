@@ -22,10 +22,9 @@ public class Certification {
 
     private String name;
 
-    private int year;
-
-    private String session;
-
     @OneToMany(mappedBy = "certification", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<SubjectExam> subjectExams;
+
+    @OneToMany(mappedBy = "certification", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<CertificationType> certificationTypes;
 }

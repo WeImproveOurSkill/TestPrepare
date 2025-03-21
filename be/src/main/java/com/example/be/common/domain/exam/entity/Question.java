@@ -25,6 +25,7 @@ public class Question {
 
     private String imageLink;
 
+    @Builder.Default
     @Column(columnDefinition = "BINARY(16)")
     private UUID randomKey = UUID.randomUUID();
 
@@ -36,19 +37,4 @@ public class Question {
     @OneToOne(mappedBy = "question", cascade = CascadeType.ALL, orphanRemoval = true)
     private Answer answer;
 
-    // content에서 선택지 부분만 추출하는 메서드
-    public String getChoices() {
-        if (content != null) {
-            return content.replaceAll(".*?(?=1\\)|$)", "");
-        }
-        return null;
-    }
-
-    // content에서 문제 내용만 추출하는 메서드
-    public String getQuestionContent() {
-        if (content != null) {
-            return content.replaceAll("(?:1\\)|2\\)|3\\)|4\\)|5\\)).*", "").trim();
-        }
-        return null;
-    }
 }

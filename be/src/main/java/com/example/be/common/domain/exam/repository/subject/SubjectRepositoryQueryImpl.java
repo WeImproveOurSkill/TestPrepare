@@ -1,5 +1,6 @@
 package com.example.be.common.domain.exam.repository.subject;
 
+import com.example.be.common.domain.exam.dtos.QuestionDto;
 import com.example.be.common.domain.exam.dtos.SubjectDto;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -24,5 +25,6 @@ public class SubjectRepositoryQueryImpl implements SubjectRepositoryQuery {
 //        return null;
 
     }
+
 
 }

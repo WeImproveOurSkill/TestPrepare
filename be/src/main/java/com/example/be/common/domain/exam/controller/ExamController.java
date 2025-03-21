@@ -25,12 +25,19 @@ public class ExamController {
     public ResponseEntity<List<CertificationDto>> getCertificationList() {
         return ResponseEntity.ok(examService.getCertificationList());
     }
+    // 자격증 year, session 반환 리스트
+    @GetMapping("/certification/{certificationId}/year-session")
+    public ResponseEntity<List<CertificationTypeDto>> getCertificationYearSessionList(
+            @PathVariable Long certificationId
+    ) {
+        return ResponseEntity.ok(examService.getCertificationYearSessionList(certificationId));
+    }
 
     // 기출 문제 세트 조회
-    @GetMapping("/certification")
-    public ResponseEntity<List<QuestionDto>> getCertificationQuestions(@RequestParam String name, @RequestParam int year, @RequestParam String session) {
-        return ResponseEntity.ok(examService.getQuestionsByCertification(name, year, session));
-    }
+//    @GetMapping("/certification")
+//    public ResponseEntity<List<QuestionDto>> getCertificationQuestions(@RequestParam String certificationName, @RequestParam int year, @RequestParam int session) {
+//        return ResponseEntity.ok(examService.getQuestionsByCertification(certificationName, year, session));
+//    }
 
 
     // 자격증 선택후 과목 리스트 전송 (certificationId 기준으로 subjectId 리스트 응답값 전송)
@@ -40,20 +47,28 @@ public class ExamController {
     }
 
 
-//    // 과목별 문제 조회
-//    @GetMapping("/subject/{subjectId}/question")
-//    public ResponseEntity<QuestionDto> getQuestionsBySubject(
-//            @PathVariable Long subjectId,
-//            @RequestParam(defaultValue = "0") Long questionId) {
-//        QuestionDto QuestionsBySubject = examService.getQuestionsBySubject(subjectId, questionId);
-//        return ResponseEntity.ok(QuestionsBySubject);
-//    }
+    // 과목별 문제 조회
+    @Deprecated()
+    @GetMapping("/subject/{subjectId}/question")
+    public ResponseEntity<QuestionDto> getQuestionsBySubject(
+            @PathVariable Long subjectId,
+            @RequestParam(defaultValue = "0") Long questionId) {
+        QuestionDto QuestionsBySubject = examService.getQuestionsBySubject(subjectId, questionId);
+        return ResponseEntity.ok(QuestionsBySubject);
+    }
 
-    // 과목별 랜덤문제 리스트 조회
+    // 과목별 랜덤문제 리스트 조회 - 공부모드
     @GetMapping("/subject/{subjectId}/random")
     public ResponseEntity<List<QuestionDto>> getRandomQuestionsBySubject(
             @PathVariable Long subjectId) {
         List<QuestionDto> Questions = examService.getRandomQuestionsBySubject(subjectId);
+        return ResponseEntity.ok(Questions);
+    }
+    // 과목별 기출 리스트 조회 - 시험모드
+    @GetMapping("/subject/{subjectId}/random")
+    public ResponseEntity<List<QuestionDto>> getQuestionsBySubject(
+            @PathVariable Long subjectId, @PathVariable int year, int session) {
+        List<QuestionDto> Questions = examService.getQuestionsBySubject(subjectId,year, session);
         return ResponseEntity.ok(Questions);
     }
 
@@ -90,10 +105,6 @@ public class ExamController {
     public ResponseEntity<List<QuestionDto>> getBookMarkQuestions(@AuthenticationPrincipal UserDetailsImpl userDetails, @RequestParam Long certificationId) {
         return ResponseEntity.ok(userQuestionService.getBookMarkQuestion(userDetails.getUser(), certificationId));
     }
-
-
-
-
 
 
 }
