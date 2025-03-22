@@ -6,6 +6,7 @@ class QuestionRecommendation(BaseModel):
     content: str
     answer: str
     explanation: str
+    subjectName: str
     
     class Config:
         orm_mode = True
@@ -25,12 +26,10 @@ class GptAssistanceRequest(BaseModel):
     questionId: int
     content: str
     answer: str
-    context: Optional[Dict[str, str]] = None
+    explanation: str 
+    subjectName: str
 
 class GptAssistanceResponse(BaseModel):
-    questionId: int
-    content: str
-    answer: str
     explanation: str
     
     class Config:

@@ -1,5 +1,6 @@
 package com.example.be.common.domain.exam.service;
 
+import com.example.be.common.domain.exam.dtos.CertificationTypeDto;
 import com.example.be.common.domain.exam.dtos.SubjectDto;
 import com.example.be.common.domain.exam.dtos.CertificationDto;
 import com.example.be.common.domain.exam.dtos.QuestionDto;
@@ -31,7 +32,7 @@ public class ExamServiceImpl implements ExamService {
      */
     @Override
     @Transactional(readOnly = true)
-    public List<QuestionDto> getQuestionsByCertification(String name, int year, String session) {
+    public List<QuestionDto> getQuestionsByCertification(String name, int year, int session) {
         return certificationRepository.findAllQuestionByNameAndYearAndSession(name,year,session) ;
     }
 
@@ -60,7 +61,17 @@ public class ExamServiceImpl implements ExamService {
 
     @Override
     public List<QuestionDto> getRandomQuestionsBySubject(Long subjectId) {
-        return questionRepository.findAllbySubjectIdAndRandomNumber(subjectId, Integer.valueOf(String.valueOf(LocalDateTime.now().getSecond()).substring(1))+1);
+        return questionRepository.findAllbySubjectIdAndRandomNumber(subjectId);
+    }
+
+    @Override
+    public List<CertificationTypeDto> getCertificationYearSessionList(Long certificationId) {
+        return certificationRepository.findAllYearAndSessionByCertificationId(certificationId);
+    }
+
+    @Override
+    public List<QuestionDto> getQuestionsBySubject(Long subjectId, int year, int session) {
+        return questionRepository.findAllQuestionBySubjectAndYearSession(subjectId, year, session);
     }
 
 }

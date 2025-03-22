@@ -2,7 +2,12 @@
 
 # MySQL 서비스가 준비될 때까지 대기
 while ! nc -z mysql_db 3306; do
-  echo "MySQL 서버 대기중..."
+  echo "MySQL-master서버 대기중..."
+  sleep 1
+done
+
+while ! nc -z mysql_db 3306; do
+  echo "MySQL-slave 서버 대기중..."
   sleep 1
 done
 

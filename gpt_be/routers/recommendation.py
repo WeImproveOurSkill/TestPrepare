@@ -28,7 +28,7 @@ async def get_current_user(
     db: Session = Depends(get_db),
     token_data = Depends(auth_handler.auth_wrapper)
 ) -> User:
-    user = db.query(User).filter(User.id == token_data.get('user_id')).first()
+    user = db.query(User).filter(User.username == token_data.get('username')).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     return user
