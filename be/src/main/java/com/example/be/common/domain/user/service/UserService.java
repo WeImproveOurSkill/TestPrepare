@@ -18,4 +18,6 @@ public interface UserService {
     boolean existByOauth2Id(String username);
 
     JSONObject kakaoCallback(JSONObject object) throws ParseException;
+
+    JSONObject googleCallback(JSONObject object);
 }
