@@ -74,21 +74,53 @@ class SubjectExam:
 class Certification:
     id: Optional[int] = None
     name: str = ""
-    year: int = 0
-    session: str = ""
     subject_exams: List[SubjectExam] = None
+    certification_types: List['CertificationType'] = None
 
     def __post_init__(self):
         if self.subject_exams is None:
             self.subject_exams = []
+        if self.certification_types is None:
+            self.certification_types = []
 
     def __str__(self) -> str:
         return f"""
-        [자격증 시험 정보]
+        [자격증 정보]
         - 자격증명: {self.name}
+        - 과목 수: {len(self.subject_exams)}
+        - 유형 수: {len(self.certification_types)}
+        """
+
+@dataclass
+class CertificationType:
+    id: Optional[int] = None
+    year: int = 0
+    session: int = 0
+    certification: Optional[Certification] = None
+    certification_subjects: List['CertificationSubject'] = None
+
+    def __post_init__(self):
+        if self.certification_subjects is None:
+            self.certification_subjects = []
+
+    def __str__(self) -> str:
+        return f"""
+        [자격증 유형 정보]
         - 년도: {self.year}
         - 회차: {self.session}
-        - 과목 수: {len(self.subject_exams)}
+        """
+
+@dataclass
+class CertificationSubject:
+    id: Optional[int] = None
+    certification_type: Optional[CertificationType] = None
+    subject_exam: Optional[SubjectExam] = None
+
+    def __str__(self) -> str:
+        return f"""
+        [자격증 유형-과목 정보]
+        - 자격증 유형: {self.certification_type.year}년 {self.certification_type.session}회
+        - 과목: {self.subject_exam.name if self.subject_exam else '없음'}
         """
         
 def drop_tables(db):
@@ -98,8 +130,12 @@ def drop_tables(db):
     tables = [
         "answers",
         "questions",
+        "user_certification",
+        "certification_subject",
         "subject_exam",
-        "certification"
+        "certification_type",
+        "certification",
+        "user"
     ]
     
     print("\n기존 테이블 삭제 시작...")
@@ -117,17 +153,26 @@ def create_tables(db):
     """필요한 테이블 생성"""
     cursor = db.cursor()
     
-    # 인증 테이블 (자격증 정보)
+    # 자격증 테이블 (Certification)
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS certification (
         id INT AUTO_INCREMENT PRIMARY KEY,
-        name VARCHAR(255) NOT NULL,
-        year INT NOT NULL,
-        session VARCHAR(50) NOT NULL
+        name VARCHAR(255) NOT NULL
     )
     """)
     
-    # 과목 테이블
+    # 자격증 유형 테이블 (CertificationType)
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS certification_type (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        year INT NOT NULL,
+        session INT NOT NULL,
+        certification_id INT NOT NULL,
+        FOREIGN KEY (certification_id) REFERENCES certification(id)
+    )
+    """)
+    
+    # 과목 테이블 (SubjectExam)
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS subject_exam (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -137,19 +182,30 @@ def create_tables(db):
     )
     """)
     
-    # 문제 테이블 - randomKey 필드 추가
+    # 자격증 유형과 과목의 중간 테이블 (CertificationSubject)
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS certification_subject (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        certification_type_id INT NOT NULL,
+        subject_exam_id INT NOT NULL,
+        FOREIGN KEY (certification_type_id) REFERENCES certification_type(id),
+        FOREIGN KEY (subject_exam_id) REFERENCES subject_exam(id)
+    )
+    """)
+    
+    # 문제 테이블 (Question)
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS questions (
         id INT AUTO_INCREMENT PRIMARY KEY,
         content TEXT NOT NULL,
         image_link VARCHAR(255),
-        random_key BINARY(16) NOT NULL,  
+        random_key BINARY(16) NOT NULL,
         subject_exam_id INT NOT NULL,
         FOREIGN KEY (subject_exam_id) REFERENCES subject_exam(id)
     )
     """)
     
-    # 답변 테이블
+    # 답변 테이블 (Answer)
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS answers (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -157,6 +213,32 @@ def create_tables(db):
         explanation TEXT,
         question_id INT NOT NULL,
         FOREIGN KEY (question_id) REFERENCES questions(id)
+    )
+    """)
+    
+    # 사용자 테이블 (User)
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS user (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        username VARCHAR(255) NOT NULL,
+        password VARCHAR(255) NOT NULL,
+        email VARCHAR(255),
+        nickname VARCHAR(255),
+        oauth2_id VARCHAR(255),
+        role VARCHAR(50) NOT NULL,
+        provider VARCHAR(50),
+        provider_id VARCHAR(255)
+    )
+    """)
+    
+    # 사용자와 자격증의 중간 테이블 (User_Certification)
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS user_certification (
+        user_id INT NOT NULL,
+        certification_id INT NOT NULL,
+        PRIMARY KEY (user_id, certification_id),
+        FOREIGN KEY (user_id) REFERENCES user(id),
+        FOREIGN KEY (certification_id) REFERENCES certification(id)
     )
     """)
     
@@ -840,8 +922,11 @@ def process_pdf_with_db(pdf_path, db):
         
         # PDF 파일명에서 정보 추출
         filename = os.path.basename(pdf_path)
-        cert_name, year, session, initial_subject = parse_filename(filename)
-        print(f"\n파일 정보: {cert_name}, {year}년, {session}, 초기 과목: {initial_subject}")
+        cert_name, year, session_str, initial_subject = parse_filename(filename)
+        print(f"\n파일 정보: {cert_name}, {year}년, {session_str}, 초기 과목: {initial_subject}")
+        
+        # 세션을 숫자로 변환
+        session = int(re.search(r'\d+', session_str).group()) if re.search(r'\d+', session_str) else 1
         
         # 3. PDF에서 문제와 선택지 추출
         extractor = PDFExtractor(pdf_path)
@@ -868,28 +953,47 @@ def process_pdf_with_db(pdf_path, db):
                 print(f"내용: {q.get('text')[:100]}...")
                 print(f"답안: {q.get('answer')}")
                 
-        # 1. Certification 저장
+        # 1. Certification 저장 (name만 포함)
         cursor.execute("""
-            INSERT INTO certification (name, year, session) 
-            VALUES (%s, %s, %s)
-        """, (cert_name, year, session))
+            INSERT INTO certification (name) 
+            VALUES (%s)
+            ON DUPLICATE KEY UPDATE id=LAST_INSERT_ID(id)
+        """, (cert_name,))
         cert_id = cursor.lastrowid
         print(f"자격증 ID: {cert_id} 생성됨")
         
-        # 2. SubjectExam 저장
+        # 2. CertificationType 저장 (year, session, certification_id 포함)
+        cursor.execute("""
+            INSERT INTO certification_type (year, session, certification_id) 
+            VALUES (%s, %s, %s)
+            ON DUPLICATE KEY UPDATE id=LAST_INSERT_ID(id)
+        """, (year, session, cert_id))
+        cert_type_id = cursor.lastrowid
+        print(f"자격증 유형 ID: {cert_type_id} 생성됨")
+        
+        # 3. SubjectExam 저장
         current_subject_name = initial_subject or "기본과목"
         cursor.execute("""
             INSERT INTO subject_exam (name, certification_id) 
             VALUES (%s, %s)
+            ON DUPLICATE KEY UPDATE id=LAST_INSERT_ID(id)
         """, (current_subject_name, cert_id))
         subject_id = cursor.lastrowid
         print(f"과목 ID: {subject_id} 생성됨")
+        
+        # 4. CertificationSubject 중간 테이블 저장
+        cursor.execute("""
+            INSERT INTO certification_subject (certification_type_id, subject_exam_id) 
+            VALUES (%s, %s)
+        """, (cert_type_id, subject_id))
+        cert_subject_id = cursor.lastrowid
+        print(f"자격증 유형-과목 관계 ID: {cert_subject_id} 생성됨")
         
         # 문제 및 답안 객체 준비
         question_objects = []
         answer_objects = []
         
-        # 4. 문제 및 답안 삽입
+        # 5. 문제 및 답안 삽입
         inserted_questions = 0
         inserted_answers = 0
         question_id_map = {}  # 문제 번호와 DB ID 매핑

@@ -20,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
 import java.beans.Transient;
+import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -40,7 +41,7 @@ public class UserServiceImpl implements UserService {
         String email = oAuth2UserInfo.getEmail().isEmpty() ? oAuth2UserInfo.getEmail() : "not have email";
         String oauth2Id = getOauth2Id(oAuth2UserInfo);
         User user = User.builder()
-                .username(oAuth2UserInfo.getName())
+                .username(oAuth2UserInfo.getName()+String.valueOf(Math.round(Math.random()*100000)))
                 .nickname(oAuth2UserInfo.getName() + oAuth2UserInfo.getProvider())
                 .email(email)
                 .oauth2Id(oauth2Id)
@@ -190,7 +191,7 @@ public class UserServiceImpl implements UserService {
 
             // 구글 API로 사용자 정보 조회
             HttpHeaders headers = new HttpHeaders();
-            headers.add("Authorization", "Bearer " + accessToken);
+            headers.add("Authorization","Bearer " + accessToken);
             headers.add("Content-type", "application/x-www-form-urlencoded;charset=utf-8");
 
             HttpEntity<String> entity = new HttpEntity<>(headers);

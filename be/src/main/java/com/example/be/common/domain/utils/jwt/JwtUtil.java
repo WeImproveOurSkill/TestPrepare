@@ -40,8 +40,8 @@ public class JwtUtil {
         claims.put(AUTHORIZATION_KEY, role);
 
         return BEARER_PREFIX + Jwts.builder()
-                .setSubject(username)
                 .setClaims(claims)
+                .setSubject(username)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + ACCESS_TOKEN_TIME))
                 .signWith(secretKey)

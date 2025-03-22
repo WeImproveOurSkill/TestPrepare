@@ -6,6 +6,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
@@ -20,6 +21,7 @@ import java.util.Objects;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class JwtAuthFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
@@ -34,8 +36,14 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         if (!Objects.equals(accessToken, "") && jwtUtil.isTokenValid(accessToken)) {
             Claims info = jwtUtil.getUserInfoFromToken(accessToken);
             String name = info.getSubject();
-            String role = info.get("auth").toString();
-            setAuthentication(name, role);
+            
+            if (name == null || name.isEmpty()) {
+                log.error("JWT 토큰에서 사용자 이름(subject)을 찾을 수 없습니다. 토큰: {}", accessToken);
+            } else {
+                String role = info.get("auth") != null ? info.get("auth").toString() : "USER";
+                log.debug("JWT 토큰 인증 성공: 사용자={}, 역할={}", name, role);
+                setAuthentication(name, role);
+            }
         }
         // 필터 체인의 다음 필터로 넘어감
         filterChain.doFilter(request, response);
