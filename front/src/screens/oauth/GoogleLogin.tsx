@@ -1,10 +1,13 @@
 import React from 'react';
 import { Text, Pressable } from 'react-native';
 import { ScaledSheet } from 'react-native-size-matters';
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
+import { setEncryptStorage } from '../../util/encryptStorage';
 import useThemeStore, { themeMode } from '../../store/useThemeStore';
 import { colors } from '../../constants/colors';
-import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import Config from 'react-native-config';
+import { useMutation } from '@tanstack/react-query';
+import { fetchPost } from '../../util/api';
 
 GoogleSignin.configure({
   webClientId: Config.WEB_CLIENT_ID,
@@ -12,58 +15,67 @@ GoogleSignin.configure({
   iosClientId: Config.IOS_CLIENT_ID,
 });
 
-// type GoogleLoginProps = {
-//   onLoginSuccess?: () => void;
-// };
+type GoogleLoginProps = {
+  onLoginSuccess?: () => void;
+};
+
+interface GoogleLoginResponse {
+  tokens: {
+    accessToken: string;
+    idToken: string;
+  };
+}
+
+export interface LoginUserResponse {
+  accessToken: string;
+  userId: number;
+  userName: string;
+}
+
 
 function GoogleLogin(
-  // { onLoginSuccess }: GoogleLoginProps
+  { onLoginSuccess }: GoogleLoginProps
 ) {
   const {theme} = useThemeStore();
   const styles = styling(theme);
 
-  const handleGoogleLogin = async () => {
-    // try {
-    //   await GoogleSignin.hasPlayServices();
-      // const userInfo = await GoogleSignin.signIn();
-      // const tokens = await GoogleSignin.getTokens();
+    // 구글 로그인 정보를 백엔드로 전송하는 mutation
+    const { mutate: sendTokensToBackend } = useMutation<LoginUserResponse, Error, GoogleLoginResponse>({
+      mutationFn: async (loginData: GoogleLoginResponse) => {
+        // fetchPost 함수 사용하여 백엔드에 요청
+        return fetchPost('oauth/callback/google', loginData.tokens);
+      },
+      onSuccess: async (data) => {
+        console.log(data);
+        if (data.accessToken) {
+          await setEncryptStorage('user_jwt', data.accessToken);
+          await setEncryptStorage('user', data.userName);
+          onLoginSuccess?.();
+        }
+      },
+      onError: (error) => {
+        console.log('Login error:', error);
+      },
+    });
 
-    //   if (tokens.idToken) {
-        // 백엔드로 토큰 전송
-    //     const response = await fetch(`${Config.BASE_URL}oauth/callback/google`, {
-    //       method: 'POST',
-    //       headers: {
-    //         'Content-Type': 'application/json',
-    //       },
-    //       body: JSON.stringify({ token: tokens.idToken }),
-    //     });
+  // 구글 로그인 mutation
+  const { mutate: handleGoogleLogin } = useMutation<GoogleLoginResponse, Error>({
+    mutationFn: async () => {
+      await GoogleSignin.hasPlayServices();
+      const tokens = await GoogleSignin.getTokens();
 
-    //     // 로그인 처리
-    //   }
-    // } catch (error) {
-    //   console.log(error);
-    //   // if (isErrorWithCode(error)) {
-    //   //   switch (error.code) {
-    //   //     case statusCodes.SIGN_IN_CANCELLED:
-    //   //       console.log('로그인이 취소되었습니다');
-    //   //       break;
-    //   //     case statusCodes.IN_PROGRESS:
-    //   //       console.log('로그인이 이미 진행중입니다');
-    //   //       break;
-    //   //     case statusCodes.PLAY_SERVICES_NOT_AVAILABLE:
-    //   //       console.log('Play Services가 사용할 수 없습니다');
-    //   //       break;
-    //   //     default:
-    //   //       console.error('기타 에러:', error);
-    //   //   }
-    //   // }
-    // }
-     // 로그인 성공 후
-  //    onLoginSuccess?.();
-  //   } catch (error) {
-  //     console.error('Google Login Error:', error);
-  //   }
-  };
+      return {
+        tokens,
+      };
+    },
+    onSuccess: (loginData) => {
+      console.log('Google login success:', loginData);
+      sendTokensToBackend(loginData);
+    },
+    onError: (error) => {
+      console.error('Google login failed:', error);
+    },
+  });
 
   return (
    <Pressable
@@ -71,7 +83,7 @@ function GoogleLogin(
         styles.button,
         pressed && styles.buttonPressed,
       ]}
-      onPress={handleGoogleLogin}
+      onPress={() => handleGoogleLogin()}
     >
       <Text style={styles.buttonText}>구글 계정으로 계속하기</Text>
     </Pressable>

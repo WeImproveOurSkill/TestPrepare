@@ -2,11 +2,12 @@ import React from 'react';
 import { Pressable, Text } from 'react-native';
 import { ScaledSheet } from 'react-native-size-matters';
 import { login, getProfile, KakaoProfile, KakaoOAuthToken } from '@react-native-seoul/kakao-login';
+import { useMutation } from '@tanstack/react-query';
+import { setEncryptStorage } from '../../util/encryptStorage';
 import { colors } from '../../constants/colors';
 import useThemeStore, { themeMode } from '../../store/useThemeStore';
-import { setEncryptStorage } from '../../util/encryptStorage';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import Config from 'react-native-config';
+import { fetchPost } from '../../util/api';
+import { LoginUserResponse } from './GoogleLogin';
 
 type KakaoLoginResponse = {
   token: KakaoOAuthToken;
@@ -21,30 +22,20 @@ type KakaoLoginProps = {
 function KakaoLogin({ onLoginSuccess }: KakaoLoginProps) {
   const {theme} = useThemeStore();
   const styles = styling(theme);
-  const queryClient = useQueryClient();
 
 
   // 카카오 로그인 정보를 백엔드로 전송하는 mutation
-  const { mutate: sendTokensToBackend } = useMutation({
+  const { mutate: sendTokensToBackend } = useMutation<LoginUserResponse, Error, KakaoLoginResponse>({
     mutationFn: async (loginData: KakaoLoginResponse) => {
-      const response = await fetch(`${Config.BASE_URL}oauth/callback/kakao`, {
-        method: 'POST',
-        headers: {
-          'Authorization' : `Bearer ${loginData.accessToken}`,
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify(loginData),
-      });
-
-      return response.json();
+      return await fetchPost('oauth/callback/kakao', loginData);
     },
     onSuccess: async (data) => {
       console.log(data);
+      onLoginSuccess?.();
 
-      if (data.token) {
-        await setEncryptStorage('user_jwt', data.token);
-        queryClient.setQueryData(['user'], data.user);
+      if (data.accessToken) {
+        await setEncryptStorage('user_jwt', data.accessToken);
+        await setEncryptStorage('user', data.userName);
       }
     },
     onError: (error) => {
@@ -68,7 +59,6 @@ function KakaoLogin({ onLoginSuccess }: KakaoLoginProps) {
     onSuccess: (loginData) => {
       console.log('Kakao login success:', loginData);
       sendTokensToBackend(loginData);
-      onLoginSuccess?.();
     },
     onError: (error) => {
       console.error('Kakao login failed:', error);

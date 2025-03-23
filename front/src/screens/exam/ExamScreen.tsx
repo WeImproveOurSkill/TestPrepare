@@ -1,13 +1,13 @@
 import React from 'react';
 import {Text, View} from 'react-native';
 import { ScaledSheet } from 'react-native-size-matters';
-import DeviceInfo from 'react-native-device-info';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import useTablet from '../../hooks/useTablet';
 // import useThemeStore, { themeMode } from '../../store/useThemeStore';
 
 
 function ExamScreen() {
-  const isTablet = DeviceInfo.isTablet();
+  const isTablet = useTablet();
   // const {theme} = useThemeStore();
   const styles = styling();
 

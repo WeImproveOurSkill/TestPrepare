@@ -64,6 +64,7 @@ yarn-error.log
 
 # testing
 /coverage
+.cursor
 
 # Yarn
 .yarn/*
