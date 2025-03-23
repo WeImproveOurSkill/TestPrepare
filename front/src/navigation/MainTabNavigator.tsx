@@ -1,5 +1,5 @@
 import React from 'react';
-import { useWindowDimensions, View } from 'react-native';
+import { View } from 'react-native';
 import { NavigatorScreenParams } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { ScaledSheet } from 'react-native-size-matters';
@@ -9,6 +9,7 @@ import { MainTabNavigation } from '../constants/navigations';
 import { colors } from '../constants/colors';
 import HomeScreen from '../screens/home/HomeScreen';
 import Header from '../screens/components/Header';
+import useTablet from '../hooks/useTablet';
 
 export type mainTabParamList = {
   TabHome: NavigatorScreenParams<HomeStackParamList> | undefined;
@@ -21,8 +22,7 @@ const Tab = createBottomTabNavigator<mainTabParamList>();
 
 function MainTabNavigator() {
   const { theme } = useThemeStore();
-  const { width } = useWindowDimensions();
-  const isTablet = width >= 600;
+  const isTablet = useTablet();
   const styles = styling(theme, isTablet);
 
   return (

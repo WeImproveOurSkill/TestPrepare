@@ -1,15 +1,15 @@
 import React from 'react';
-import { View, Text} from 'react-native';
+import { View, Text } from 'react-native';
 import { ScaledSheet } from 'react-native-size-matters';
-import DeviceInfo from 'react-native-device-info';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import useTablet from '../../hooks/useTablet';
 
 interface QuizScreenProps {
 
 }
 
 function QuizScreen({}: QuizScreenProps) {
-  const isTablet = DeviceInfo.isTablet();
+  const isTablet = useTablet();
   const styles = styling();
 
   const insets = useSafeAreaInsets();
