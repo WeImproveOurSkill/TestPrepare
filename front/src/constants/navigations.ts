@@ -5,15 +5,15 @@ const authNavigation = {
   EXAM: 'Exam',
   STUDY: 'Study',
   QUIZ: 'Quiz',
-  MainTabNavigator: 'MainTabNavigator',
+  MAIN_TAB_NAVIGATOR: 'MainTabNavigator',
   SELECT_CERTIFICATION: 'SelectCertification',
 } as const;
 
-const BottomTabNavigation = {
+const MainTabNavigation = {
   HOME: 'TabHome',
-  EXAM: 'Exam',
-  STUDY: 'Study',
-  QUIZ: 'Quiz',
+  // GPT_RECORD_TAB: 'GPTRecordTab',
+  // BOOKMARK_TAB: 'BookmarkTab',
+  // MYPAGE: 'MyPage',
 } as const;
+export { authNavigation, MainTabNavigation };
 
-export { authNavigation, BottomTabNavigation };

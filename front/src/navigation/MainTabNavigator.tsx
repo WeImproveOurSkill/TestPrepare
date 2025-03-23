@@ -5,7 +5,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { ScaledSheet } from 'react-native-size-matters';
 import { HomeStackParamList } from './HomeStackNavigator';
 import useThemeStore, { themeMode } from '../store/useThemeStore';
-import { BottomTabNavigation } from '../constants';
+import { MainTabNavigation } from '../constants/navigations';
 import { colors } from '../constants/colors';
 import HomeScreen from '../screens/home/HomeScreen';
 import Header from '../screens/components/Header';
@@ -37,7 +37,7 @@ function MainTabNavigator() {
         headerShown: false,
       }}>
       <Tab.Screen
-        name={BottomTabNavigation.HOME}
+        name={MainTabNavigation.HOME}
         component={HomeScreen}
         options={{ title: '홈' }}
       />
