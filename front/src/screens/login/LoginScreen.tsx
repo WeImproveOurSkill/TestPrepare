@@ -7,7 +7,7 @@ import useThemeStore, { themeMode } from '../../store/useThemeStore';
 import { colors } from '../../constants/colors';
 import KakaoLogin from '../oauth/KakaoLogin';
 import { useNavigation } from '@react-navigation/native';
-// import GoogleLogin from './GoogleLogin';
+import GoogleLogin from '../oauth/GoogleLogin';
 
 interface LoginPageProps {
   onLoginSuccess?: () => void;
@@ -34,7 +34,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
       </Text>
       <View style={styles.buttonContainer}>
         <KakaoLogin onLoginSuccess={handleSuccess} />
-        {/* <GoogleLogin onLoginSuccess={onLoginSuccess} /> */}
+        <GoogleLogin onLoginSuccess={handleSuccess} />
         <Pressable
           style={({pressed}) => [
             styles.nonLoginButton,
