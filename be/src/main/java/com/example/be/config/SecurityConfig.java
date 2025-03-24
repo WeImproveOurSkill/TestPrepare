@@ -37,10 +37,10 @@ public class SecurityConfig {
     private final String[] permitAllArray = {
             "/oauth2/authorization/**",
             "/login/oauth2/code/**",
-//            "/",
-            "/exam/*",
+            "/exam",
+            "/exam/subject/{subjectId}",
+            "/exam/subject/{subjectId}/random",
             "/oauth/callback/**",
-            "/*"
     };
 
     private final OAuth2SuccessHandler oAuth2SuccessHandler;
@@ -73,7 +73,7 @@ public class SecurityConfig {
         http.authorizeHttpRequests(auth ->
                 auth.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers(permitAllArray).permitAll()
-                        .anyRequest().permitAll());
+                        .anyRequest().authenticated());
 
 
         http.oauth2Login(loginConf ->
