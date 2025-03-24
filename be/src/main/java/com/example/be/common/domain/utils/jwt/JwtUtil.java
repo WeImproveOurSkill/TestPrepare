@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
 import java.util.Base64;
 import java.util.Date;
 
@@ -30,7 +31,7 @@ public class JwtUtil {
 
     public JwtUtil(@Value("${jwt.secret-key}") String base64Key) {
         byte[] keyBytes = Base64.getDecoder().decode(base64Key);
-        this.secretKey = Keys.hmacShaKeyFor(keyBytes);
+        this.secretKey = new SecretKeySpec(keyBytes, "HmacSHA256");
     }
 
 
@@ -50,7 +51,7 @@ public class JwtUtil {
 
     public String resolveAccessToken(HttpServletRequest request) {
         String token = request.getHeader(AUTHORIZATION_HEADER);
-        if(StringUtils.hasText(token) && token.startsWith(BEARER_PREFIX)) {
+        if (StringUtils.hasText(token) && token.startsWith(BEARER_PREFIX)) {
             return token.substring(BEARER_PREFIX.length());
         }
         return "";
