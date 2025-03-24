@@ -50,7 +50,8 @@ public class UserQuestionRepositoryQueryImpl implements UserQuestionRepositoryQu
                         answer.explanation
                 )).from(question)
                 .rightJoin(question.subjectExam, subjectExam)
-                .rightJoin(subjectExam.certification, certification).where(
+                .rightJoin(subjectExam.certification, certification)
+                .where(
                         userQuestion.user.eq(user),
                         userQuestion.isBookmarked.eq(true),
                         certification.id.eq(certificationId)

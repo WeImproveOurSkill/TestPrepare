@@ -29,7 +29,6 @@ class Question:
     id: Optional[int] = None
     content: str = ""
     image_link: Optional[str] = None
-    random_key: uuid.UUID = field(default_factory=uuid.uuid4)  # randomKey 추가 (Java와 일치하게)
     subject_exam: Optional['SubjectExam'] = None
     answer: Optional[Answer] = None
 
@@ -38,7 +37,6 @@ class Question:
         [문제 정보]
         - 내용: {self.content[:100]}...
         - 이미지: {self.image_link if self.image_link else '없음'}
-        - UUID: {self.random_key}
         {self.answer if self.answer else '- 답안 정보 없음'}
         """
 
@@ -127,14 +125,37 @@ def drop_tables(db):
     """기존 테이블 삭제"""
     cursor = db.cursor()
     
+    # 외래 키 제약 조건 비활성화
+    cursor.execute("SET FOREIGN_KEY_CHECKS = 0")
+    
+    # random_key 컬럼이 존재하는지 확인하고 제거
+    try:
+        cursor.execute("""
+        SELECT COUNT(*) 
+        FROM INFORMATION_SCHEMA.COLUMNS 
+        WHERE TABLE_SCHEMA = DATABASE() 
+        AND TABLE_NAME = 'questions' 
+        AND COLUMN_NAME = 'random_key'
+        """)
+        column_exists = cursor.fetchone()[0] > 0
+        
+        if column_exists:
+            print("random_key 컬럼이 존재하여 제거합니다...")
+            cursor.execute("ALTER TABLE questions DROP COLUMN random_key")
+            db.commit()
+            print("random_key 컬럼이 성공적으로 제거되었습니다.")
+    except Exception as e:
+        print(f"random_key 컬럼 제거 중 오류 발생: {e}")
+    
+    # 테이블 삭제
     tables = [
         "answers",
         "questions",
-        "user_certification",
         "certification_subject",
         "subject_exam",
         "certification_type",
         "certification",
+        "user_certification",
         "user"
     ]
     
@@ -199,7 +220,6 @@ def create_tables(db):
         id INT AUTO_INCREMENT PRIMARY KEY,
         content TEXT NOT NULL,
         image_link VARCHAR(255),
-        random_key BINARY(16) NOT NULL,
         subject_exam_id INT NOT NULL,
         FOREIGN KEY (subject_exam_id) REFERENCES subject_exam(id)
     )
@@ -1001,17 +1021,11 @@ def process_pdf_with_db(pdf_path, db):
         # 먼저 문제를 모두 저장
         for q in questions:
             try:
-                # 각 문제마다 새로운 UUID 생성
-                random_key = uuid.uuid4()
-                
-                # UUID를 bytes로 변환하여 MySQL BINARY(16)에 맞게 저장
-                random_key_bytes = random_key.bytes
-                
-                # 문제 삽입 (랜덤 UUID 포함)
+                # 문제 삽입
                 cursor.execute("""
-                    INSERT INTO questions (content, image_link, random_key, subject_exam_id) 
-                    VALUES (%s, %s, %s, %s)
-                """, (q.get('text'), q.get('image_link'), random_key_bytes, subject_id))
+                    INSERT INTO questions (content, image_link, subject_exam_id) 
+                    VALUES (%s, %s, %s)
+                """, (q.get('text'), q.get('image_link'), subject_id))
                 question_id = cursor.lastrowid
                 question_id_map[q.get('question_number')] = question_id
                 inserted_questions += 1
@@ -1128,13 +1142,14 @@ def verify_subject_assignments(db):
     """과목별 할당된 문제 수 확인"""
     cursor = db.cursor()
     
-    # 과목별 문제 수 확인
+    # 과목별 문제 수 확인 - 새로운 테이블 구조 반영
     cursor.execute("""
-    SELECT s.id, s.name, c.name, c.year, c.session, COUNT(q.id) as question_count
+    SELECT s.id, s.name, c.name, ct.year, ct.session, COUNT(q.id) as question_count
     FROM subject_exam s
     JOIN certification c ON s.certification_id = c.id
+    LEFT JOIN certification_type ct ON ct.certification_id = c.id
     LEFT JOIN questions q ON q.subject_exam_id = s.id
-    GROUP BY s.id, s.name, c.name, c.year, c.session
+    GROUP BY s.id, s.name, c.name, ct.year, ct.session
     """)
     
     results = cursor.fetchall()

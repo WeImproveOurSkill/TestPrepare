@@ -8,7 +8,7 @@ class DatabaseConnector:
             'host': 'localhost',          # MySQL 서버 주소
             'user': 'root',      # MySQL 사용자명
             'password': '1234',  # MySQL 비밀번호
-            'database': 'test'   # 데이터베이스 이름
+            'database': 'project'   # 데이터베이스 이름
         }
     
     def connect(self):
