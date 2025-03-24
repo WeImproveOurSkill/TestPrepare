@@ -3,7 +3,7 @@ from sqlalchemy.orm import relationship
 from database import Base
 
 class Certification(Base):
-    __tablename__ = "certification"
+    __tablename__ = "certifications"
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String)

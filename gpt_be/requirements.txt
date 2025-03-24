@@ -3,6 +3,7 @@ uvicorn
 sqlalchemy
 python-jose[cryptography]  # JWT 검증용
 python-dotenv  # 환경변수 관리 
-openai
+requests>=2.31.0  # HTTP 요청용 (Perplexity API 호출에 사용)
 pymysql      # MySQL 연결용
-cryptography # pymysql 암호화 지원 
+cryptography # pymysql 암호화 지원
+openai>=1.0.0  # OpenAI 클라이언트를 통한 Perplexity API 호출용 

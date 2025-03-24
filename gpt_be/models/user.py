@@ -33,4 +33,7 @@ class User(Base):
         "Certification",
         secondary=user_certification,
         backref="users"
-    ) 
+    )
+    
+    # UserStudyPattern과의 일대다 관계 추가
+    study_patterns = relationship("UserStudyPattern", back_populates="user") 

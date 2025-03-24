@@ -1,6 +1,7 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, Text
+from sqlalchemy import Column, Integer, String, ForeignKey, Text, LargeBinary
 from sqlalchemy.orm import relationship
 from database import Base
+import uuid
 
 class Question(Base):
     __tablename__ = "questions"
@@ -8,7 +9,8 @@ class Question(Base):
     id = Column(Integer, primary_key=True, index=True)
     content = Column(Text)  # 문제 내용과 선택지를 포함한 전체 내용
     image_link = Column(String)
-    subject_id = Column(Integer, ForeignKey("subject_exam.id"))
+    subject_exam_id = Column(Integer, ForeignKey("subject_exams.id"))
+    random_key = Column(LargeBinary, default=lambda: uuid.uuid4().bytes)  # UUID를 바이너리로 저장
 
     # 관계 설정
     subject_exam = relationship("SubjectExam", back_populates="questions")
