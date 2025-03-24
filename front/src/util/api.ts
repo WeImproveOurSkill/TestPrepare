@@ -1,4 +1,4 @@
-import { getEncryptStorage } from '../util/encryptStorage';
+import { getEncryptStorage, JwtKey } from '../util/encryptStorage';
 import Config from 'react-native-config';
 
 // 헤더 생성 함수 - 토큰이 있으면 포함, 없으면 기본 헤더만 반환
@@ -8,9 +8,9 @@ const createHeaders = async (): Promise<Headers> => {
   });
 
   try {
-    const token = await getEncryptStorage('user_jwt');
+    const token = await getEncryptStorage(JwtKey);
     if (token) {
-      headers.append('Authorization', token); // Bearer 제거, 토큰만 사용
+      headers.append('Authorization', token);
     }
   } catch (error) {
     console.log('토큰이 없거나 가져오는 중 오류 발생');

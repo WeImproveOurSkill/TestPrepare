@@ -3,7 +3,7 @@ import { Pressable, Text } from 'react-native';
 import { ScaledSheet } from 'react-native-size-matters';
 import { login, getProfile, KakaoProfile, KakaoOAuthToken } from '@react-native-seoul/kakao-login';
 import { useMutation } from '@tanstack/react-query';
-import { setEncryptStorage } from '../../util/encryptStorage';
+import { setEncryptStorage, JwtKey, UserKey } from '../../util/encryptStorage';
 import { colors } from '../../constants/colors';
 import useThemeStore, { themeMode } from '../../store/useThemeStore';
 import { fetchPost } from '../../util/api';
@@ -32,10 +32,11 @@ function KakaoLogin({ onLoginSuccess }: KakaoLoginProps) {
     onSuccess: async (data) => {
       console.log(data);
       onLoginSuccess?.();
+      console.log('data.token', data);
 
-      if (data.accessToken) {
-        await setEncryptStorage('user_jwt', data.accessToken);
-        await setEncryptStorage('user', data.userName);
+      if (data.token) {
+        await setEncryptStorage(JwtKey, data.token);
+        await setEncryptStorage(UserKey, data.user);
       }
     },
     onError: (error) => {
