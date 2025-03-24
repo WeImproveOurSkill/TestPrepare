@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Modal, View, Text, Pressable, TouchableWithoutFeedback, ActivityIndicator } from 'react-native';
 import { ScaledSheet } from 'react-native-size-matters';
 // import { useMutation } from '@tanstack/react-query';
@@ -13,12 +13,17 @@ interface Props {
   question: QuestionData;
 }
 
+const errorExplanationText = {
+  'explanation': '정답이 ③인 이유는 워크스루와 인스펙션이 서로 다른 의미를 가졌기 때문입니다. 워크스루는 팀 구성원들이 참여하여 문서나 코드를 검토하고 피드백을 주고받는 방법으로, 팀 내 의사소통과 이해를 높이는 데 중점을 둡니다. 반면, 인스펙션은 코드나 문서 작성자를 제외한 전문가들이 엄격한 절차에 따라 객관적으로 검토하는 방법입니다. 따라서 두 개념은 동일하지 않습니다.',
+};
+
 const ExplanationModal = ({ isVisible, onClose, question }: Props) => {
   const { theme } = useThemeStore();
   const styles = styling(theme);
   const [gptExplanation, setGptExplanation] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [hasRequestedExplanation, setHasRequestedExplanation] = useState(false);
+  // console.log(gptExplanation);
 
   // GPT 해설 요청을 위한 mutation 정의
   /*
@@ -41,13 +46,19 @@ const ExplanationModal = ({ isVisible, onClose, question }: Props) => {
   });
   */
 
+  useEffect(() => {
+    setGptExplanation(null);
+    setHasRequestedExplanation(false);
+    setIsLoading(false);
+  }, [question]);
+
+
   // 직접 fetch API를 사용하는 POST 요청 함수
   const gptExplanationMutation = {
     isPending: isLoading,
     mutate: async (requestData: any) => {
       try {
         setIsLoading(true);
-        setError(null);
         console.log(requestData);
         const response = await fetch('http://124.111.2.61:8000/recommend/gpt-assistance', {
           method: 'POST',
@@ -59,28 +70,28 @@ const ExplanationModal = ({ isVisible, onClose, question }: Props) => {
         });
 
         if (!response.ok) {
-          throw new Error(`HTTP 오류: ${response.status}`);
+          console.error(`HTTP 오류: ${response.status}`);
+          setGptExplanation(JSON.stringify(errorExplanationText.explanation));
+          return;
         }
 
         const data = await response.json();
 
         if (data) {
-          const explanationText = JSON.stringify(data);
+          const explanationText = JSON.stringify(data.explanation.explanation);
           setGptExplanation(explanationText);
-        } else {
-          setError('GPT 해설을 받아오는데 실패했습니다.');
         }
       } catch (err) {
         console.error('GPT 해설 요청 오류:', err);
-        setError(`GPT 해설 요청 중 오류가 발생했습니다: ${err instanceof Error ? err.message : '알 수 없는 오류'}`);
+        setGptExplanation(JSON.stringify(errorExplanationText.explanation));
       } finally {
         setIsLoading(false);
       }
     },
   };
-  console.log(error);
 
   const handleGPTButton = () => {
+    setHasRequestedExplanation(true);
     const requestData = {
       questionId: question.questionId,
       content: question.content,
@@ -111,9 +122,12 @@ const ExplanationModal = ({ isVisible, onClose, question }: Props) => {
              <View style={styles.questionExplanationContainer}>
                 <Text style={styles.explanationText}>{question?.explanation || '해설이 없습니다.'}</Text>
               </View>
-                <Pressable onPress={handleGPTButton} style={styles.gptButton} disabled={gptExplanationMutation.isPending}>
-                  <Text style={styles.gptButtonText}>GPT 해설 요청하기</Text>
-                </Pressable>
+              <View style={styles.gptButtonContainer}>
+                {!hasRequestedExplanation && (
+                  <Pressable onPress={handleGPTButton} style={styles.gptButton} disabled={gptExplanationMutation.isPending}>
+                    <Text style={styles.gptButtonText}>GPT 해설 요청하기</Text>
+                  </Pressable>
+                )}
               {gptExplanationMutation.isPending ? (
                 <View style={styles.loadingWrapper}>
                   <View style={styles.loadingContainer}>
@@ -121,12 +135,16 @@ const ExplanationModal = ({ isVisible, onClose, question }: Props) => {
                   </View>
                   <Text style={styles.loadingText}>GPT 해설 요청 중...</Text>
                   <Text style={styles.loadingText}>GPT 해설 요청은 시간이 소요될 수 있습니다.</Text>
-                  <Text style={styles.loadingText}>(약 20초~30초 소요)</Text>
+                  <Text style={styles.loadingText}>(약 10초~20초 소요)</Text>
                 </View>
               ) : (
-                // ''
-                <Text style={styles.explanationText}>{gptExplanation}</Text>
+                hasRequestedExplanation && gptExplanation && (
+                  <Text style={styles.explanationText}>
+                    {gptExplanation}
+                  </Text>
+                )
               )}
+              </View>
             </View>
           </View>
           </TouchableWithoutFeedback>
@@ -151,7 +169,7 @@ const styling = (theme: themeMode) => ScaledSheet.create({
     flexDirection: 'column',
   },
   modalContainer: {
-    height: '60%',
+    minHeight: '30%',
     width: '100%',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
@@ -162,8 +180,7 @@ const styling = (theme: themeMode) => ScaledSheet.create({
     transform: [{ rotate: '0deg' }], // 회전 방지
   },
   modalContent: {
-    backgroundColor: colors[theme].WHITE,
-    height: '100%',
+    // height: '100%',
     padding: 20,
     borderTopLeftRadius: 10,
     borderTopRightRadius: 10,
@@ -176,8 +193,7 @@ const styling = (theme: themeMode) => ScaledSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     // borderBottomWidth: 1,
-    borderWidth: 1,
-    borderColor: colors[theme].MAIN,
+    // borderColor: colors[theme].MAIN,
     paddingBottom: '20@mvs0.3',
   },
   closeButton: {
@@ -238,6 +254,14 @@ const styling = (theme: themeMode) => ScaledSheet.create({
     fontSize: '14@mvs0.3',
     marginTop: '10@mvs0.3',
     textAlign: 'center',
+  },
+  gptButtonContainer: {
+    width: '100%',
+    // marginTop: '20@mvs0.3',
+    // alignItems: 'center',
+    // justifyContent: 'center',
+    borderTopWidth: 1,
+    borderColor: colors[theme].MAIN,
   },
 });
 

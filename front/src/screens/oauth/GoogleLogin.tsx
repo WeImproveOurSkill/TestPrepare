@@ -1,12 +1,12 @@
 import React from 'react';
 import { Text, Pressable } from 'react-native';
 import { ScaledSheet } from 'react-native-size-matters';
+import { useMutation } from '@tanstack/react-query';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
-import { setEncryptStorage } from '../../util/encryptStorage';
+import { setEncryptStorage, JwtKey, UserKey } from '../../util/encryptStorage';
+import Config from 'react-native-config';
 import useThemeStore, { themeMode } from '../../store/useThemeStore';
 import { colors } from '../../constants/colors';
-import Config from 'react-native-config';
-import { useMutation } from '@tanstack/react-query';
 import { fetchPost } from '../../util/api';
 
 GoogleSignin.configure({
@@ -27,9 +27,12 @@ interface GoogleLoginResponse {
 }
 
 export interface LoginUserResponse {
-  accessToken: string;
-  userId: number;
-  userName: string;
+  token: string;
+  user: {
+    nickname: string;
+    userId: number;
+    userName: string;
+  }
 }
 
 
@@ -47,9 +50,9 @@ function GoogleLogin(
       },
       onSuccess: async (data) => {
         console.log(data);
-        if (data.accessToken) {
-          await setEncryptStorage('user_jwt', data.accessToken);
-          await setEncryptStorage('user', data.userName);
+        if (data.token) {
+          await setEncryptStorage(JwtKey, data.token);
+          await setEncryptStorage(UserKey, data.user);
           onLoginSuccess?.();
         }
       },
