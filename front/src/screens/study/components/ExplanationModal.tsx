@@ -16,40 +16,40 @@ interface Props {
 const ExplanationModal = ({ isVisible, onClose, question }: Props) => {
   const { theme } = useThemeStore();
   const styles = styling(theme);
-  const [gptExplanation, setGptExplanation] = useState<string | null>(null);
+  const [perplexityExplanation, setPerplexityExplanation] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // GPT 해설 요청을 위한 mutation 정의
+  // Perplexity 해설 요청을 위한 mutation 정의
   /*
-  const gptExplanationMutation = useMutation({
+  const perplexityExplanationMutation = useMutation({
     mutationFn: async (data: any) => {
-      const endpoint = '/recommend/gpt-assistance';
+      const endpoint = '/recommend/perplexity-assistance';
       return await fetchPost(endpoint, data);
     },
     onSuccess: (response) => {
       if (response) {
         const explanationText = JSON.stringify(response);
-        setGptExplanation(explanationText);
+        setPerplexityExplanation(explanationText);
       } else {
-        console.log('GPT 해설을 받아오는데 실패했습니다.');
+        console.log('Perplexity 해설을 받아오는데 실패했습니다.');
       }
     },
     onError: (error: any) => {
-      console.error('GPT 해설 요청 오류:', error);
+      console.error('Perplexity 해설 요청 오류:', error);
     },
   });
   */
 
   // 직접 fetch API를 사용하는 POST 요청 함수
-  const gptExplanationMutation = {
+  const perplexityExplanationMutation = {
     isPending: isLoading,
     mutate: async (requestData: any) => {
       try {
         setIsLoading(true);
         setError(null);
         console.log(requestData);
-        const response = await fetch('http://124.111.2.61:8000/recommend/gpt-assistance', {
+        const response = await fetch('http://124.111.2.61:8000/recommend/perplexity-assistance', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -66,13 +66,13 @@ const ExplanationModal = ({ isVisible, onClose, question }: Props) => {
 
         if (data) {
           const explanationText = JSON.stringify(data);
-          setGptExplanation(explanationText);
+          setPerplexityExplanation(explanationText);
         } else {
-          setError('GPT 해설을 받아오는데 실패했습니다.');
+          setError('Perplexity 해설을 받아오는데 실패했습니다.');
         }
       } catch (err) {
-        console.error('GPT 해설 요청 오류:', err);
-        setError(`GPT 해설 요청 중 오류가 발생했습니다: ${err instanceof Error ? err.message : '알 수 없는 오류'}`);
+        console.error('Perplexity 해설 요청 오류:', err);
+        setError(`Perplexity 해설 요청 중 오류가 발생했습니다: ${err instanceof Error ? err.message : '알 수 없는 오류'}`);
       } finally {
         setIsLoading(false);
       }
@@ -80,7 +80,7 @@ const ExplanationModal = ({ isVisible, onClose, question }: Props) => {
   };
   console.log(error);
 
-  const handleGPTButton = () => {
+  const handlePerplexityButton = () => {
     const requestData = {
       questionId: question.questionId,
       content: question.content,
@@ -89,7 +89,7 @@ const ExplanationModal = ({ isVisible, onClose, question }: Props) => {
       subjectName: '소프트웨어 공학',
     };
     console.log(requestData);
-    gptExplanationMutation.mutate(requestData);
+    perplexityExplanationMutation.mutate(requestData);
   };
 
   return (
@@ -111,21 +111,21 @@ const ExplanationModal = ({ isVisible, onClose, question }: Props) => {
              <View style={styles.questionExplanationContainer}>
                 <Text style={styles.explanationText}>{question?.explanation || '해설이 없습니다.'}</Text>
               </View>
-                <Pressable onPress={handleGPTButton} style={styles.gptButton} disabled={gptExplanationMutation.isPending}>
-                  <Text style={styles.gptButtonText}>GPT 해설 요청하기</Text>
+                <Pressable onPress={handlePerplexityButton} style={styles.gptButton} disabled={perplexityExplanationMutation.isPending}>
+                  <Text style={styles.gptButtonText}>Perplexity 해설 요청하기</Text>
                 </Pressable>
-              {gptExplanationMutation.isPending ? (
+              {perplexityExplanationMutation.isPending ? (
                 <View style={styles.loadingWrapper}>
                   <View style={styles.loadingContainer}>
                     <ActivityIndicator size="large" color={colors[theme].MAIN} />
                   </View>
-                  <Text style={styles.loadingText}>GPT 해설 요청 중...</Text>
-                  <Text style={styles.loadingText}>GPT 해설 요청은 시간이 소요될 수 있습니다.</Text>
+                  <Text style={styles.loadingText}>Perplexity 해설 요청 중...</Text>
+                  <Text style={styles.loadingText}>Perplexity 해설 요청은 시간이 소요될 수 있습니다.</Text>
                   <Text style={styles.loadingText}>(약 20초~30초 소요)</Text>
                 </View>
               ) : (
                 // ''
-                <Text style={styles.explanationText}>{gptExplanation}</Text>
+                <Text style={styles.explanationText}>{perplexityExplanation}</Text>
               )}
             </View>
           </View>
