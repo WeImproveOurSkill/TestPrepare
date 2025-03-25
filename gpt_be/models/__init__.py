@@ -3,4 +3,4 @@ from .certification import Certification
 from .subject_exam import SubjectExam
 from .question import Question
 from .answer import Answer
-from .recommendation import UserStudyPattern, ContentRecommendation 
+# from .recommendation import ContentRecommendation  # ContentRecommendation 제거 

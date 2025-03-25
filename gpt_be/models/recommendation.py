@@ -2,6 +2,8 @@ from sqlalchemy import Column, Integer, String, ForeignKey, Float, JSON
 from sqlalchemy.orm import relationship
 from database import Base
 
+# UserStudyPattern 클래스 주석 처리
+"""
 class UserStudyPattern(Base):
     __tablename__ = "user_study_patterns"
     
@@ -14,6 +16,7 @@ class UserStudyPattern(Base):
     
     user = relationship("User", back_populates="study_patterns")
     subject = relationship("SubjectExam", back_populates="study_patterns")
+"""
 
 class ContentRecommendation(Base):
     __tablename__ = "content_recommendations"
@@ -26,4 +29,5 @@ class ContentRecommendation(Base):
     description = Column(String)
     tags = Column(JSON)
     
-    subject = relationship("SubjectExam", back_populates="recommendations") 
+    # study_patterns 관련 참조 제거
+    subject = relationship("SubjectExam") 

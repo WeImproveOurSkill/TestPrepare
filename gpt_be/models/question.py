@@ -8,7 +8,7 @@ class Question(Base):
     id = Column(Integer, primary_key=True, index=True)
     content = Column(Text)  # 문제 내용과 선택지를 포함한 전체 내용
     image_link = Column(String)
-    subject_id = Column(Integer, ForeignKey("subject_exam.id"))
+    subject_exam_id = Column(Integer, ForeignKey("subject_exam.id"))
 
     # 관계 설정
     subject_exam = relationship("SubjectExam", back_populates="questions")
