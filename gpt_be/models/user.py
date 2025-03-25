@@ -33,4 +33,6 @@ class User(Base):
         "Certification",
         secondary=user_certification,
         backref="users"
-    ) 
+    )
+    
+    # study_patterns 관계는 제거됨 

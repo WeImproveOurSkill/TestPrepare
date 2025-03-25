@@ -10,6 +10,9 @@ load_dotenv()
 
 logger = logging.getLogger("perplexity")
 
+# DB 컬럼 크기 제한 (MySQL VARCHAR 최대 길이보다 작게 설정)
+MAX_EXPLANATION_LENGTH = 500  # VARCHAR 최대 길이를 고려하여 제한
+
 class PerplexityClient:
     """Perplexity API 클라이언트 (OpenAI 클라이언트 사용)"""
     
@@ -34,23 +37,24 @@ class PerplexityClient:
         system_prompt = f"""
         당신은 학생들을 위한 시험 해설가입니다. 다음 규칙을 엄격히 따라주세요:
 
-        1. 반드시 200자 이내로 답변할 것 (매우 중요)
-        2. 정답이 왜 맞는지 또는 틀린 이유를 명확하고 간결하게 설명할 것
-        3. 관련된 핵심 개념만 짧게 언급할 것
+        1. 반드시 100자 이내로 답변할 것 (DB 저장 제한으로 인해 매우 중요)
+        2. 정답이 왜 맞는지 또는 틀린 이유를 매우 간결하게 설명할 것
+        3. 관련된 핵심 개념만 간단히 언급할 것
         4. 다음 형식의 텍스트는 절대 사용하지 말 것:
            - 줄바꿈 문자(\n, \r\n)
            - 마크다운 강조 표시(**text**)
            - 괄호로 된 참조 번호([1], [2] 등)
            - 이스케이프 문자나 특수 서식
-        5. 순수 텍스트만 사용하여 한 단락으로 작성할 것
+        5. 한 문장으로 작성할 것
         6. "정답은 X입니다"로 시작하지 말고 바로 설명을 시작할 것
+        7. 말투는 좀 더 친화적이게 작성해줘
 
         문제: {question}
         정답: {answer}
         과목: {subject}
         """
         
-        user_prompt = "위 문제의 정답에 대한 간결한 설명을 제시된 규칙에 맞게 제공해주세요."
+        user_prompt = "위 문제의 정답에 대한 매우 간결한 설명을 제시된 규칙에 맞게 제공해주세요. 100자를 넘지 마세요."
         
         try:
             logger.debug("Perplexity API 호출 시도")
@@ -60,7 +64,7 @@ class PerplexityClient:
                     {"role": "user", "content": user_prompt}
                 ],
                 model="sonar",  # Perplexity API에서 지원하는 모델
-                max_tokens=300,  # 200자 정도면 충분
+                max_tokens=150,  # 100자 정도면 충분
                 temperature=0.5  # 더 결정적인 응답을 위해 낮춤
             )
             
@@ -75,12 +79,12 @@ class PerplexityClient:
             # 후처리: 마크다운, 특수문자, 줄바꿈 등 제거
             cleaned_explanation = self._clean_explanation(explanation)
             
-            # 200자로 제한
-            if len(cleaned_explanation) > 200:
-                cleaned_explanation = cleaned_explanation[:197] + "..."
+            # DB 컬럼 크기에 맞게 제한
+            if len(cleaned_explanation) > MAX_EXPLANATION_LENGTH:
+                cleaned_explanation = cleaned_explanation[:MAX_EXPLANATION_LENGTH-3] + "..."
                 
             logger.debug(f"원본 응답: {explanation}")
-            logger.debug(f"정제된 응답: {cleaned_explanation}")
+            logger.debug(f"정제된 응답 (길이: {len(cleaned_explanation)}): {cleaned_explanation}")
             
             return cleaned_explanation
             
