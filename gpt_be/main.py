@@ -5,6 +5,19 @@ from middleware.auth_middleware import AuthMiddleware
 from utils.auth import auth_handler
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import APIRouter
+import logging
+import sys
+
+# 로깅 설정
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.StreamHandler(sys.stdout)
+    ]
+)
+logger = logging.getLogger("main")
+logger.info("애플리케이션 시작")
 
 app = FastAPI()
 router = APIRouter()
@@ -40,3 +53,5 @@ async def protected_route(
 # app.include_router(crawl.router)
 app.include_router(router)
 app.include_router(recommendation.router)
+
+logger.info("모든 라우터 설정 완료")

@@ -25,11 +25,6 @@ public class Question {
 
     private String imageLink;
 
-    @Builder.Default
-    @Column(columnDefinition = "BINARY(16)")
-    private UUID randomKey = UUID.randomUUID();
-
-
     @ManyToOne
     @JoinColumn(name = "subject_exam_id")
     private SubjectExam subjectExam;
