@@ -1,10 +1,18 @@
--- 복제를 위한 사용자 생성
-CREATE USER IF NOT EXISTS 'repl_user'@'%' IDENTIFIED BY 'repl_password';
-GRANT REPLICATION SLAVE ON *.* TO 'repl_user'@'%';
+-- MySQL master 초기화 스크립트
 
--- 추가: 모든 권한 부여 (데이터 동기화를 위해)
-GRANT ALL PRIVILEGES ON *.* TO 'repl_user'@'%';
+-- 사용자 계정 생성 (슬레이브 레플리케이션용)
+CREATE USER IF NOT EXISTS 'replica'@'%' IDENTIFIED BY '1234';
+GRANT REPLICATION SLAVE ON *.* TO 'replica'@'%';
+
+-- 프로젝트 데이터베이스 생성 (docker-compose에서 생성되지만 안전을 위해 포함)
+CREATE DATABASE IF NOT EXISTS project CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- 기본 권한 부여
+GRANT ALL PRIVILEGES ON project.* TO 'user'@'%';
+
+-- 레플리케이션 관련 설정 적용
 FLUSH PRIVILEGES;
+RESET MASTER;
 
 -- 데이터베이스 생성 및 선택
 CREATE DATABASE IF NOT EXISTS project;

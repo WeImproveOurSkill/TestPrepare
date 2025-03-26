@@ -18,10 +18,10 @@ services:
     image: mysql:8.0
     container_name: database-master
     environment:
-      MYSQL_ROOT_PASSWORD: 1234
-      MYSQL_DATABASE: project
-      MYSQL_USER: user
-      MYSQL_PASSWORD: 1234
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
       TZ: Asia/Seoul
     ports:
       - "3307:3306"
@@ -42,7 +42,7 @@ services:
     networks:
       - app_network
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "user", "--password=1234"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "${DB_USERNAME}", "--password=${DB_PASSWORD}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -51,10 +51,10 @@ services:
     image: mysql:8.0
     container_name: database-slave
     environment:
-      MYSQL_ROOT_PASSWORD: 1234
-      MYSQL_DATABASE: project
-      MYSQL_USER: user
-      MYSQL_PASSWORD: 1234
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
       TZ: Asia/Seoul
     ports:
       - "3308:3306"
@@ -77,17 +77,53 @@ services:
     networks:
       - app_network
 
-  # spring-app:
-  #   image: skyriv213/testprepare:latest
-  #   container_name: spring_app
-  #   ports:
-  #     - "8080:8080"
-  #   depends_on:
-  #     mysql-master:
-  #       condition: service_healthy
-  #   networks:
-  #     - app_network
-  #   restart: unless-stopped
+  spring-app:
+    build: 
+      context: ./be
+      dockerfile: Dockerfile
+    container_name: spring_app
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_DATASOURCE_MASTER_URL=${DB_MASTER_URL}
+      - SPRING_DATASOURCE_MASTER_USERNAME=${DB_USERNAME}
+      - SPRING_DATASOURCE_MASTER_PASSWORD=${DB_PASSWORD}
+      - SPRING_DATASOURCE_SLAVE_URL=${DB_SLAVE_URL}
+      - SPRING_DATASOURCE_SLAVE_USERNAME=${DB_USERNAME}
+      - SPRING_DATASOURCE_SLAVE_PASSWORD=${DB_PASSWORD}
+      - TZ=Asia/Seoul
+      - SECRET_KEY=${SECRET_KEY}
+      - JWT_ALGORITHM=${JWT_ALGORITHM}
+    depends_on:
+      mysql-master:
+        condition: service_healthy
+    networks:
+      - app_network
+  
+
+  gpt-app:
+    build:
+      context: ./gpt_be
+      dockerfile: Dockerfile
+    container_name: gpt_app
+    ports:
+      - "8000:8000"
+    environment:
+      - MYSQL_HOST=mysql-master
+      - MYSQL_USER=${DB_USERNAME}
+      - MYSQL_PASSWORD=${DB_PASSWORD}
+      - MYSQL_DATABASE=project
+      - MYSQL_PORT=3306
+      - TZ=Asia/Seoul
+      - JWT_SECRET_KEY=${SECRET_KEY}
+      - JWT_ALGORITHM=${JWT_ALGORITHM}
+      - PERPLEXITY_API_KEY=${PERPLEXITY_API_KEY}
+    depends_on:
+      mysql-master:
+        condition: service_healthy
+    networks:
+      - app_network
+    restart: unless-stopped
 
 networks:
   app_network:
