@@ -84,7 +84,7 @@ services:
     build: 
       context: ./be
       dockerfile: Dockerfile
-    container_name: spring_app
+    container_name: spring-app
     ports:
       - "8080:8080"
     environment:
@@ -108,7 +108,7 @@ services:
     build:
       context: ./gpt_be
       dockerfile: Dockerfile
-    container_name: gpt_app
+    container_name: gpt-app
     ports:
       - "8000:8000"
     environment:

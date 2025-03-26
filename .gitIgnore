@@ -16,4 +16,4 @@ node_modules
 __pycache__
 .venv
 Data/exam_pdfs
-nginx/logs
+nginx/logs/*
