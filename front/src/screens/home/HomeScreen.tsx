@@ -1,7 +1,6 @@
 import React from 'react';
-import { View, Text, Pressable, FlatList } from 'react-native';
+import { View, Text, Pressable, ScrollView } from 'react-native';
 import { ScaledSheet } from 'react-native-size-matters';
-import BookView from './components/BookView';
 import { authNavigation } from '../../constants/navigations';
 import { colors } from '../../constants/colors';
 import useThemeStore, { themeMode } from '../../store/useThemeStore';
@@ -9,6 +8,7 @@ import useCertificationStore from '../../store/useCertificationStore';
 import { mainTabParamList } from '../../navigation/MainTabNavigator';
 import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import useTablet from '../../hooks/useTablet';
+import CertificationAccordion from './components/CertificationAccordion';
 
 // BottomTab의 MainHome 화면 타입 정의
 type HomeScreenProps = BottomTabScreenProps<mainTabParamList, 'TabHome'>;
@@ -27,31 +27,26 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
     }
   };
 
-  console.log('HomeScreen certifications:', selectedCertifications);
-
   return (
     <View style={styles.container}>
-      <View style={isTablet ? styles.tabletContainer : styles.container}>
-        <View style={styles.testLayout}>
-          {selectedCertifications.length > 0 ? (
-            <FlatList
-              data={selectedCertifications}
-              keyExtractor={(item) => item.certificationId.toString()}
-              renderItem={({ item }) => (
-                <BookView
-                  certificationId={item.certificationId}
-                  certificationName={item.certificationName}
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+        <View style={isTablet ? styles.tabletContainer : styles.container}>
+          <View style={styles.testLayout}>
+            {selectedCertifications.length > 0 ? (
+              selectedCertifications.map((cert) => (
+                <CertificationAccordion
+                  key={cert.certificationId}
+                  certification={cert}
                 />
-              )}
-              contentContainerStyle={styles.bookList}
-            />
-          ) : (
-            <Pressable style={styles.loadingText} onPress={handleSelectLicense}>
-              <Text>자격증을 선택해주세요</Text>
-            </Pressable>
-          )}
+              ))
+            ) : (
+              <Pressable style={styles.loadingText} onPress={handleSelectLicense}>
+                <Text>자격증을 선택해주세요</Text>
+              </Pressable>
+            )}
+          </View>
         </View>
-      </View>
+      </ScrollView>
     </View>
   );
 };
@@ -61,15 +56,19 @@ const styling = (theme: themeMode) => ScaledSheet.create({
     flex: 1,
     backgroundColor: colors[theme].GRAY_150,
   },
+  scrollContainer: {
+    flexGrow: 1,
+  },
   tabletContainer: {
     flexDirection: 'row-reverse',
     flex: 1,
   },
   testLayout: {
     flex: 1,
+    backgroundColor: colors[theme].GRAY_150,
   },
   loadingText: {
-    flex: 1,
+    // flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
