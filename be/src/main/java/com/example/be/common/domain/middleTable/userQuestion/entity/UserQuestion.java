@@ -18,7 +18,7 @@ public class UserQuestion {
 
 
     public enum Status {
-        CORRECT, WRONG, UNANSWERED;
+        CORRECT, WRONG ;
     }
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

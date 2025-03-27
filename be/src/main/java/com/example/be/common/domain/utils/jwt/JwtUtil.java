@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
 import java.util.Base64;
 import java.util.Date;
 
@@ -24,13 +25,13 @@ public class JwtUtil {
 
     public static final String AUTHORIZATION_HEADER = "Authorization";
     public static final String AUTHORIZATION_KEY = "auth";
-    private static final long ACCESS_TOKEN_TIME = 12 * 60 * 60 * 1000L;
+    private static final long ACCESS_TOKEN_TIME =  7 *24 * 60 * 60 * 1000L;
 
     private static final String BEARER_PREFIX = "Bearer ";
 
     public JwtUtil(@Value("${jwt.secret-key}") String base64Key) {
         byte[] keyBytes = Base64.getDecoder().decode(base64Key);
-        this.secretKey = Keys.hmacShaKeyFor(keyBytes);
+        this.secretKey = new SecretKeySpec(keyBytes, "HmacSHA256");
     }
 
 

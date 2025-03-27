@@ -1,8 +1,8 @@
 fastapi
-uvicorn
+uvicorn[standard]  # SSL 지원을 위해 standard로 변경
 sqlalchemy
-python-jose[cryptography]  # JWT 검증용
-python-dotenv  # 환경변수 관리 
+python-jose[cryptography]
+python-dotenv
 openai
-pymysql      # MySQL 연결용
-cryptography # pymysql 암호화 지원 
+pymysql
+cryptography

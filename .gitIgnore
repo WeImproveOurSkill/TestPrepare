@@ -17,3 +17,5 @@ __pycache__
 .venv
 Data/exam_pdfs
 nginx/logs/*
+nginx/ssl/*
+be/src/main/resources/keystore.p12
