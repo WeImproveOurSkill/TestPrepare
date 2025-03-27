@@ -5,6 +5,7 @@ import { EdgeInsets, useSafeAreaInsets } from 'react-native-safe-area-context';
 import useThemeStore, { themeMode } from '../../store/useThemeStore';
 import { colors } from '../../constants/colors';
 import { extractChoiceNumber, parseContent } from '../../constants/examParser';
+import { fetchPost } from '../../util/api';
 
 export type QuestionData = {
   questionId: string;
@@ -54,6 +55,11 @@ const QuestionItem = React.memo(({
 
     // 정답 여부 확인 - 원문자 기호로 직접 비교
     const isCorrect = choiceNumber === question.answer;
+
+    fetchPost('exam/submit/normal', {
+      questionId: question.questionId,
+      status: isCorrect ? 'CORRECT' : 'WRONG',
+    });
 
     // 애니메이션 실행
     Animated.timing(isCorrect ? animatedValues.correct : animatedValues.incorrect, {
