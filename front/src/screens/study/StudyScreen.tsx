@@ -46,7 +46,7 @@ type StudyScreenProps = NativeStackScreenProps<HomeStackParamList, 'Study'>;
 const REMAINING_EXAM_QUESTIONS = 2; // 남은 문제 수
 
 const StudyScreen = ({ route }: StudyScreenProps) => {
-  const { certificationId } = route.params;
+  const { subjectId, subjectName } = route.params;
   const { theme } = useThemeStore();
   const insets = useSafeAreaInsets();
   const styles = styling(theme, insets);
@@ -57,10 +57,10 @@ const StudyScreen = ({ route }: StudyScreenProps) => {
 
   // 현재 문제 로드
   const { data: questionsList, refetch: fetchNextQuestionsList } = useQuery({
-    queryKey: ['questions', certificationId, currentPage],
+    queryKey: ['questions', subjectId, currentPage],
     queryFn: async () => {
       try {
-        return await fetchGet<QuestionData[]>(`exam/subject/${certificationId}/random`);
+        return await fetchGet<QuestionData[]>(`exam/subject/${subjectId}/random`);
       } catch (error) {
         console.error('Failed to fetch questions', error);
         setIsError(true);
@@ -127,6 +127,7 @@ const StudyScreen = ({ route }: StudyScreenProps) => {
           isVisible={isVisible}
           onClose={() => setIsVisible(false)}
           question={questions[currentPage - 1]}
+          subjectName={subjectName}
         />
       </Pressable>
     </View>

@@ -11,19 +11,20 @@ interface Props {
   isVisible: boolean;
   onClose: () => void;
   question: QuestionData;
+  subjectName: string;
 }
 
-const errorExplanationText = {
-  'explanation': '정답이 ③인 이유는 워크스루와 인스펙션이 서로 다른 의미를 가졌기 때문입니다. 워크스루는 팀 구성원들이 참여하여 문서나 코드를 검토하고 피드백을 주고받는 방법으로, 팀 내 의사소통과 이해를 높이는 데 중점을 둡니다. 반면, 인스펙션은 코드나 문서 작성자를 제외한 전문가들이 엄격한 절차에 따라 객관적으로 검토하는 방법입니다. 따라서 두 개념은 동일하지 않습니다.',
-};
+// const errorExplanationText = {
+//   'explanation': '정답이 ③인 이유는 워크스루와 인스펙션이 서로 다른 의미를 가졌기 때문입니다. 워크스루는 팀 구성원들이 참여하여 문서나 코드를 검토하고 피드백을 주고받는 방법으로, 팀 내 의사소통과 이해를 높이는 데 중점을 둡니다. 반면, 인스펙션은 코드나 문서 작성자를 제외한 전문가들이 엄격한 절차에 따라 객관적으로 검토하는 방법입니다. 따라서 두 개념은 동일하지 않습니다.',
+// };
 
-const ExplanationModal = ({ isVisible, onClose, question }: Props) => {
+const ExplanationModal = ({ isVisible, onClose, question, subjectName }: Props) => {
   const { theme } = useThemeStore();
   const styles = styling(theme);
   const [perplexityExplanation, setPerplexityExplanation] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [hasRequestedExplanation, setHasRequestedExplanation] = useState(false);
-  // console.log(gptExplanation);
+  // console.log(errorExplanationText.explanation);
 
   // Perplexity 해설 요청을 위한 mutation 정의
   /*
@@ -71,19 +72,21 @@ const ExplanationModal = ({ isVisible, onClose, question }: Props) => {
 
         if (!response.ok) {
           console.error(`HTTP 오류: ${response.status}`);
-          setGptExplanation(JSON.stringify(errorExplanationText.explanation));
+          // setGptExplanation(JSON.stringify(errorExplanationText.explanation));
           return;
         }
 
         const data = await response.json();
 
         if (data) {
-          const explanationText = JSON.stringify(data.explanation.explanation);
+          const explanationText = JSON.stringify(data.explanation);
+          console.log(data);
+          console.log('explanationText:', explanationText);
           setGptExplanation(explanationText);
         }
       } catch (err) {
         console.error('GPT 해설 요청 오류:', err);
-        setGptExplanation(JSON.stringify(errorExplanationText.explanation));
+        // setGptExplanation(JSON.stringify(errorExplanationText.explanation));
       } finally {
         setIsLoading(false);
       }
@@ -98,7 +101,7 @@ const ExplanationModal = ({ isVisible, onClose, question }: Props) => {
       content: question.content,
       answer: question.answer,
       explanation: question.explanation,
-      subjectName: '소프트웨어 공학',
+      subjectName: subjectName,
     };
     console.log(requestData);
     perplexityExplanationMutation.mutate(requestData);

@@ -7,8 +7,7 @@ import { colors } from '../../../constants/colors';
 type SelectModeModalProps = {
   isVisible: boolean;
   onClose: () => void;
-  title: string;
-  onQuizPress: () => void;
+  subjectName: string;
   onStudyPress: () => void;
   onExamPress: () => void;
 }
@@ -16,19 +15,13 @@ type SelectModeModalProps = {
 const SelectModeModal = ({
   isVisible,
   onClose,
-  title,
-  onQuizPress,
+  subjectName,
   onStudyPress,
   onExamPress,
 }: SelectModeModalProps) => {
 
   const {theme} = useThemeStore();
   const styles = styling(theme);
-
-  const handleQuizMode = () => {
-    onClose();
-    onQuizPress();
-  };
 
   const handleStudyMode = () => {
     onClose();
@@ -60,9 +53,8 @@ const SelectModeModal = ({
         <View style={styles.modalContainer}>
           <Pressable style={styles.modalContent}>
             <View style={styles.header}>
-              <Text style={styles.title}>{title}</Text>
+              <Text style={styles.title}>{subjectName}</Text>
             </View>
-            <Pressable style={styles.body} onPress={handleQuizMode}><Text  style={styles.modeButtonText}>퀵퀴즈</Text></Pressable>
             <Pressable style={styles.body} onPress={handleStudyMode}><Text  style={styles.modeButtonText}>공부모드</Text></Pressable>
             <Pressable style={styles.body} onPress={handleExamMode}><Text  style={styles.modeButtonText}>시험모드</Text></Pressable>
             <View style={styles.footer}>

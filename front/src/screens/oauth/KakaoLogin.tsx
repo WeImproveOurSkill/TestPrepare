@@ -1,7 +1,7 @@
 import React from 'react';
 import { Pressable, Text } from 'react-native';
 import { ScaledSheet } from 'react-native-size-matters';
-import { login, getProfile, KakaoProfile, KakaoOAuthToken } from '@react-native-seoul/kakao-login';
+import { login, KakaoOAuthToken } from '@react-native-seoul/kakao-login';
 import { useMutation } from '@tanstack/react-query';
 import { setEncryptStorage, JwtKey, UserKey } from '../../util/encryptStorage';
 import { colors } from '../../constants/colors';
@@ -9,24 +9,18 @@ import useThemeStore, { themeMode } from '../../store/useThemeStore';
 import { fetchPost } from '../../util/api';
 import { LoginUserResponse } from './GoogleLogin';
 
-type KakaoLoginResponse = {
-  token: KakaoOAuthToken;
-  profile: KakaoProfile;
-  accessToken: string;
+interface Props {
+  onLoginSuccess?: () => void;
 }
 
-type KakaoLoginProps = {
-  onLoginSuccess?: () => void;
-};
-
-function KakaoLogin({ onLoginSuccess }: KakaoLoginProps) {
+function KakaoLogin({ onLoginSuccess }: Props) {
   const {theme} = useThemeStore();
   const styles = styling(theme);
 
 
   // 카카오 로그인 정보를 백엔드로 전송하는 mutation
-  const { mutate: sendTokensToBackend } = useMutation<LoginUserResponse, Error, KakaoLoginResponse>({
-    mutationFn: async (loginData: KakaoLoginResponse) => {
+  const { mutate: sendTokensToBackend } = useMutation<LoginUserResponse, Error, KakaoOAuthToken>({
+    mutationFn: async (loginData: KakaoOAuthToken) => {
       return await fetchPost('oauth/callback/kakao', loginData);
     },
     onSuccess: async (data) => {
@@ -45,17 +39,10 @@ function KakaoLogin({ onLoginSuccess }: KakaoLoginProps) {
   });
 
   // 카카오 로그인 mutation
-  const { mutate: handleKakaoLogin } = useMutation<KakaoLoginResponse, Error>({
+  const { mutate: handleKakaoLogin } = useMutation<KakaoOAuthToken, Error>({
     mutationFn: async () => {
       const token = await login();
-      const profile = await getProfile();
-      const accessToken = token.accessToken;
-
-      return {
-        token,
-        profile,
-        accessToken,
-      };
+      return token;
     },
     onSuccess: (loginData) => {
       console.log('Kakao login success:', loginData);
