@@ -3,6 +3,7 @@ package com.example.be.common.domain.user.service;
 import com.example.be.common.domain.user.entity.User;
 import com.example.be.common.domain.user.repository.UserRepository;
 import com.example.be.common.domain.utils.jwt.JwtUtil;
+import com.example.be.common.domain.utils.oauth2.GoogleUserInfo;
 import com.example.be.common.domain.utils.oauth2.KakaoUserInfo;
 import com.example.be.common.domain.utils.oauth2.OAuth2UserInfo;
 import lombok.RequiredArgsConstructor;
@@ -36,7 +37,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public User signupByOAuth(OAuth2UserInfo oAuth2UserInfo) {
-        String email =  oAuth2UserInfo.getEmail().isEmpty()?oAuth2UserInfo.getEmail() :"not have email";
+        String email = oAuth2UserInfo.getEmail().isEmpty() ? oAuth2UserInfo.getEmail() : "not have email";
         String oauth2Id = getOauth2Id(oAuth2UserInfo);
         User user = User.builder()
                 .username(oAuth2UserInfo.getName())
@@ -52,6 +53,7 @@ public class UserServiceImpl implements UserService {
         userRepository.save(user);
         return user;
     }
+
 
     @Override
     @Transactional(readOnly = true)
@@ -158,6 +160,100 @@ public class UserServiceImpl implements UserService {
             
             return response;
             
+        } catch (Exception e) {
+            // 최상위 예외 처리
+            JSONObject errorResponse = new JSONObject();
+            errorResponse.put("error", "OAuth 처리 중 오류가 발생했습니다.");
+            errorResponse.put("message", e.getMessage());
+            throw new RuntimeException("OAuth 처리 중 오류: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public JSONObject googleCallback(JSONObject object) {
+        try {
+            // accessToken 검증 및 추출
+            if (!object.containsKey("accessToken")) {
+                throw new IllegalArgumentException("액세스 토큰이 존재하지 않습니다.");
+            }
+
+            Object accessTokenObj = object.get("accessToken");
+            String accessToken = accessTokenObj instanceof String ?
+                    (String) accessTokenObj :
+                    String.valueOf(accessTokenObj);
+
+            if (accessToken == null || accessToken.trim().isEmpty()) {
+                throw new IllegalArgumentException("액세스 토큰이 유효하지 않습니다.");
+            }
+
+            // 디버깅을 위한 로그 추가
+            System.out.println("Processed access token: " + accessToken);
+
+            // 구글 API로 사용자 정보 조회
+            HttpHeaders headers = new HttpHeaders();
+            headers.add("Authorization", "Bearer " + accessToken);
+            headers.add("Content-type", "application/x-www-form-urlencoded;charset=utf-8");
+
+            HttpEntity<String> entity = new HttpEntity<>(headers);
+
+            // API 호출 전 헤더 확인
+            System.out.println("Request headers: " + headers);
+
+            Map<String, Object> attributes;
+            try {
+                ResponseEntity<Map> userInfoResponse = restTemplate.exchange(
+                        "https://www.googleapis.com/oauth2/v3/userinfo",
+                        HttpMethod.GET,
+                        entity,
+                        Map.class
+                );
+                attributes = userInfoResponse.getBody();
+
+                if (attributes == null) {
+                    throw new RuntimeException("구글 API로부터 사용자 정보를 받아오지 못했습니다.");
+                }
+            } catch (Exception e) {
+                throw new RuntimeException("구글 API 호출 중 오류 발생: " + e.getMessage(), e);
+            }
+
+            // 구글 사용자 정보 변환
+            GoogleUserInfo googleUserInfo = new GoogleUserInfo(attributes);
+
+            // 사용자 정보 저장 또는 조회
+            String oauth2Id = googleUserInfo.getProvider() + "_" + googleUserInfo.getProviderId();
+            User user;
+            try {
+                user = userRepository.findByOauth2Id(oauth2Id)
+                        .orElseGet(() -> signupByOAuth(googleUserInfo));
+            } catch (Exception e) {
+                throw new RuntimeException("사용자 정보 처리 중 오류 발생: " + e.getMessage(), e);
+            }
+
+            // JWT 토큰 생성
+            String token;
+            try {
+                token = jwtUtil.createToken(user.getUsername(), String.valueOf(user.getRole()));
+            } catch (Exception e) {
+                throw new RuntimeException("JWT 토큰 생성 중 오류 발생: " + e.getMessage(), e);
+            }
+            System.out.println(token);
+            // 응답 객체 생성 (User 객체 직렬화)
+            JSONObject response = new JSONObject();
+            response.put("token", token);
+
+            // User 객체 필요한 정보만 선택적으로 포함
+            JSONObject userJson = new JSONObject();
+            // userJson.put("id", user.getId());
+            userJson.put("username", user.getUsername());
+            // userJson.put("email", user.getEmail());
+            userJson.put("nickname", user.getNickname());
+            // userJson.put("role", user.getRole().toString());
+            userJson.put("provider", user.getProvider());
+
+            response.put("user", userJson);
+
+            return response;
+
         } catch (Exception e) {
             // 최상위 예외 처리
             JSONObject errorResponse = new JSONObject();

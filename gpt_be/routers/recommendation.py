@@ -2,10 +2,15 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session, joinedload
 from typing import List
 import os
+import logging
+import traceback
 from dotenv import load_dotenv
 
 # 환경변수 로드
 load_dotenv()
+
+# 로거 설정
+logger = logging.getLogger("recommendation")
 
 from database import get_db
 # 필요한 모델만 임포트 (ContentRecommendation 제거)
@@ -92,6 +97,14 @@ async def get_gpt_assistance(
     db: Session = Depends(get_db),
 ) -> GptAssistanceResponse:
     try:
+        # 디버깅: 요청 데이터 로깅
+        logger.info(f"Received request: {request.dict()}")
+        logger.info(f"API 키 상태: {'설정됨' if os.getenv('PERPLEXITY_API_KEY') else '설정되지 않음'}")
+        
+        # 디버깅: 환경 확인
+        logger.info(f"Database URL: {os.getenv('DATABASE_URL', '직접 구성된 URL')}")
+        logger.info(f"MYSQL_HOST: {os.getenv('MYSQL_HOST', 'not set')}")
+        
         # Perplexity API를 사용하여 설명 생성
         perplexity_explanation = perplexity_client.generate_explanation(
             question=request.content,
@@ -99,28 +112,48 @@ async def get_gpt_assistance(
             subject=request.subjectName
         )
         
-        # DB 작업 활성화
-        # DB에서 해당 문제와 연관된 답변 객체를 함께 조회
-        question = db.query(Question).options(joinedload(Question.answer)).filter(Question.id == request.questionId).first()
-        if not question:
-            raise HTTPException(status_code=404, detail="Question not found")
+        logger.info("Perplexity API 호출 성공")
         
-        # Answer 관계가 없는 경우 새로 생성
-        if not hasattr(question, 'answer') or question.answer is None:
-            answer = Answer(question_id=question.id, explanation="")
-            db.add(answer)
-            db.flush()
-            question.answer = answer
-        
-        # Answer 객체의 explanation 필드 업데이트
-        question.answer.explanation = perplexity_explanation
-        db.commit()
+        try:
+            # DB 작업 활성화
+            # DB에서 해당 문제와 연관된 답변 객체를 함께 조회
+            logger.info(f"Question ID 조회 시작: {request.questionId}")
+            question = db.query(Question).options(joinedload(Question.answer)).filter(Question.id == request.questionId).first()
+            
+            if not question:
+                logger.warning(f"Question ID {request.questionId}에 해당하는 문제를 찾을 수 없습니다.")
+                raise HTTPException(status_code=404, detail="Question not found")
+            
+            logger.info(f"Question 조회 성공: {question.id}")
+            
+            # Answer 관계가 없는 경우 새로 생성
+            if not hasattr(question, 'answer') or question.answer is None:
+                logger.info("Answer 객체 생성 시작")
+                answer = Answer(question_id=question.id, explanation="")
+                db.add(answer)
+                db.flush()
+                question.answer = answer
+                logger.info("Answer 객체 생성 완료")
+            
+            # Answer 객체의 explanation 필드 업데이트
+            logger.info("Answer 객체의 explanation 필드 업데이트 시작")
+            question.answer.explanation = perplexity_explanation
+            db.commit()
+            logger.info("DB 커밋 완료")
+            
+        except Exception as db_error:
+            logger.error(f"데이터베이스 작업 중 오류: {str(db_error)}")
+            logger.error(traceback.format_exc())
+            # 데이터베이스 오류 시에도 설명은 반환
+            return GptAssistanceResponse(explanation=perplexity_explanation)
         
         # 생성된 explanation 반환
         return GptAssistanceResponse(
             explanation=perplexity_explanation
         )
     except Exception as e:
+        logger.error(f"AI 설명 생성 중 오류: {str(e)}")
+        logger.error(traceback.format_exc())
         db.rollback()  # 에러 발생 시 롤백
         raise HTTPException(
             status_code=500,

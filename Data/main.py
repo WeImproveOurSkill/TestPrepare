@@ -58,10 +58,13 @@ class SubjectExam:
     name: str = ""
     certification: Optional['Certification'] = None
     questions: List[Question] = None
+    certification_subjects: List['CertificationSubject'] = None
 
     def __post_init__(self):
         if self.questions is None:
             self.questions = []
+        if self.certification_subjects is None:
+            self.certification_subjects = []
 
     def __str__(self) -> str:
         return f"""
@@ -74,21 +77,54 @@ class SubjectExam:
 class Certification:
     id: Optional[int] = None
     name: str = ""
-    year: int = 0
-    session: str = ""
     subject_exams: List[SubjectExam] = None
+    certification_types: List['CertificationType'] = None
 
     def __post_init__(self):
         if self.subject_exams is None:
             self.subject_exams = []
+        if self.certification_types is None:
+            self.certification_types = []
 
     def __str__(self) -> str:
         return f"""
-        [자격증 시험 정보]
+        [자격증 정보]
         - 자격증명: {self.name}
+        - 유형 수: {len(self.certification_types)}
+        - 과목 수: {len(self.subject_exams)}
+        """
+
+@dataclass
+class CertificationType:
+    id: Optional[int] = None
+    year: int = 0  # 시험 년도
+    session: int = 0  # 시험 회차 (int로 변경)
+    certification: Optional[Certification] = None
+    certification_subjects: List['CertificationSubject'] = None
+
+    def __post_init__(self):
+        if self.certification_subjects is None:
+            self.certification_subjects = []
+
+    def __str__(self) -> str:
+        return f"""
+        [자격증 시험 유형]
+        - 자격증: {self.certification.name if self.certification else '미지정'}
         - 년도: {self.year}
         - 회차: {self.session}
-        - 과목 수: {len(self.subject_exams)}
+        """
+
+@dataclass
+class CertificationSubject:
+    id: Optional[int] = None
+    certification_type: Optional[CertificationType] = None
+    subject_exam: Optional[SubjectExam] = None
+
+    def __str__(self) -> str:
+        return f"""
+        [자격증-과목 관계]
+        - 자격증 유형: {self.certification_type.certification.name if self.certification_type and self.certification_type.certification else '미지정'} {self.certification_type.year}년 {self.certification_type.session}회
+        - 과목: {self.subject_exam.name if self.subject_exam else '미지정'}
         """
         
 def drop_tables(db):
@@ -98,7 +134,9 @@ def drop_tables(db):
     tables = [
         "answers",
         "questions",
+        "certification_subject",
         "subject_exam",
+        "certification_type",
         "certification"
     ]
     
@@ -121,9 +159,18 @@ def create_tables(db):
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS certification (
         id INT AUTO_INCREMENT PRIMARY KEY,
-        name VARCHAR(255) NOT NULL,
+        name VARCHAR(255) NOT NULL
+    )
+    """)
+    
+    # 자격증 유형 테이블
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS certification_type (
+        id INT AUTO_INCREMENT PRIMARY KEY,
         year INT NOT NULL,
-        session VARCHAR(50) NOT NULL
+        session INT NOT NULL,
+        certification_id INT NOT NULL,
+        FOREIGN KEY (certification_id) REFERENCES certification(id)
     )
     """)
     
@@ -134,6 +181,17 @@ def create_tables(db):
         name VARCHAR(255) NOT NULL,
         certification_id INT NOT NULL,
         FOREIGN KEY (certification_id) REFERENCES certification(id)
+    )
+    """)
+    
+    # 자격증-과목 연결 테이블
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS certification_subject (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        certification_type_id INT NOT NULL,
+        subject_exam_id INT NOT NULL,
+        FOREIGN KEY (certification_type_id) REFERENCES certification_type(id),
+        FOREIGN KEY (subject_exam_id) REFERENCES subject_exam(id)
     )
     """)
     
@@ -840,8 +898,11 @@ def process_pdf_with_db(pdf_path, db):
         
         # PDF 파일명에서 정보 추출
         filename = os.path.basename(pdf_path)
-        cert_name, year, session, initial_subject = parse_filename(filename)
-        print(f"\n파일 정보: {cert_name}, {year}년, {session}, 초기 과목: {initial_subject}")
+        cert_name, year, session_text, initial_subject = parse_filename(filename)
+        print(f"\n파일 정보: {cert_name}, {year}년, {session_text}, 초기 과목: {initial_subject}")
+        
+        # 세션 번호 추출 (문자열에서 숫자만 추출)
+        session = int(re.sub(r'\D', '', session_text) or 1)  # 문자 제거 후 숫자만 남김, 없으면 1 기본값
         
         # 3. PDF에서 문제와 선택지 추출
         extractor = PDFExtractor(pdf_path)
@@ -868,15 +929,23 @@ def process_pdf_with_db(pdf_path, db):
                 print(f"내용: {q.get('text')[:100]}...")
                 print(f"답안: {q.get('answer')}")
                 
-        # 1. Certification 저장
+        # 1. Certification 저장 (자격증 이름만 저장)
         cursor.execute("""
-            INSERT INTO certification (name, year, session) 
-            VALUES (%s, %s, %s)
-        """, (cert_name, year, session))
+            INSERT INTO certification (name) 
+            VALUES (%s)
+        """, (cert_name,))
         cert_id = cursor.lastrowid
         print(f"자격증 ID: {cert_id} 생성됨")
         
-        # 2. SubjectExam 저장
+        # 2. CertificationType 저장 (연도와 회차 정보)
+        cursor.execute("""
+            INSERT INTO certification_type (year, session, certification_id) 
+            VALUES (%s, %s, %s)
+        """, (year, session, cert_id))
+        cert_type_id = cursor.lastrowid
+        print(f"자격증 유형 ID: {cert_type_id} 생성됨 ({year}년 {session}회)")
+        
+        # 3. SubjectExam 저장 (과목 정보)
         current_subject_name = initial_subject or "기본과목"
         cursor.execute("""
             INSERT INTO subject_exam (name, certification_id) 
@@ -885,11 +954,19 @@ def process_pdf_with_db(pdf_path, db):
         subject_id = cursor.lastrowid
         print(f"과목 ID: {subject_id} 생성됨")
         
-        # 문제 및 답안 객체 준비
+        # 4. CertificationSubject 저장 (자격증 유형과 과목 연결)
+        cursor.execute("""
+            INSERT INTO certification_subject (certification_type_id, subject_exam_id) 
+            VALUES (%s, %s)
+        """, (cert_type_id, subject_id))
+        cert_subject_id = cursor.lastrowid
+        print(f"자격증-과목 관계 ID: {cert_subject_id} 생성됨")
+        
+        # 5. 문제 및 답안 객체 준비
         question_objects = []
         answer_objects = []
         
-        # 4. 문제 및 답안 삽입
+        # 6. 문제 및 답안 삽입
         inserted_questions = 0
         inserted_answers = 0
         question_id_map = {}  # 문제 번호와 DB ID 매핑
@@ -1026,18 +1103,20 @@ def verify_subject_assignments(db):
     
     # 과목별 문제 수 확인
     cursor.execute("""
-    SELECT s.id, s.name, c.name, c.year, c.session, COUNT(q.id) as question_count
+    SELECT s.id, s.name, c.name, ct.year, ct.session, COUNT(q.id) as question_count
     FROM subject_exam s
     JOIN certification c ON s.certification_id = c.id
+    JOIN certification_subject cs ON s.id = cs.subject_exam_id
+    JOIN certification_type ct ON cs.certification_type_id = ct.id
     LEFT JOIN questions q ON q.subject_exam_id = s.id
-    GROUP BY s.id, s.name, c.name, c.year, c.session
+    GROUP BY s.id, s.name, c.name, ct.year, ct.session
     """)
     
     results = cursor.fetchall()
     print("\n=== 과목별 문제 할당 현황 ===")
     for row in results:
         print(f"과목 ID: {row[0]}, 과목명: {row[1]}")
-        print(f"시험: {row[2]} {row[3]}년 {row[4]}")
+        print(f"시험: {row[2]} {row[3]}년 {row[4]}회")
         print(f"할당된 문제 수: {row[5]}")
         print("-" * 40)
     

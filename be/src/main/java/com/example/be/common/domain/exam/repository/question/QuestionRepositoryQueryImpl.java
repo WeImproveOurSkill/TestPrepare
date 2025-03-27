@@ -4,10 +4,11 @@ import com.example.be.common.domain.exam.dtos.QuestionDto;
 import com.example.be.common.domain.exam.entity.QCertificationType;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 
-import java.util.List;
+import java.util.*;
 
 import static com.example.be.common.domain.exam.entity.QAnswer.answer;
 import static com.example.be.common.domain.exam.entity.QCertificationType.certificationType;
@@ -42,7 +43,24 @@ public class QuestionRepositoryQueryImpl implements QuestionRepositoryQuery {
     // 랜덤 5문제 조회
     @Override
     public List<QuestionDto> findAllbySubjectIdAndRandomNumber(Long subjectExamId) {
-        List<QuestionDto> questionDtos = jpaQueryFactory.select(Projections.constructor(QuestionDto.class,
+        // 방법 3: ID 범위를 사용한 랜덤 선택
+        List<Long> questionIds = jpaQueryFactory
+                .select(question.id)
+                .from(subjectExam)
+                .leftJoin(subjectExam.questions, question)
+                .where(subjectExam.id.eq(subjectExamId))
+                .fetch();
+
+        if (questionIds.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        // 랜덤하게 5개의 ID 선택
+        Collections.shuffle(questionIds);
+        List<Long> selectedIds = questionIds.subList(0, Math.min(5, questionIds.size()));
+
+        return jpaQueryFactory
+                .select(Projections.constructor(QuestionDto.class,
                         question.id.as("questionId"),
                         question.content.as("content"),
                         answer.answerText.as("answer"),
@@ -50,11 +68,9 @@ public class QuestionRepositoryQueryImpl implements QuestionRepositoryQuery {
                 .from(subjectExam)
                 .leftJoin(subjectExam.questions, question)
                 .leftJoin(question.answer, answer)
-                .where(
-                        subjectExam.id.eq(subjectExamId))
-                .orderBy(question.randomKey.asc()).limit(5).fetch();
-
-        return questionDtos;
+                .where(subjectExam.id.eq(subjectExamId)
+                        .and(question.id.in(selectedIds)))
+                .fetch();
     }
     // 과목 시험모드 문제 조회
     @Override

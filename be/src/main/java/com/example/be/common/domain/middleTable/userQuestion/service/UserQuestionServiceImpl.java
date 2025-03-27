@@ -53,9 +53,7 @@ public class UserQuestionServiceImpl implements UserQuestionService {
 
         if (answer.getAnswer().equals(answer.getUserAnswer())) {
             status = UserQuestion.Status.CORRECT;
-        } else if (answer.getUserAnswer().isEmpty()) {
-            status = UserQuestion.Status.UNANSWERED;
-        } else {
+        }  else {
             status = UserQuestion.Status.WRONG;
         }
         return status;
@@ -84,7 +82,7 @@ public class UserQuestionServiceImpl implements UserQuestionService {
                     .question(byId)
                     .user(user)
                     .solveTime(LocalDateTime.now())
-                    .status(UserQuestion.Status.UNANSWERED)
+                    .status(UserQuestion.Status.WRONG)
                     .build();
             userQuestionRepository.save(userQuestion);
         }

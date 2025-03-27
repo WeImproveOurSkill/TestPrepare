@@ -34,12 +34,12 @@ public class KakaoUserInfo implements OAuth2UserInfo {
 
     @Override
     public String getName() {
-        return properties != null ? (String) properties.get("nickname") : null;
+        return properties != null ? (String) properties.get("nickname") : "nickName"+String.valueOf(Math.round(Math.random()*100000));
     }
 
     @Override
     public String getEmail() {
-        return "Not email";
+        return properties != null ? (String) properties.get("nickname") : "Not email";
     }
 
     public String getImageUrl() {

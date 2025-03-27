@@ -17,5 +17,9 @@ public class UserController {
     public JSONObject KakaoCallback(@RequestBody JSONObject object) throws ParseException {
         return userService.kakaoCallback(object);
     }
+    @PostMapping("/oauth/callback/google")
+    public JSONObject googleCallback(@RequestBody JSONObject object) throws ParseException {
+        return userService.googleCallback(object);
+    }
 
 }
