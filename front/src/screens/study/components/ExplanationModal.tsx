@@ -21,28 +21,28 @@ interface Props {
 const ExplanationModal = ({ isVisible, onClose, question, subjectName }: Props) => {
   const { theme } = useThemeStore();
   const styles = styling(theme);
-  const [perplexityExplanation, setPerplexityExplanation] = useState<string | null>(null);
+  const [gptExplanation, setGptExplanation] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [hasRequestedExplanation, setHasRequestedExplanation] = useState(false);
   // console.log(errorExplanationText.explanation);
 
-  // Perplexity 해설 요청을 위한 mutation 정의
+  // gpt 해설 요청을 위한 mutation 정의
   /*
-  const perplexityExplanationMutation = useMutation({
+  const gptExplanationMutation = useMutation({
     mutationFn: async (data: any) => {
-      const endpoint = '/recommend/perplexity-assistance';
+      const endpoint = '/recommend/gpt-assistance';
       return await fetchPost(endpoint, data);
     },
     onSuccess: (response) => {
       if (response) {
         const explanationText = JSON.stringify(response);
-        setPerplexityExplanation(explanationText);
+        setGptExplanation(explanationText);
       } else {
-        console.log('Perplexity 해설을 받아오는데 실패했습니다.');
+        console.log('gpt 해설을 받아오는데 실패했습니다.');
       }
     },
     onError: (error: any) => {
-      console.error('Perplexity 해설 요청 오류:', error);
+      console.error('gpt 해설 요청 오류:', error);
     },
   });
   */
@@ -55,13 +55,13 @@ const ExplanationModal = ({ isVisible, onClose, question, subjectName }: Props) 
 
 
   // 직접 fetch API를 사용하는 POST 요청 함수
-  const perplexityExplanationMutation = {
+  const gptExplanationMutation = {
     isPending: isLoading,
     mutate: async (requestData: any) => {
       try {
         setIsLoading(true);
         console.log(requestData);
-        const response = await fetch('http://124.111.2.61:8000/recommend/perplexity-assistance', {
+        const response = await fetch('http://124.111.2.61:8000/recommend/gpt-assistance', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -104,7 +104,7 @@ const ExplanationModal = ({ isVisible, onClose, question, subjectName }: Props) 
       subjectName: subjectName,
     };
     console.log(requestData);
-    perplexityExplanationMutation.mutate(requestData);
+    gptExplanationMutation.mutate(requestData);
   };
 
   return (
