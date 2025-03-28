@@ -13,7 +13,7 @@ import uuid  # UUID 모듈 추가
 @dataclass
 class Answer:
     id: Optional[int] = None
-    answer_text: str = ""
+    answer_text: str = ""  # BE 프로젝트의 answerText 필드와 일치하도록 유지
     explanation: str = "not have explanation"
     question: Optional['Question'] = None
 
@@ -28,8 +28,7 @@ class Answer:
 class Question:
     id: Optional[int] = None
     content: str = ""
-    image_link: Optional[str] = None
-    random_key: uuid.UUID = field(default_factory=uuid.uuid4)  # randomKey 추가 (Java와 일치하게)
+    image_link: Optional[str] = None  # imageLink → image_link 변경
     subject_exam: Optional['SubjectExam'] = None
     answer: Optional[Answer] = None
 
@@ -38,7 +37,6 @@ class Question:
         [문제 정보]
         - 내용: {self.content[:100]}...
         - 이미지: {self.image_link if self.image_link else '없음'}
-        - UUID: {self.random_key}
         {self.answer if self.answer else '- 답안 정보 없음'}
         """
 
@@ -131,8 +129,12 @@ def drop_tables(db):
     """기존 테이블 삭제"""
     cursor = db.cursor()
     
+    # 외래 키 제약 조건 일시 비활성화
+    cursor.execute("SET FOREIGN_KEY_CHECKS = 0;")
+    
     tables = [
         "answers",
+        "user_question",  # 추가: 먼저 삭제해야 함
         "questions",
         "certification_subject",
         "subject_exam",
@@ -148,6 +150,9 @@ def drop_tables(db):
         except Exception as e:
             print(f"테이블 삭제 중 오류 발생: {e}")
     
+    # 외래 키 제약 조건 다시 활성화
+    cursor.execute("SET FOREIGN_KEY_CHECKS = 1;")
+    
     print("모든 테이블이 성공적으로 삭제되었습니다.")
     cursor.close()
 
@@ -155,65 +160,77 @@ def create_tables(db):
     """필요한 테이블 생성"""
     cursor = db.cursor()
     
-    # 인증 테이블 (자격증 정보)
+    # 인증 테이블 (자격증 정보) - Certification 엔티티와 일치
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS certification (
-        id INT AUTO_INCREMENT PRIMARY KEY,
+        id BIGINT AUTO_INCREMENT PRIMARY KEY,  # 타입을 BIGINT로 변경
         name VARCHAR(255) NOT NULL
     )
     """)
     
-    # 자격증 유형 테이블
+    # 자격증 유형 테이블 - CertificationType 엔티티와 일치
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS certification_type (
-        id INT AUTO_INCREMENT PRIMARY KEY,
+        id BIGINT AUTO_INCREMENT PRIMARY KEY,  # 타입을 BIGINT로 변경
         year INT NOT NULL,
         session INT NOT NULL,
-        certification_id INT NOT NULL,
+        certification_id BIGINT NOT NULL,  # 타입을 BIGINT로 변경
         FOREIGN KEY (certification_id) REFERENCES certification(id)
     )
     """)
     
-    # 과목 테이블
+    # 과목 테이블 - SubjectExam 엔티티와 일치
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS subject_exam (
-        id INT AUTO_INCREMENT PRIMARY KEY,
+        id BIGINT AUTO_INCREMENT PRIMARY KEY,  # 타입을 BIGINT로 변경
         name VARCHAR(255) NOT NULL,
-        certification_id INT NOT NULL,
+        certification_id BIGINT NOT NULL,  # 타입을 BIGINT로 변경
         FOREIGN KEY (certification_id) REFERENCES certification(id)
     )
     """)
     
-    # 자격증-과목 연결 테이블
+    # 자격증-과목 연결 테이블 - CertificationSubject 엔티티와 일치
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS certification_subject (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        certification_type_id INT NOT NULL,
-        subject_exam_id INT NOT NULL,
+        id BIGINT AUTO_INCREMENT PRIMARY KEY,  # 타입을 BIGINT로 변경
+        certification_type_id BIGINT NOT NULL,  # 타입을 BIGINT로 변경
+        subject_exam_id BIGINT NOT NULL,  # 타입을 BIGINT로 변경
         FOREIGN KEY (certification_type_id) REFERENCES certification_type(id),
         FOREIGN KEY (subject_exam_id) REFERENCES subject_exam(id)
     )
     """)
     
-    # 문제 테이블 - randomKey 필드 추가
+    # 문제 테이블 - Question 엔티티와 일치
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS questions (
-        id INT AUTO_INCREMENT PRIMARY KEY,
+        id BIGINT AUTO_INCREMENT PRIMARY KEY,  # 타입을 BIGINT로 변경
         content TEXT NOT NULL,
         image_link VARCHAR(255),
-        random_key BINARY(16) NOT NULL,  
-        subject_exam_id INT NOT NULL,
+        subject_exam_id BIGINT NOT NULL,  # 타입을 BIGINT로 변경
         FOREIGN KEY (subject_exam_id) REFERENCES subject_exam(id)
     )
     """)
     
-    # 답변 테이블
+    # 답변 테이블 - Answer 엔티티와 일치
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS answers (
-        id INT AUTO_INCREMENT PRIMARY KEY,
+        id BIGINT AUTO_INCREMENT PRIMARY KEY,  # 타입을 BIGINT로 변경
         answer_text VARCHAR(255) NOT NULL,
         explanation TEXT,
-        question_id INT NOT NULL,
+        question_id BIGINT NOT NULL,  # 타입을 BIGINT로 변경
+        UNIQUE KEY unique_question_id (question_id),
+        FOREIGN KEY (question_id) REFERENCES questions(id)
+    )
+    """)
+    
+    # user_question 테이블 스키마 추가 (이미 존재하는 테이블이라면)
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS user_question (
+        id BIGINT AUTO_INCREMENT PRIMARY KEY,
+        user_id BIGINT NOT NULL,
+        question_id BIGINT NOT NULL,
+        status VARCHAR(50),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (question_id) REFERENCES questions(id)
     )
     """)
@@ -902,9 +919,9 @@ def process_pdf_with_db(pdf_path, db):
         print(f"\n파일 정보: {cert_name}, {year}년, {session_text}, 초기 과목: {initial_subject}")
         
         # 세션 번호 추출 (문자열에서 숫자만 추출)
-        session = int(re.sub(r'\D', '', session_text) or 1)  # 문자 제거 후 숫자만 남김, 없으면 1 기본값
+        session = int(re.sub(r'\D', '', session_text) or 1)
         
-        # 3. PDF에서 문제와 선택지 추출
+        # PDF에서 문제와 선택지 추출
         extractor = PDFExtractor(pdf_path)
         questions = extractor.extract_questions()
         
@@ -920,73 +937,149 @@ def process_pdf_with_db(pdf_path, db):
                 print("작업이 취소되었습니다.")
                 return
         
-        # 디버깅을 위해 처음 몇 개 문제 출력
-        if questions:
-            print("\n처음 3개 문제 샘플:")
-            for i, q in enumerate(questions[:3]):
-                print(f"\n문제 {i+1}:")
-                print(f"번호: {q.get('question_number')}")
-                print(f"내용: {q.get('text')[:100]}...")
-                print(f"답안: {q.get('answer')}")
-                
-        # 1. Certification 저장 (자격증 이름만 저장)
+        # 1. Certification 검색 또는 생성 (자격증 중복 방지)
         cursor.execute("""
-            INSERT INTO certification (name) 
-            VALUES (%s)
+            SELECT id FROM certification WHERE name = %s
         """, (cert_name,))
-        cert_id = cursor.lastrowid
-        print(f"자격증 ID: {cert_id} 생성됨")
+        cert_result = cursor.fetchone()
         
-        # 2. CertificationType 저장 (연도와 회차 정보)
+        if cert_result:
+            cert_id = cert_result[0]
+            print(f"기존 자격증 사용: ID {cert_id} ({cert_name})")
+        else:
+            # 새 자격증 생성
+            cursor.execute("""
+                INSERT INTO certification (name) 
+                VALUES (%s)
+            """, (cert_name,))
+            cert_id = cursor.lastrowid
+            print(f"새 자격증 생성: ID {cert_id} ({cert_name})")
+        
+        # 2. CertificationType 검색 또는 생성 (시험 유형 중복 방지)
         cursor.execute("""
-            INSERT INTO certification_type (year, session, certification_id) 
-            VALUES (%s, %s, %s)
-        """, (year, session, cert_id))
-        cert_type_id = cursor.lastrowid
-        print(f"자격증 유형 ID: {cert_type_id} 생성됨 ({year}년 {session}회)")
+            SELECT id FROM certification_type 
+            WHERE certification_id = %s AND year = %s AND session = %s
+        """, (cert_id, year, session))
+        cert_type_result = cursor.fetchone()
         
-        # 3. SubjectExam 저장 (과목 정보)
-        current_subject_name = initial_subject or "기본과목"
-        cursor.execute("""
-            INSERT INTO subject_exam (name, certification_id) 
-            VALUES (%s, %s)
-        """, (current_subject_name, cert_id))
-        subject_id = cursor.lastrowid
-        print(f"과목 ID: {subject_id} 생성됨")
+        if cert_type_result:
+            cert_type_id = cert_type_result[0]
+            print(f"기존 시험 유형 사용: ID {cert_type_id} ({year}년 {session}회)")
+        else:
+            # 새 시험 유형 생성
+            cursor.execute("""
+                INSERT INTO certification_type (year, session, certification_id) 
+                VALUES (%s, %s, %s)
+            """, (year, session, cert_id))
+            cert_type_id = cursor.lastrowid
+            print(f"새 시험 유형 생성: ID {cert_type_id} ({year}년 {session}회)")
         
-        # 4. CertificationSubject 저장 (자격증 유형과 과목 연결)
-        cursor.execute("""
-            INSERT INTO certification_subject (certification_type_id, subject_exam_id) 
-            VALUES (%s, %s)
-        """, (cert_type_id, subject_id))
-        cert_subject_id = cursor.lastrowid
-        print(f"자격증-과목 관계 ID: {cert_subject_id} 생성됨")
+        # 3. 정보처리기사 5개 과목 정의
+        subjects = [
+            {"name": "소프트웨어 설계", "start": 1, "end": 20},
+            {"name": "소프트웨어 개발", "start": 21, "end": 40},
+            {"name": "데이터베이스 구축", "start": 41, "end": 60},
+            {"name": "프로그래밍 언어 활용", "start": 61, "end": 80},
+            {"name": "정보시스템 구축관리", "start": 81, "end": 100}
+        ]
         
-        # 5. 문제 및 답안 객체 준비
-        question_objects = []
-        answer_objects = []
+        # 각 과목별 ID 저장
+        subject_ids = {}
         
-        # 6. 문제 및 답안 삽입
+        # 4. 각 과목 검색 또는 생성 및 관계 설정
+        for subject in subjects:
+            # 과목이 이미 존재하는지 검색
+            cursor.execute("""
+                SELECT id FROM subject_exam 
+                WHERE name = %s AND certification_id = %s
+            """, (subject["name"], cert_id))
+            subject_result = cursor.fetchone()
+            
+            if subject_result:
+                subject_id = subject_result[0]
+                print(f"기존 과목 사용: ID {subject_id} ({subject['name']})")
+            else:
+                # 새 과목 생성
+                cursor.execute("""
+                    INSERT INTO subject_exam (name, certification_id) 
+                    VALUES (%s, %s)
+                """, (subject["name"], cert_id))
+                subject_id = cursor.lastrowid
+                print(f"새 과목 생성: ID {subject_id} ({subject['name']})")
+            
+            # 범위 저장
+            subject_ids[subject_id] = {
+                "name": subject["name"],
+                "start": subject["start"],
+                "end": subject["end"]
+            }
+            
+            # 과목과 시험 유형 간의 관계가 이미 존재하는지 확인
+            cursor.execute("""
+                SELECT id FROM certification_subject 
+                WHERE certification_type_id = %s AND subject_exam_id = %s
+            """, (cert_type_id, subject_id))
+            cert_subject_result = cursor.fetchone()
+            
+            if cert_subject_result:
+                cert_subject_id = cert_subject_result[0]
+                print(f"기존 자격증-과목 관계 사용: ID {cert_subject_id} ({subject['name']})")
+            else:
+                # 새 관계 생성
+                cursor.execute("""
+                    INSERT INTO certification_subject (certification_type_id, subject_exam_id) 
+                    VALUES (%s, %s)
+                """, (cert_type_id, subject_id))
+                cert_subject_id = cursor.lastrowid
+                print(f"새 자격증-과목 관계 생성: ID {cert_subject_id} ({subject['name']})")
+        
+        # 5. 문제 및 답안 삽입 준비
         inserted_questions = 0
         inserted_answers = 0
         question_id_map = {}  # 문제 번호와 DB ID 매핑
         
-        # 먼저 문제를 모두 저장
+        # DB에 이미 해당 시험 유형의 문제가 있는지 확인
+        cursor.execute("""
+            SELECT COUNT(*) FROM questions q
+            JOIN subject_exam se ON q.subject_exam_id = se.id
+            JOIN certification_subject cs ON se.id = cs.subject_exam_id
+            WHERE cs.certification_type_id = %s
+        """, (cert_type_id,))
+        existing_questions_count = cursor.fetchone()[0]
+        
+        if existing_questions_count > 0:
+            print(f"\n경고: 이 시험 유형({year}년 {session}회)에 이미 {existing_questions_count}개의 문제가 있습니다.")
+            print("계속 진행하시겠습니까? 진행하면 새 문제가 추가됩니다. (y/n)")
+            response = input().lower().strip()
+            if response != 'y':
+                print("작업이 취소되었습니다.")
+                return
+        
+        # 6. 문제 저장
         for q in questions:
             try:
-                # 각 문제마다 새로운 UUID 생성
-                random_key = uuid.uuid4()
+                question_num = q.get('question_number')
                 
-                # UUID를 bytes로 변환하여 MySQL BINARY(16)에 맞게 저장
-                random_key_bytes = random_key.bytes
+                # 문제 번호에 따라 적절한 과목 ID 찾기
+                subject_id_for_question = None
+                for subject_id, info in subject_ids.items():
+                    if info["start"] <= question_num <= info["end"]:
+                        subject_id_for_question = subject_id
+                        break
                 
-                # 문제 삽입 (랜덤 UUID 포함)
+                # 적절한 과목을 찾지 못한 경우 경고 출력
+                if subject_id_for_question is None:
+                    print(f"경고: 문제 {question_num}에 대한 적절한 과목을 찾을 수 없습니다.")
+                    # 첫 번째 과목에 할당 (선택적)
+                    subject_id_for_question = list(subject_ids.keys())[0]
+                
+                # 문제 삽입
                 cursor.execute("""
-                    INSERT INTO questions (content, image_link, random_key, subject_exam_id) 
-                    VALUES (%s, %s, %s, %s)
-                """, (q.get('text'), q.get('image_link'), random_key_bytes, subject_id))
+                    INSERT INTO questions (content, image_link, subject_exam_id) 
+                    VALUES (%s, %s, %s)
+                """, (q.get('text'), q.get('image_link'), subject_id_for_question))
                 question_id = cursor.lastrowid
-                question_id_map[q.get('question_number')] = question_id
+                question_id_map[question_num] = question_id
                 inserted_questions += 1
                 
                 # 10개 단위로 커밋
@@ -1002,7 +1095,7 @@ def process_pdf_with_db(pdf_path, db):
         db.commit()
         print(f"\n총 {inserted_questions}개 문제 저장 완료")
         
-        # 이제 정답 저장
+        # 7. 정답 저장 (기존 코드 유지)
         for q in questions:
             try:
                 question_num = q.get('question_number')
@@ -1016,8 +1109,6 @@ def process_pdf_with_db(pdf_path, db):
                         VALUES (%s, %s, %s)
                     """, (str(q.get('answer')), "not have explanation", question_id))
                     
-                    # 방금 삽입된 답변과 질문 간의 관계 업데이트
-                    answer_id = cursor.lastrowid
                     inserted_answers += 1
                     
                     # 10개 단위로 커밋
@@ -1033,12 +1124,44 @@ def process_pdf_with_db(pdf_path, db):
         db.commit()
         print(f"\n총 {inserted_questions}개의 문제와 {inserted_answers}개의 답안이 저장되었습니다.")
         
+        # 8. 과목별 저장된 문제 수 출력
+        cursor.execute("""
+            SELECT se.name, COUNT(q.id) as question_count
+            FROM subject_exam se
+            JOIN certification_subject cs ON se.id = cs.subject_exam_id
+            LEFT JOIN questions q ON se.id = q.subject_exam_id
+            WHERE cs.certification_type_id = %s
+            GROUP BY se.name
+            ORDER BY se.id
+        """, (cert_type_id,))
+        
+        subject_counts = cursor.fetchall()
+        print(f"\n=== {cert_name} {year}년 {session}회 과목별 문제 수 ===")
+        for name, count in subject_counts:
+            print(f"{name}: {count}문제")
+        
         # 정답 연결 비율 확인
         answer_ratio = inserted_answers / inserted_questions if inserted_questions > 0 else 0
-        print(f"정답 연결 비율: {answer_ratio:.2%}")
+        print(f"\n정답 연결 비율: {answer_ratio:.2%}")
         
         if answer_ratio < 0.9:
             print("경고: 정답 연결 비율이 90% 미만입니다. 정답 추출 로직을 확인하세요.")
+        
+        # 9. 전체 통계 출력
+        cursor.execute("""
+            SELECT c.name, COUNT(DISTINCT ct.id) as type_count, COUNT(DISTINCT se.id) as subject_count, COUNT(q.id) as question_count
+            FROM certification c
+            LEFT JOIN certification_type ct ON c.id = ct.certification_id
+            LEFT JOIN certification_subject cs ON ct.id = cs.certification_type_id
+            LEFT JOIN subject_exam se ON cs.subject_exam_id = se.id
+            LEFT JOIN questions q ON se.id = q.subject_exam_id
+            GROUP BY c.name
+        """)
+        
+        stats = cursor.fetchall()
+        print("\n=== 전체 데이터베이스 통계 ===")
+        for name, type_count, subject_count, question_count in stats:
+            print(f"{name}: {type_count}개 시험유형, {subject_count}개 과목, {question_count}개 문제")
         
     except Exception as e:
         try:
