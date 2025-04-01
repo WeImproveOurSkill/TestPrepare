@@ -17,10 +17,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # 환경 변수 설정
-ENV PORT=8444 
+ENV PORT=8000
 
 # 포트 노출
 EXPOSE ${PORT}
 
-# 실행 명령어
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8444", "--ssl-keyfile", "/app/ssl/private.key", "--ssl-certfile", "/app/ssl/certificate.crt"]
+# 실행 명령어 (SSL 관련 옵션 제거)
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]

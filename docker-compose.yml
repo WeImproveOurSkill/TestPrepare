@@ -7,10 +7,10 @@ services:
     image: nginx
     ports:
       - "80:80"
-      - "443:443"
+      # - "443:443"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./nginx/ssl:/etc/nginx/ssl:ro
+      # - ./nginx/ssl:/etc/nginx/ssl:ro
       - ./nginx/logs:/var/log/nginx
     depends_on:
       - spring-app
@@ -87,7 +87,8 @@ services:
       dockerfile: Dockerfile
     container_name: spring-app
     ports:
-      - "8443:8443"
+      # - "8443:8443"
+      - "8080:8080"
     environment:
       - SPRING_DATASOURCE_MASTER_URL=${DB_MASTER_URL}
       - SPRING_DATASOURCE_MASTER_USERNAME=${DB_USERNAME}
@@ -98,7 +99,7 @@ services:
       - TZ=Asia/Seoul
       - SECRET_KEY=${SECRET_KEY}
       - JWT_ALGORITHM=${JWT_ALGORITHM}
-      - SERVER_SSL_KEY_STORE_PASSWORD=${SERVER_SSL_KEY_STORE_PASSWORD}
+      # - SERVER_SSL_KEY_STORE_PASSWORD=${SERVER_SSL_KEY_STORE_PASSWORD}
 
     depends_on:
       mysql-master:
@@ -113,9 +114,10 @@ services:
       dockerfile: Dockerfile
     container_name: gpt-app
     ports:
-      - "8444:8444"
-    volumes:
-      - ./nginx/ssl:/app/ssl:ro
+      # - "8444:8444"
+      - "8000:8000"
+    # volumes:
+    #   - ./nginx/ssl:/app/ssl:ro
     environment:
       - MYSQL_HOST=mysql-master
       - MYSQL_USER=${DB_USERNAME}
@@ -126,6 +128,7 @@ services:
       - JWT_SECRET_KEY=${SECRET_KEY}
       - JWT_ALGORITHM=${JWT_ALGORITHM}
       - PERPLEXITY_API_KEY=${PERPLEXITY_API_KEY}
+      - SSL_MODE=disabled # SSL 모드 비활성화를 명시적으로 설정
     depends_on:
       mysql-master:
         condition: service_healthy
