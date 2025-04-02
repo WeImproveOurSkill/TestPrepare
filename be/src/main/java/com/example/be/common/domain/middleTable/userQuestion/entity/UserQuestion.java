@@ -21,6 +21,9 @@ import java.time.LocalDateTime;
 )public class UserQuestion {
 
 
+    public void updateRecord(Status status) {
+        this.status = status;
+    }
 
     public enum Status {
         CORRECT, WRONG ;

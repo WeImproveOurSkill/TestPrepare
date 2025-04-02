@@ -37,14 +37,21 @@ public class UserQuestionServiceImpl implements UserQuestionService {
         userQuestionRepository.saveAll(list);
     }
 
-    private static UserQuestion getUserQuestion(User user, Question question, UserQuestion.Status status) {
-        UserQuestion userQuestion = UserQuestion.builder()
-                .question(question)
-                .user(user)
-                .solveTime(LocalDateTime.now())
-                .isBookmarked(false)
-                .status(status)
-                .build();
+    private UserQuestion getUserQuestion(User user, Question question, UserQuestion.Status status) {
+        UserQuestion userQuestion;
+        userQuestion = userQuestionRepository.findByUserAndQuestion(user, question);
+        if (userQuestion==null) {
+                userQuestion = UserQuestion.builder()
+                    .question(question)
+                    .user(user)
+                    .solveTime(LocalDateTime.now())
+                    .isBookmarked(false)
+                    .status(status)
+                    .build();
+        }else{
+            userQuestion.updateRecord(status);
+        }
+
         return userQuestion;
     }
 
@@ -53,7 +60,7 @@ public class UserQuestionServiceImpl implements UserQuestionService {
 
         if (answer.getAnswer().equals(answer.getUserAnswer())) {
             status = UserQuestion.Status.CORRECT;
-        }  else {
+        } else {
             status = UserQuestion.Status.WRONG;
         }
         return status;
@@ -73,10 +80,10 @@ public class UserQuestionServiceImpl implements UserQuestionService {
     public void updateBookMark(User user, Long questionId) {
         Question byId = questionService.findById(questionId);
 
-        if(userQuestionRepository.existsByUserAndQuestion(user, byId)){
+        if (userQuestionRepository.existsByUserAndQuestion(user, byId)) {
             UserQuestion byUserAndQuestion = userQuestionRepository.findByUserAndQuestion(user, byId);
             byUserAndQuestion.updateBookmark();
-        }else{
+        } else {
             UserQuestion userQuestion = UserQuestion.builder()
                     .isBookmarked(true)
                     .question(byId)
