@@ -64,7 +64,7 @@ public class RedisConfig {
         configMap.put("yearSessions",configuration.entryTtl(Duration.ofHours(24)));
 
         // 개별 설정
-        configMap.put("userWrongQeustion",configuration.entryTtl(Duration.ofMinutes(2)));
+        configMap.put("userWrongQuestions",configuration.entryTtl(Duration.ofMinutes(2)));
         configMap.put("userBookmarks",configuration.entryTtl(Duration.ofMinutes(3)));
 
 
