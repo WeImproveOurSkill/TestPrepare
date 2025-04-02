@@ -11,6 +11,9 @@ import com.example.be.common.domain.middleTable.userQuestion.repository.UserQues
 import com.example.be.common.domain.user.entity.User;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -77,6 +80,10 @@ public class UserQuestionServiceImpl implements UserQuestionService {
 
     @Override
     @Transactional
+    @Caching(evict = {
+        @CacheEvict(value = "userBookmarks", key = "#user.id + '_*'"),
+        @CacheEvict(value = "userWrongQuestions", key = "#user.id + '_*'")
+    })
     public void updateBookMark(User user, Long questionId) {
         Question byId = questionService.findById(questionId);
 
@@ -96,6 +103,7 @@ public class UserQuestionServiceImpl implements UserQuestionService {
     }
 
     @Override
+    @Cacheable(value = "userBookmarks", key = "#user.id + '_' + #certificationId")
     public List<QuestionDto> getBookMarkQuestion(User user, Long certificationId) {
         return userQuestionRepository.getBookMarkQuestion(user, certificationId);
     }
@@ -112,6 +120,7 @@ public class UserQuestionServiceImpl implements UserQuestionService {
     }
 
     @Override
+    @Cacheable(value = "userWrongQuestions", key = "#user.id + '_' + #status")
     public List<QuestionDto> getWrongQuestions(User user, UserQuestion.Status status) {
         return userQuestionRepository.findAllAboutWrongQuestionByStatus(user, status);
     }

@@ -1,5 +1,6 @@
 package com.example.be.common.domain.exam.dtos;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -10,6 +11,8 @@ import lombok.NoArgsConstructor;
 @Getter
 @Builder
 public class SubjectDto {
-    private Long SubjectId;
-    private String SubjectName;
+    @JsonProperty("subjectId")
+    private Long subjectId;
+    @JsonProperty("subjectName")
+    private String subjectName;
 }
