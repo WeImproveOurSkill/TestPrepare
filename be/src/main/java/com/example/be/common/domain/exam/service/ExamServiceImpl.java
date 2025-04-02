@@ -9,6 +9,7 @@ import com.example.be.common.domain.exam.repository.certification.CertificationR
 import com.example.be.common.domain.exam.repository.question.QuestionRepository;
 import com.example.be.common.domain.exam.repository.subject.SubjectRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -49,12 +50,14 @@ public class ExamServiceImpl implements ExamService {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = "certifications")
     public List<CertificationDto> getCertificationList() {
         return certificationRepository.findAllByCertificationInformation();
     }
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = "subjects", key = "#certificationId")
     public List<SubjectDto> getSubject(Long certificationId) {
         return subjectRepository.getSubjectByCertificationId(certificationId);
     }
@@ -65,11 +68,13 @@ public class ExamServiceImpl implements ExamService {
     }
 
     @Override
+    @Cacheable(value = "yearSessions", key = "#certificationId")
     public List<CertificationTypeDto> getCertificationYearSessionList(Long certificationId) {
         return certificationRepository.findAllYearAndSessionByCertificationId(certificationId);
     }
 
     @Override
+    @Cacheable(value = "questions", key = "#subjectId + '_' + #year + '_' + #session")
     public List<QuestionDto> getQuestionsBySubject(Long subjectId, int year, int session) {
         return questionRepository.findAllQuestionBySubjectAndYearSession(subjectId, year, session);
     }

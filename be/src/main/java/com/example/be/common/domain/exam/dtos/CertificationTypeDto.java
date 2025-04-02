@@ -1,5 +1,6 @@
 package com.example.be.common.domain.exam.dtos;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -10,7 +11,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CertificationTypeDto {
-
+    @JsonProperty("year")
     private int year;
+    @JsonProperty("session")
     private int session;
 }
