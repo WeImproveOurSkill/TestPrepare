@@ -40,8 +40,8 @@ public class UserServiceImpl implements UserService {
         String email = oAuth2UserInfo.getEmail().isEmpty() ? oAuth2UserInfo.getEmail() : "not have email";
         String oauth2Id = getOauth2Id(oAuth2UserInfo);
         User user = User.builder()
-                .username(oAuth2UserInfo.getName())
-                .nickname(oAuth2UserInfo.getName() + oAuth2UserInfo.getProvider())
+                .username(oAuth2UserInfo.getName() + "_" + oAuth2UserInfo.getProvider())
+                .nickname(oAuth2UserInfo.getName() + "_" + oAuth2UserInfo.getProvider())
                 .email(email)
                 .oauth2Id(oauth2Id)
                 .provider(oAuth2UserInfo.getProvider())

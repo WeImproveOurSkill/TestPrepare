@@ -12,10 +12,18 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "user_question")
-public class UserQuestion {
+@Table(
+    name = "user_question",
+    indexes = {
+        // 복합 인덱스 
+        @Index(name = "idx_user_question_user_status", columnList = "user_id,status")
+    }
+)public class UserQuestion {
 
 
+    public void updateRecord(Status status) {
+        this.status = status;
+    }
 
     public enum Status {
         CORRECT, WRONG ;
@@ -35,6 +43,8 @@ public class UserQuestion {
     private Question question;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "status")
+
     private Status status;
 
     private Boolean isBookmarked; // 북마크 용도

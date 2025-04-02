@@ -43,35 +43,49 @@ public class QuestionRepositoryQueryImpl implements QuestionRepositoryQuery {
     // 랜덤 5문제 조회
     @Override
     public List<QuestionDto> findAllbySubjectIdAndRandomNumber(Long subjectExamId) {
-        // 방법 3: ID 범위를 사용한 랜덤 선택
-        List<Long> questionIds = jpaQueryFactory
-                .select(question.id)
-                .from(subjectExam)
-                .leftJoin(subjectExam.questions, question)
-                .where(subjectExam.id.eq(subjectExamId))
-                .fetch();
+        // // 방법 3: ID 범위를 사용한 랜덤 선택
+        // List<Long> questionIds = jpaQueryFactory
+        //         .select(question.id)
+        //         .from(subjectExam)
+        //         .leftJoin(subjectExam.questions, question)
+        //         .where(subjectExam.id.eq(subjectExamId))
+        //         .fetch();
 
-        if (questionIds.isEmpty()) {
-            return new ArrayList<>();
-        }
+        // if (questionIds.isEmpty()) {
+        //     return new ArrayList<>();
+        // }
 
-        // 랜덤하게 5개의 ID 선택
-        Collections.shuffle(questionIds);
-        List<Long> selectedIds = questionIds.subList(0, Math.min(5, questionIds.size()));
+        // // 랜덤하게 5개의 ID 선택
+        // Collections.shuffle(questionIds);
+        // List<Long> selectedIds = questionIds.subList(0, Math.min(5, questionIds.size()));
 
-        return jpaQueryFactory
-                .select(Projections.constructor(QuestionDto.class,
-                        question.id.as("questionId"),
-                        question.content.as("content"),
-                        answer.answerText.as("answer"),
-                        answer.explanation))
-                .from(subjectExam)
-                .leftJoin(subjectExam.questions, question)
-                .leftJoin(question.answer, answer)
-                .where(subjectExam.id.eq(subjectExamId)
-                        .and(question.id.in(selectedIds)))
-                .fetch();
-    }
+        // return jpaQueryFactory
+        //         .select(Projections.constructor(QuestionDto.class,
+        //                 question.id.as("questionId"),
+        //                 question.content.as("content"),
+        //                 answer.answerText.as("answer"),
+        //                 answer.explanation))
+        //         .from(subjectExam)
+        //         .leftJoin(subjectExam.questions, question)
+        //         .leftJoin(question.answer, answer)
+        //         .where(subjectExam.id.eq(subjectExamId)
+        //                 .and(question.id.in(selectedIds)))
+        //         .fetch();
+    return jpaQueryFactory
+        .select(Projections.constructor(QuestionDto.class,
+                question.id.as("questionId"),
+                question.content.as("content"),
+                answer.answerText.as("answer"),
+                answer.explanation))
+        .from(question)
+        .innerJoin(question.answer, answer)
+        .where(question.subjectExam.id.eq(subjectExamId))
+        .orderBy(Expressions.numberTemplate(Double.class, "RAND()").asc())
+        .limit(5)
+        .fetch();
+}
+
+    
     // 과목 시험모드 문제 조회
     @Override
     public List<QuestionDto> findAllQuestionBySubjectAndYearSession(Long subjectId, int year, int session) {

@@ -12,7 +12,9 @@ import java.util.UUID;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "questions")
+@Table(name = "questions",indexes = {
+    @Index(name = "idx_question_subject_exam", columnList = "subject_exam_id")  // 이미 외래키로 자동 생성됨
+})
 public class Question {
 
     @Id

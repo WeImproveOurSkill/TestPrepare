@@ -37,10 +37,10 @@ public class CertificationRepositoryQueryImpl implements CertificationRepository
                         answer.answerText.as("answer"),
                         answer.explanation
                 )).from(certification)
-                .leftJoin(certification.certificationTypes, certificationType)
-                .leftJoin(certification.subjectExams, subjectExam)
-                .leftJoin(subjectExam.questions, question)
-                .leftJoin(question.answer, answer)
+                .join(certification.certificationTypes, certificationType)
+                .join(certification.subjectExams, subjectExam)
+                .join(subjectExam.questions, question)
+                .join(question.answer, answer)
                 .where(certificationType.year.eq(year)
                         , certificationType.session.eq(session)
                         , certification.name.eq(name)
@@ -91,7 +91,7 @@ public class CertificationRepositoryQueryImpl implements CertificationRepository
                         certificationType.year,
                         certificationType.session
                 )).from(certificationType).
-                leftJoin(certification.certificationTypes, certificationType)
+                join(certification.certificationTypes, certificationType)
                 .where(certification.id.eq(certificationId)).fetch();
     }
 }
