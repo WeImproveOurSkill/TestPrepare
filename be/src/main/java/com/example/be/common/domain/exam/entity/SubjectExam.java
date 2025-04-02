@@ -11,7 +11,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "subject_exams",indexes = {
+@Table(name = "subject_exam",indexes = {
     @Index(name = "idx_subject_exam_certification", columnList = "certification_id")
 })
 public class SubjectExam {
