@@ -8,13 +8,15 @@ import useThemeStore, { themeMode } from '../store/useThemeStore';
 import { MainTabNavigation } from '../constants/navigations';
 import { colors } from '../constants/colors';
 import HomeScreen from '../screens/home/HomeScreen';
+import WrongQuestionScreen from '../screens/wrongQuestion/WrongQuestionScreen';
 import Header from '../screens/components/Header';
 import useTablet from '../hooks/useTablet';
+import BookmarkScreen from '../screens/bookmark/BookmarkScreen';
 
 export type mainTabParamList = {
   TabHome: NavigatorScreenParams<HomeStackParamList> | undefined;
-  // GPTRecordTab: undefined;
-  // BookmarkTab: undefined;
+  WrongQuestionTab: undefined;
+  BookmarkTab: undefined;
   // MyPage: undefined;
 };
 
@@ -36,16 +38,26 @@ function MainTabNavigator() {
         tabBarInactiveTintColor: colors[theme].GRAY_400,
         headerShown: false,
       }}>
-      <Tab.Screen
-        name={MainTabNavigation.HOME}
-        component={HomeScreen}
-        options={{ title: '홈' }}
-      />
+        <Tab.Screen
+          name={MainTabNavigation.HOME}
+          component={HomeScreen}
+          options={{ title: '홈' }}
+        />
       {/* <Tab.Screen
           name="MyPage"
           component={MyPageScreen}
           options={{ title: '마이페이지' }}
         /> */}
+        <Tab.Screen
+          name="WrongQuestionTab"
+          component={WrongQuestionScreen}
+          options={{ title: '오답노트' }}
+        />
+        <Tab.Screen
+          name="BookmarkTab"
+          component={BookmarkScreen}
+          options={{ title: '북마크' }}
+        />
       </Tab.Navigator>
     </View>
   );
