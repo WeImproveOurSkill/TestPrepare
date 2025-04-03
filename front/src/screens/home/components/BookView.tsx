@@ -31,16 +31,18 @@ const BookView = ({ subjectId, subjectName }: Subject) => {
   const styles = styling(theme);
 
   const handleStudyPress = () => {
-    navigation.navigate('Study', {
+    navigation.navigate('QuestionPager', {
       subjectId: subjectId,
       subjectName: subjectName,
+      mode: 'study',
     });
   };
 
   const handleExamPress = () => {
-    navigation.navigate('Exam', {
+    navigation.navigate('QuestionPager', {
       subjectId: subjectId,
       subjectName: subjectName,
+      mode: 'exam',
     });
   };
 
