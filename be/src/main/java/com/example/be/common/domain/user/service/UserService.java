@@ -5,8 +5,6 @@ import com.example.be.common.domain.utils.oauth2.OAuth2UserInfo;
 import net.minidev.json.JSONObject;
 import net.minidev.json.parser.ParseException;
 
-import java.util.Optional;
-
 public interface UserService {
 
     User signupByOAuth(OAuth2UserInfo oAuth2User);
@@ -20,4 +18,10 @@ public interface UserService {
     JSONObject kakaoCallback(JSONObject object) throws ParseException;
 
     JSONObject googleCallback(JSONObject object);
+
+    JSONObject refreshAccessToken(String username, String refreshToken);
+
+    boolean logout(User username);
+
+    boolean deleteAccount(User user);
 }

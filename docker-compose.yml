@@ -2,6 +2,7 @@ volumes:
   mysql_master_data: {}
   mysql_slave_data: {}
   redis-data: {}
+  redis-token-data: {}
 
 services:
   # Redis 설정
@@ -12,6 +13,23 @@ services:
       - "6379:6379"
     volumes:
       - redis-data:/data
+    command: redis-server --appendonly yes
+    restart: always
+    networks:
+      - app_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+  
+  redis-token:
+    image: redis:latest
+    container_name: redis-token
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis-token-data:/data
     command: redis-server --appendonly yes
     restart: always
     networks:
@@ -112,6 +130,8 @@ services:
       - JWT_ALGORITHM=${JWT_ALGORITHM}
     depends_on:
       redis:
+        condition: service_healthy
+      redis-token:
         condition: service_healthy
       mysql-master:
         condition: service_healthy

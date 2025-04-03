@@ -8,7 +8,6 @@ import com.example.be.common.domain.utils.oauth2.KakaoUserInfo;
 import com.example.be.common.domain.utils.oauth2.OAuth2UserInfo;
 import lombok.RequiredArgsConstructor;
 import net.minidev.json.JSONObject;
-import net.minidev.json.parser.JSONParser;
 import net.minidev.json.parser.ParseException;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -19,10 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
-import java.beans.Transient;
 import java.util.Map;
-import java.util.NoSuchElementException;
-import java.util.Optional;
 
 import static com.example.be.common.domain.utils.handler.OAuth2SuccessHandler.getOauth2Id;
 
@@ -136,17 +132,19 @@ public class UserServiceImpl implements UserService {
             }
             
             // JWT 토큰 생성
-            String token;
+            String userAccseeToken;
+            String userRefreshToken;
             try {
-                token = jwtUtil.createToken(user.getUsername(), String.valueOf(user.getRole()));
+                userAccseeToken = jwtUtil.createAccessToken(user.getUsername(), String.valueOf(user.getRole()));
+                userRefreshToken = jwtUtil.createRefreshToken(user.getUsername(), String.valueOf(user.getRole()));
             } catch (Exception e) {
                 throw new RuntimeException("JWT 토큰 생성 중 오류 발생: " + e.getMessage(), e);
             }
-            System.out.println(token);
             // 응답 객체 생성 (User 객체 직렬화)
             JSONObject response = new JSONObject();
-            response.put("token", token);
-            
+            response.put("token", userAccseeToken);
+            response.put("refresh", userRefreshToken);
+
             // User 객체 필요한 정보만 선택적으로 포함
             JSONObject userJson = new JSONObject();
             // userJson.put("id", user.getId());
@@ -232,7 +230,7 @@ public class UserServiceImpl implements UserService {
             // JWT 토큰 생성
             String token;
             try {
-                token = jwtUtil.createToken(user.getUsername(), String.valueOf(user.getRole()));
+                token = jwtUtil.createAccessToken(user.getUsername(), String.valueOf(user.getRole()));
             } catch (Exception e) {
                 throw new RuntimeException("JWT 토큰 생성 중 오류 발생: " + e.getMessage(), e);
             }
@@ -261,5 +259,48 @@ public class UserServiceImpl implements UserService {
             errorResponse.put("message", e.getMessage());
             throw new RuntimeException("OAuth 처리 중 오류: " + e.getMessage(), e);
         }
+    }
+
+    @Override
+    public JSONObject refreshAccessToken(String username, String refreshToken) {
+        boolean refreshTokenValid = jwtUtil.isRefreshTokenValid(username, refreshToken);
+        if (!refreshTokenValid) {
+            throw new IllegalArgumentException("해당 사용자는 재로그인을 진행해야합니다.");
+        }
+        User user = findByUsername(username);
+
+        String token;
+        try {
+            token = jwtUtil.createAccessToken(user.getUsername(), String.valueOf(user.getRole()));
+        } catch (Exception e) {
+            throw new RuntimeException("JWT 토큰 생성 중 오류 발생: " + e.getMessage(), e);
+        }
+        System.out.println(token);
+        // 응답 객체 생성 (User 객체 직렬화)
+        JSONObject response = new JSONObject();
+        response.put("token", token);
+
+        // User 객체 필요한 정보만 선택적으로 포함
+        JSONObject userJson = new JSONObject();
+        // userJson.put("id", user.getId());
+        userJson.put("username", user.getUsername());
+        // userJson.put("email", user.getEmail());
+        userJson.put("nickname", user.getNickname());
+        // userJson.put("role", user.getRole().toString());
+        userJson.put("provider", user.getProvider());
+
+        response.put("user", userJson);
+
+        return response;
+    }
+
+    @Override
+    public boolean logout(User user) {
+        return jwtUtil.deleteRefreshToken(user.getUsername());
+    }
+
+    @Override
+    public boolean deleteAccount(User user) {
+        return userRepository.deleteByUsername(user.getUsername());
     }
 }
