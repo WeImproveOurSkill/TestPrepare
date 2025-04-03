@@ -11,8 +11,8 @@ import { fetchPost } from '../../util/api';
 
 GoogleSignin.configure({
   webClientId: Config.WEB_CLIENT_ID,
-  offlineAccess: true,
   iosClientId: Config.IOS_CLIENT_ID,
+  offlineAccess: false,
 });
 
 type GoogleLoginProps = {
@@ -34,7 +34,6 @@ export interface LoginUserResponse {
     userName: string;
   }
 }
-
 
 function GoogleLogin(
   { onLoginSuccess }: GoogleLoginProps
@@ -65,9 +64,12 @@ function GoogleLogin(
   const { mutate: handleGoogleLogin } = useMutation<GoogleLoginResponse, Error>({
     mutationFn: async () => {
       await GoogleSignin.hasPlayServices();
+      const userInfo = await GoogleSignin.signIn();
       const tokens = await GoogleSignin.getTokens();
 
+
       return {
+        userInfo,
         tokens,
       };
     },
