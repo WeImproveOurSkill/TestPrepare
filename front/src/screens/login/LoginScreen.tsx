@@ -1,30 +1,31 @@
 import React from 'react';
 import { View, SafeAreaView, Text, Pressable } from 'react-native';
 import { ScaledSheet } from 'react-native-size-matters';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../../navigation/RootStackNavigator';
 import useThemeStore, { themeMode } from '../../store/useThemeStore';
 import { colors } from '../../constants/colors';
 import KakaoLogin from '../oauth/KakaoLogin';
-import { useNavigation } from '@react-navigation/native';
 import GoogleLogin from '../oauth/GoogleLogin';
+import { removeEncryptStorage, JwtKey, UserKey } from '../../util/encryptStorage';
 
 interface LoginPageProps {
   onLoginSuccess?: () => void;
-  // onNonLogin: () => void;
+  onNonLogin: () => void;
 }
 
-const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
+const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, onNonLogin }) => {
   const { theme } = useThemeStore();
   const styles = styling(theme);
-  const navigation = useNavigation<NativeStackScreenProps<RootStackParamList, 'Login'>['navigation']>();
 
   const handleSuccess = () => {
     if (onLoginSuccess) {
       onLoginSuccess();
-    } else {
-      navigation.navigate('HomeStack');
     }
+  };
+
+  const handleNonLogin = () => {
+    removeEncryptStorage(JwtKey);
+    removeEncryptStorage(UserKey);
+    onNonLogin();
   };
 
   return (
@@ -40,7 +41,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
             styles.nonLoginButton,
             pressed && styles.nonLoginButtonPressed,
           ]}
-          onPress={onLoginSuccess}
+          onPress={handleNonLogin}
         >
           <Text style={styles.nonLoginButtonText}>비로그인으로 이용하기</Text>
         </Pressable>
