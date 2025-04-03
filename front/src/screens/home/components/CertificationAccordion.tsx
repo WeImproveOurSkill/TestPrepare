@@ -6,14 +6,6 @@ import BookView from './BookView';
 import { Certification } from '../../selectCertification/SelectCertificationScreen';
 import { fetchGet } from '../../../util/api';
 
-const defaultSubjects: Subject[] = [
-  { subjectId: 1, subjectName: '기본과목' },
-  { subjectId: 2, subjectName: '기본과목' },
-  { subjectId: 3, subjectName: '기본과목' },
-  { subjectId: 4, subjectName: '기본과목' },
-  { subjectId: 5, subjectName: '기본과목' },
-];
-
 
 export interface Subject {
   subjectId: number;
@@ -31,16 +23,9 @@ const CertificationAccordion = ({ certification }: props) => {
   useEffect(() => {
     fetchGet(`exam/certification/${certification.certificationId}`)
       .then((res: any) => {
-        console.log('res', res);
-          setSubjects(defaultSubjects);
-      })
-      .catch((err) => {
-        console.log('err', err);
-        setSubjects(defaultSubjects);
+        setSubjects(res);
       });
   }, [certification.certificationId]);
-
-  console.log('현재 subjects:', subjects);
 
   return (
     <Accordion
@@ -56,6 +41,11 @@ const CertificationAccordion = ({ certification }: props) => {
                 subjectName={item.subjectName}
               />
             ))}
+            {/* <Image
+              source={require('../../../constants/software.webp')}
+              style={styles.bookImage}
+              // resizeMode="contain"
+              /> */}
           </View>
         </View>
       ) : (
@@ -70,13 +60,19 @@ const CertificationAccordion = ({ certification }: props) => {
 const styling = () => ScaledSheet.create({
   container: {
     flex: 1,
+    width: '100%',
+    alignItems: 'center',
   },
   bookList: {
-    // padding: '8@ms',
-    minHeight: '100@vs',
+    width: '100%',
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'flex-start',
+  },
+  bookImage: {
+    width: '100@ms',
+    height: '100@ms',
+    borderRadius: '10@ms',
   },
 });
 
