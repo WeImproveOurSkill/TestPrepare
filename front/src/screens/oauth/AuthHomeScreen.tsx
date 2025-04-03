@@ -7,7 +7,6 @@ import { colors } from '../../constants/colors';
 import CustomPagerView from '../components/CustomPagerView';
 import LoginScreen from '../login/LoginScreen';
 import SelectCertificationScreen from '../selectCertification/SelectCertificationScreen';
-// import { getEncryptStorage, JwtKey } from '../../util/encryptStorage';
 // import { useNavigation } from '@react-navigation/native';
 // import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 // import { RootStackParamList } from '../../navigation/RootStackNavigator';
@@ -57,7 +56,7 @@ function AuthHomeScreen() {
         <LoginScreen
           key="login"
           onLoginSuccess={handleLoginSuccess}
-          // onNonLogin={handleLoginSuccess}
+          onNonLogin={handleLoginSuccess}
         />
         <SelectCertificationScreen
           key="certification"

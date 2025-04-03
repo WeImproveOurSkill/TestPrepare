@@ -19,7 +19,7 @@ const Accordion: React.FC<AccordionProps> = ({
 }) => {
   const { theme } = useThemeStore();
   const styles = styling(theme);
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(true);
   const [contentHeight, setContentHeight] = useState(0);  // 실제 컨텐츠 높이 저장
 
   const animatedStyle = useAnimatedStyle(() => ({
@@ -65,7 +65,7 @@ const Accordion: React.FC<AccordionProps> = ({
 
 const styling = (theme: themeMode) => ScaledSheet.create({
   container: {
-    borderBottomWidth: 1,
+    borderTopWidth: 1,
     borderColor: colors[theme].GRAY_300,
     borderRadius: 5,
     marginBottom: 10,

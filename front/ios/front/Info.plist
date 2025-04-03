@@ -2,6 +2,8 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>GIDClientID</key>
+	<string>5427598787-o8prgh01607g11lvpk95t0usvim6fl48.apps.googleusercontent.com</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
@@ -23,11 +25,19 @@
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
+    <key>CFBundleTypeRole</key>
+    <string>Editor</string>
+    <key>CFBundleURLSchemes</key>
+    <array>
+      <string>5427598787-fcng33i6kft8oe7rd2kleq87qq6j9d6c.apps.googleusercontent.com</string>
+    </array>
+	  </dict>
+		<dict>
 			<key>CFBundleTypeRole</key>
 			<string>Editor</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>kakaod4c27e1ab3b6cea44e5e704feeffba47</string>
+				<string>com.googleusercontent.apps.5427598787-fcng33i6kft8oe7rd2kleq87qq6j9d6c</string>
 			</array>
 		</dict>
 		<dict>
@@ -35,7 +45,7 @@
 			<string>Editor</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>com.googleusercontent.apps.5427598787-fcng33i6kft8oe7rd2kleq87qq6j9d6c</string>
+				<string>kakaod4c27e1ab3b6cea44e5e704feeffba47</string>
 			</array>
 		</dict>
 	</array>
@@ -60,12 +70,6 @@
 	<string>앱이 로컬 네트워크에 연결하기 위해 필요합니다.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string></string>
-	<key>UILaunchStoryboardName</key>
-	<string>LaunchScreen</string>
-	<key>UIRequiredDeviceCapabilities</key>
-	<array>
-		<string>arm64</string>
-	</array>
 	<key>UIAppFonts</key>
 	<array>
 		<string>AntDesign.ttf</string>
@@ -87,6 +91,12 @@
 		<string>Octicons.ttf</string>
 		<string>Zocial.ttf</string>
 		<string>Fontisto.ttf</string>
+	</array>
+	<key>UILaunchStoryboardName</key>
+	<string>LaunchScreen</string>
+	<key>UIRequiredDeviceCapabilities</key>
+	<array>
+		<string>arm64</string>
 	</array>
 	<key>UIStatusBarStyle</key>
 	<string></string>

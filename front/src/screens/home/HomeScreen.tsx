@@ -54,7 +54,7 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
 const styling = (theme: themeMode) => ScaledSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors[theme].GRAY_150,
+    backgroundColor: colors[theme].WHITE,
   },
   scrollContainer: {
     flexGrow: 1,
@@ -65,15 +65,11 @@ const styling = (theme: themeMode) => ScaledSheet.create({
   },
   testLayout: {
     flex: 1,
-    backgroundColor: colors[theme].GRAY_150,
   },
   loadingText: {
-    // flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  bookList: {
-    padding: '16@ms',
+    marginTop: '20@ms',
   },
 });
 
