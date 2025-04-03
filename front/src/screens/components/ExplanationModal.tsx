@@ -3,9 +3,9 @@ import { Modal, View, Text, Pressable, TouchableWithoutFeedback, ActivityIndicat
 import { ScaledSheet } from 'react-native-size-matters';
 // import { useMutation } from '@tanstack/react-query';
 // import { fetchPost } from '../../../util/api';
-import { QuestionData } from '../../../screens/components/QuestionItem';
-import useThemeStore, { themeMode } from '../../../store/useThemeStore';
-import { colors } from '../../../constants/colors';
+import { QuestionData } from './QuestionItem';
+import useThemeStore, { themeMode } from '../../store/useThemeStore';
+import { colors } from '../../constants/colors';
 
 interface Props {
   isVisible: boolean;
