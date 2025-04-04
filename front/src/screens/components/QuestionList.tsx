@@ -1,6 +1,5 @@
 import React from 'react';
 import { Text, View, Pressable } from 'react-native';
-// import { EdgeInsets, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ScaledSheet } from 'react-native-size-matters';
 import useThemeStore, { themeMode } from '../../store/useThemeStore';
 import { colors } from '../../constants/colors';
