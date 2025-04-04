@@ -2,7 +2,8 @@ import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import RootStackNavigator from './src/navigation/RootStackNavigator';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-// import { StatusBar } from 'react-native';
+import { StatusBar } from 'react-native';
+import { useColorScheme } from 'react-native';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -17,10 +18,15 @@ const queryClient = new QueryClient({
 
 
 function App(): React.JSX.Element {
+  const isDarkMode = useColorScheme() === 'dark';
+
 
   return (
     // <StatusBar /> // 다크모드 적용시키기
     <QueryClientProvider client={queryClient}>
+      <StatusBar
+        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
+      />
       <NavigationContainer>
         <RootStackNavigator />
       </NavigationContainer>

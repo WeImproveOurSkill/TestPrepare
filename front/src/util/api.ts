@@ -38,16 +38,20 @@ export const fetchGet = async <T>(endpoint: string): Promise<T> => {
 };
 
 // POST 요청
-export const fetchPost = async <T>(endpoint: string, data: any): Promise<T> => {
+export const fetchPost = async <T>(endpoint: string, data?: any): Promise<T> => {
   const headers = await createHeaders();
 
-
-  const response = await fetch(`${Config.BASE_URL}${endpoint}`, {
+  const options: RequestInit = {
     method: 'POST',
     headers,
     credentials: 'include',
-    body: JSON.stringify(data),
-  });
+  };
+
+  if (data) {
+    options.body = JSON.stringify(data);
+  }
+
+  const response = await fetch(`${Config.BASE_URL}${endpoint}`, options);
 
   if (!response.ok) {
     throw new Error(`HTTP error! Status: ${response.status}`);
@@ -86,7 +90,6 @@ export const fetchDelete = async <T>(endpoint: string, data?: any): Promise<T> =
     credentials: 'include',
   };
 
-  // DELETE 요청에 body가 필요한 경우 추가
   if (data) {
     options.body = JSON.stringify(data);
   }

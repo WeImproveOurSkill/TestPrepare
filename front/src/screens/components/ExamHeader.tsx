@@ -47,7 +47,6 @@ const styling = (theme: themeMode, insets: EdgeInsets) => ScaledSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     height: '40@mvs',
-    backgroundColor: 'white',
     borderBottomColor: colors[theme].GRAY_200,
     borderBottomWidth: 1,
   },
