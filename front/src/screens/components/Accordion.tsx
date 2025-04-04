@@ -41,7 +41,7 @@ const Accordion: React.FC<AccordionProps> = ({
   return (
     <View style={styles.container}>
       <TouchableOpacity onPress={toggleAccordion} style={styles.titleContainer}>
-        <Text>{expanded ? '▼' : '▲'}</Text>
+        <Text style={styles.arrow}>{expanded ? '▼' : '▲'}</Text>
         <Text style={styles.title}>{title}</Text>
       </TouchableOpacity>
       <Animated.View style={[styles.content, animatedStyle]}>
@@ -77,6 +77,7 @@ const styling = (theme: themeMode) => ScaledSheet.create({
     padding: '10@ms',
   },
   title: {
+    color: colors[theme].BLACK,
     fontSize: '16@ms',
     fontWeight: '400',
     marginLeft: '10@ms',
@@ -87,6 +88,11 @@ const styling = (theme: themeMode) => ScaledSheet.create({
   },
   scrollContent: {
     width: '100%',
+  },
+  arrow: {
+    color: colors[theme].BLACK,
+    fontSize: '20@ms',
+    fontWeight: 'bold',
   },
 });
 
