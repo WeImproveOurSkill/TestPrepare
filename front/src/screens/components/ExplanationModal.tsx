@@ -61,7 +61,7 @@ const ExplanationModal = ({ isVisible, onClose, question, subjectName }: Props) 
       try {
         setIsLoading(true);
         console.log(requestData);
-        const response = await fetch('http://124.111.2.61:8000/recommend/gpt-assistance', {
+        const response = await fetch('http://124.111.2.61/bf/recommend/gpt-assistance', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
