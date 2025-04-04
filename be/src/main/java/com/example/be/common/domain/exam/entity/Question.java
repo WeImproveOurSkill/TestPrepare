@@ -1,9 +1,11 @@
 package com.example.be.common.domain.exam.entity;
 
+import com.example.be.common.domain.middleTable.userQuestion.entity.UserQuestion;
 import jakarta.persistence.*;
 import lombok.*;
 import com.querydsl.core.annotations.QueryEntity;
 
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -34,4 +36,6 @@ public class Question {
     @OneToOne(mappedBy = "question", cascade = CascadeType.ALL, orphanRemoval = true)
     private Answer answer;
 
+    @OneToMany(mappedBy = "question", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<UserQuestion> userQuestions;
 }

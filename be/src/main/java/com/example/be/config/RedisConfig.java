@@ -1,5 +1,6 @@
 package com.example.be.config;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
@@ -23,25 +24,48 @@ import java.util.Map;
 @EnableCaching
 public class RedisConfig {
 
-    @Value("${spring.data.redis.host}")
-    private String host;
+        @Value("${spring.data.redis.host}")
+        private String host;
 
-    @Value("${spring.data.redis.port}")
-    private int port;
+        @Value("${spring.data.redis.port}")
+        private int port;
     
+        @Value("${spring.data.redis-token.host}")
+        private String tokenHost;
+
+        @Value("${spring.data.redis-token.port}")
+        private int tokenPort;
     
     @Bean
-    public RedisConnectionFactory redisConnectionFactory(){
+    public RedisConnectionFactory redisCacheConnectionFactory(){
         RedisStandaloneConfiguration configuration = new RedisStandaloneConfiguration();
         configuration.setHostName(host);
         configuration.setPort(port);
         return new LettuceConnectionFactory(configuration);
+    }    
+    @Bean
+    public RedisConnectionFactory redisTokenConnectionFactory(){
+        RedisStandaloneConfiguration configuration = new RedisStandaloneConfiguration();
+        configuration.setHostName(tokenHost);
+        configuration.setPort(tokenPort);
+        return new LettuceConnectionFactory(configuration);
     }
 
     @Bean
-    public RedisTemplate<String,Object> redisTemplate(){
+    public RedisTemplate<String,Object> redisCacheTemplate(){
         RedisTemplate<String,Object> redisTemplate = new RedisTemplate<>();
-        redisTemplate.setConnectionFactory(redisConnectionFactory());
+        redisTemplate.setConnectionFactory(redisCacheConnectionFactory());
+        redisTemplate.setKeySerializer(new StringRedisSerializer());
+        redisTemplate.setValueSerializer(new GenericJackson2JsonRedisSerializer());
+        redisTemplate.setHashKeySerializer(new StringRedisSerializer());
+        redisTemplate.setHashValueSerializer(new GenericJackson2JsonRedisSerializer());
+        return redisTemplate;
+    }   
+    
+    @Bean
+    public RedisTemplate<String,Object> redisTokenTemplate(){
+        RedisTemplate<String,Object> redisTemplate = new RedisTemplate<>();
+        redisTemplate.setConnectionFactory(redisTokenConnectionFactory());
         redisTemplate.setKeySerializer(new StringRedisSerializer());
         redisTemplate.setValueSerializer(new GenericJackson2JsonRedisSerializer());
         redisTemplate.setHashKeySerializer(new StringRedisSerializer());
@@ -50,7 +74,7 @@ public class RedisConfig {
     }
 
     @Bean
-    public CacheManager cacheManager(RedisConnectionFactory redisConnectionFactory){
+    public CacheManager cacheManager(@Qualifier("redisCacheConnectionFactory") RedisConnectionFactory redisConnectionFactory){
         RedisCacheConfiguration configuration = RedisCacheConfiguration.defaultCacheConfig()
         .entryTtl(Duration.ofMinutes(10))
         .serializeKeysWith(RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer()))
@@ -78,4 +102,21 @@ public class RedisConfig {
         .build();
         
     }
+
+    @Bean
+public RedisTemplate<String, Object> redisTemplate(
+        @Qualifier("redisTokenConnectionFactory") RedisConnectionFactory connectionFactory) {
+    
+    RedisTemplate<String, Object> template = new RedisTemplate<>();
+    template.setConnectionFactory(connectionFactory);
+    
+    // 직렬화 설정
+    template.setKeySerializer(new StringRedisSerializer());
+    template.setValueSerializer(new GenericJackson2JsonRedisSerializer());
+    template.setHashKeySerializer(new StringRedisSerializer());
+    template.setHashValueSerializer(new GenericJackson2JsonRedisSerializer());
+    
+    template.afterPropertiesSet();
+    return template;
+}
 }

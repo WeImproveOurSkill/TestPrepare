@@ -5,14 +5,11 @@ import com.example.be.common.domain.user.service.UserServiceImpl;
 import com.example.be.common.domain.utils.jwt.JwtUtil;
 import com.example.be.common.domain.utils.oauth2.KakaoUserInfo;
 import com.example.be.common.domain.utils.oauth2.OAuth2UserInfo;
-import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
@@ -20,8 +17,6 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
 import java.util.Map;
-import java.util.NoSuchElementException;
-import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
@@ -48,7 +43,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
             userService.findByOauth2Id(oauth2Id) : 
             userService.signupByOAuth(oAuth2UserInfo);
 
-        String token = jwtUtil.createToken(user.getUsername(), String.valueOf(user.getRole()));
+        String token = jwtUtil.createAccessToken(user.getUsername(), String.valueOf(user.getRole()));
         
         // 프론트엔드로 리다이렉트
         String targetUrl = UriComponentsBuilder.fromUriString("http://localhost:3000")

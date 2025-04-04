@@ -2,6 +2,7 @@ package com.example.be.config;
 
 import com.example.be.common.domain.utils.handler.OAuth2SuccessHandler;
 import com.example.be.common.domain.utils.jwt.JwtAuthFilter;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -40,7 +41,7 @@ public class SecurityConfig {
 //            "/",
             "/exam/*",
             "/oauth/callback/**",
-            "/*"
+            "/**"
     };
 
     private final OAuth2SuccessHandler oAuth2SuccessHandler;
@@ -75,9 +76,19 @@ public class SecurityConfig {
         http.authorizeHttpRequests(auth ->
                 auth.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers(permitAllArray).permitAll()
+                        // .requestMatchers("/**/*.php", "/**/*.asp", "/**/*.jsp").denyAll()
                         .anyRequest().permitAll());
 
-
+//            http.logout(logout -> logout
+//        .logoutUrl("/user/logout")  // 로그아웃 URL 지정
+//        .logoutSuccessHandler((request, response, authentication) -> {
+//            response.setStatus(HttpServletResponse.SC_OK);
+//            response.setContentType("application/json;charset=UTF-8");
+//            response.getWriter().write("{\"status\":\"success\",\"message\":\"로그아웃 되었습니다.\"}");
+//        })
+//        .invalidateHttpSession(true)
+//        .deleteCookies("JSESSIONID")
+//    );
         http.oauth2Login(loginConf ->
                 loginConf.successHandler(oAuth2SuccessHandler));
 
