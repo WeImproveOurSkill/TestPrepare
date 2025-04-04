@@ -9,7 +9,7 @@ import { removeEncryptStorage, JwtKey, UserKey } from '../../util/encryptStorage
 
 interface LoginPageProps {
   onLoginSuccess?: () => void;
-  onNonLogin: () => void;
+  onNonLogin?: () => void;
 }
 
 const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, onNonLogin }) => {
@@ -23,9 +23,11 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, onNonLogin }) => 
   };
 
   const handleNonLogin = () => {
-    removeEncryptStorage(JwtKey);
-    removeEncryptStorage(UserKey);
-    onNonLogin();
+    if (onNonLogin) {
+      removeEncryptStorage(JwtKey);
+      removeEncryptStorage(UserKey);
+      onNonLogin();
+    }
   };
 
   return (
