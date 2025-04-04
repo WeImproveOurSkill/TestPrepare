@@ -7,6 +7,7 @@ import com.example.be.common.domain.utils.oauth2.GoogleUserInfo;
 import com.example.be.common.domain.utils.oauth2.KakaoUserInfo;
 import com.example.be.common.domain.utils.oauth2.OAuth2UserInfo;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import net.minidev.json.JSONObject;
 import net.minidev.json.parser.ParseException;
 import org.springframework.http.HttpEntity;
@@ -24,6 +25,7 @@ import static com.example.be.common.domain.utils.handler.OAuth2SuccessHandler.ge
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
@@ -300,7 +302,15 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public boolean deleteAccount(User user) {
-        return userRepository.deleteByUsername(user.getUsername());
+        try {
+            // 이미 인증을 통해 확인된 사용자이므로 추가 조회 없이 바로 삭제
+            userRepository.delete(user);
+            return true;
+        } catch (Exception e) {
+            log.error("회원탈퇴 처리 중 예외 발생: {}", e.getMessage(), e);
+            return false;
+        }
     }
 }

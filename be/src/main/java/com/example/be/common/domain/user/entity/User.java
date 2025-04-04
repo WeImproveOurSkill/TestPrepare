@@ -1,13 +1,18 @@
 package com.example.be.common.domain.user.entity;
 
 import com.example.be.common.domain.exam.entity.Certification;
+import com.example.be.common.domain.middleTable.userCertification.entity.UserCertification;
+import com.example.be.common.domain.middleTable.userQuestion.entity.UserQuestion;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Getter
@@ -39,12 +44,23 @@ public class User {
     private String provider;
     private String providerId;
 
-    @ManyToMany
-    @JoinTable(
-            name = "user_certification",
-            joinColumns = @JoinColumn(name = "user_id"),
-            inverseJoinColumns = @JoinColumn(name = "certification_id")
-    )
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
-    private Set<Certification> certifications = new HashSet<>();
+    private List<UserCertification> userCertifications = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<UserQuestion> userQuestions;
+
+
+    public void addCertification(Certification certification, LocalDateTime acquiredDate, Integer score, String status) {
+        UserCertification userCertification = UserCertification.builder()
+                .user(this)
+                .certification(certification)
+                .acquiredDate(acquiredDate)
+                .score(score)
+                .status(status)
+                .build();
+
+        this.userCertifications.add(userCertification);
+    }
 }
