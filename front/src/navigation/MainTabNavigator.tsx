@@ -12,12 +12,13 @@ import WrongQuestionScreen from '../screens/wrongQuestion/WrongQuestionScreen';
 import Header from '../screens/components/Header';
 import useTablet from '../hooks/useTablet';
 import BookmarkScreen from '../screens/bookmark/BookmarkScreen';
+import MyPageScreen from '../screens/myPage/MyPageScreen';
 
 export type mainTabParamList = {
   TabHome: NavigatorScreenParams<HomeStackParamList> | undefined;
   WrongQuestionTab: undefined;
   BookmarkTab: undefined;
-  // MyPage: undefined;
+  MyPage: undefined;
 };
 
 const Tab = createBottomTabNavigator<mainTabParamList>();
@@ -43,11 +44,6 @@ function MainTabNavigator() {
           component={HomeScreen}
           options={{ title: '홈' }}
         />
-      {/* <Tab.Screen
-          name="MyPage"
-          component={MyPageScreen}
-          options={{ title: '마이페이지' }}
-        /> */}
         <Tab.Screen
           name="WrongQuestionTab"
           component={WrongQuestionScreen}
@@ -57,6 +53,11 @@ function MainTabNavigator() {
           name="BookmarkTab"
           component={BookmarkScreen}
           options={{ title: '북마크' }}
+        />
+        <Tab.Screen
+          name="MyPage"
+          component={MyPageScreen}
+          options={{ title: '마이페이지' }}
         />
       </Tab.Navigator>
     </View>
