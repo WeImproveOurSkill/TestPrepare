@@ -26,8 +26,7 @@ public class JwtUtil {
     //Auth
     public static final String AUTHORIZATION_HEADER = "Authorization";
     public static final String AUTHORIZATION_KEY = "auth";
-    private static final long ACCESS_TOKEN_TIME = 7 * 60 * 60 * 1000L;
-
+    private static final long ACCESS_TOKEN_TIME = 7 * 24 * 60 * 60 * 1000L;
     //Refresh
     public static final String REFRESH_HEADER = "Refresh";
     public static final String REFRESH_KEY = "refresh";
