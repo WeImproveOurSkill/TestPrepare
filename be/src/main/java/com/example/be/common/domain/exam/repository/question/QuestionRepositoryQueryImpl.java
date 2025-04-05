@@ -89,20 +89,28 @@ public class QuestionRepositoryQueryImpl implements QuestionRepositoryQuery {
     // 과목 시험모드 문제 조회
     @Override
     public List<QuestionDto> findAllQuestionBySubjectAndYearSession(Long subjectId, int year, int session) {
-        return jpaQueryFactory.select(Projections.constructor(
-                        QuestionDto.class,
-                        question.id.as("questionId"),
-                        question.content.as("content"),
-                        answer.answerText.as("answer"),
-                        answer.explanation)).from(question)
-                .leftJoin(question.answer, answer)
-                .leftJoin(question.subjectExam, subjectExam)
-                .leftJoin(subjectExam.certificationSubjects, certificationSubject)
-                .leftJoin(certificationSubject.certificationType,certificationType)
-                .where(certificationType.year.eq(year),
-                        certificationType.session.eq(session))
-                .limit(20).fetch();
-//        return null;
+        //     log.info("조회 파라미터: subjectId={}, year={}, session={}", subjectId, year, session);
+
+    return jpaQueryFactory.select(Projections.constructor(
+                QuestionDto.class,
+                question.id.as("questionId"),
+                question.content.as("content"),
+                answer.answerText.as("answer"),
+                answer.explanation))
+            .from(question)
+            .innerJoin(question.subjectExam, subjectExam)
+            .innerJoin(certificationSubject)
+                .on(certificationSubject.subjectExam.id.eq(subjectExam.id))
+            .innerJoin(certificationType)
+                .on(certificationType.id.eq(certificationSubject.certificationType.id))
+            .leftJoin(question.answer, answer)
+            .where(
+                subjectExam.id.eq(subjectId),
+                certificationType.year.eq(year),
+                certificationType.session.eq(session)
+            )
+            .limit(20)
+            .fetch();
 
     }
 

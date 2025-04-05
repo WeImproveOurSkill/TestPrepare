@@ -86,12 +86,14 @@ public class CertificationRepositoryQueryImpl implements CertificationRepository
 
     @Override
     public List<CertificationTypeDto> findAllYearAndSessionByCertificationId(Long certificationId) {
-        return jpaQueryFactory.select(Projections.constructor(
-                        CertificationTypeDto.class,
-                        certificationType.year,
-                        certificationType.session
-                )).from(certificationType).
-                join(certification.certificationTypes, certificationType)
-                .where(certification.id.eq(certificationId)).fetch();
+    return jpaQueryFactory.select(Projections.constructor(
+                    CertificationTypeDto.class,
+                    certificationType.year,
+                    certificationType.session
+                ))
+                .from(certification)
+                .join(certification.certificationTypes, certificationType)
+                .where(certification.id.eq(certificationId))
+                .fetch();
     }
 }

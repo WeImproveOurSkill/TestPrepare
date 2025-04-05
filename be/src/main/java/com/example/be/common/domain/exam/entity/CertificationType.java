@@ -20,9 +20,9 @@ public class CertificationType {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private int year;
+    private Integer year;
 
-    private int session;
+    private Integer session;
 
     @ManyToOne
     @JoinColumn(name = "certification_id")

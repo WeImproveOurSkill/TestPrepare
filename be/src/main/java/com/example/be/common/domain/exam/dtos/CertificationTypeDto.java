@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class CertificationTypeDto {
     @JsonProperty("year")
-    private int year;
+    private Integer year;
     @JsonProperty("session")
-    private int session;
+    private Integer session;
 }
