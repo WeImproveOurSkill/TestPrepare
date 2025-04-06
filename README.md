@@ -253,7 +253,8 @@ Docker와 Docker Compose를 활용한 컨테이너화 전략을 통해 개발 �
     ```
     
 
-[API 명세서][(TestPrepare%20%E1%84%91%E1%85%B3%E1%84%85%E1%85%A9%E1%84%8C%E1%85%A6%E1%86%A8%E1%84%90%E1%85%B3%2017b196aab73280c780e8ee152c458fec/API%20%E1%84%86%E1%85%A7%E1%86%BC%E1%84%89%E1%85%A6%E1%84%89%E1%85%A5%20a8e5057b480e4dfe97d6db11541f755f.md)](https://amused-turkey-e0c.notion.site/API-a8e5057b480e4dfe97d6db11541f755f)]
+[api 명세서](TestPrepare%20프로젝트%2017b196aab73280c780e8ee152c458fec/API%20명세서%20a8e5057b480e4dfe97d6db11541f755f.md)
+
 
 ---
 
