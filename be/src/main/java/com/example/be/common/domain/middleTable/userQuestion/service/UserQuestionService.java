@@ -11,9 +11,9 @@ import java.util.List;
 public interface UserQuestionService {
     List<QuestionDto> getWrongQuestions(User user, UserQuestion.Status status);
 
-    void processAnswers(User user, List<AnswerSubmitDTO> answers);
+    void submitAnswers(User user, List<AnswerSubmitDTO> answers);
 
-    void recordSolveQuestion(User user, AnswerRecordDto answer);
+    void checkAnswer(User user, AnswerRecordDto answer);
 
     void updateBookMark(User user, Long questionId);
 
