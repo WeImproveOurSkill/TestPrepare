@@ -29,7 +29,7 @@ public class UserQuestionServiceImpl implements UserQuestionService {
 
     @Override
     @Transactional // 시험 문제 풀이 처리 서비스 코드
-    public void processAnswers(User user, List<AnswerSubmitDTO> answers) {
+    public void submitAnswers(User user, List<AnswerSubmitDTO> answers) {
         List<UserQuestion> list = new ArrayList<>();
         for (AnswerSubmitDTO answer : answers) {
             Question question = questionService.findById(answer.getQuestionId());
@@ -71,7 +71,7 @@ public class UserQuestionServiceImpl implements UserQuestionService {
 
     @Override
     @Transactional
-    public void recordSolveQuestion(User user, AnswerRecordDto answer) {
+    public void checkAnswer(User user, AnswerRecordDto answer) {
         Question question = questionService.findById(answer.getQuestionId());
 
         UserQuestion userQuestion = getUserQuestion(user, answer, question);

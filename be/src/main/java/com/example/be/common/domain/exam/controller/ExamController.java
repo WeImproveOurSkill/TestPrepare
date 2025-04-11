@@ -75,14 +75,14 @@ public class ExamController {
     // 문제 풀이 제출 - 시험 모드
     @PostMapping("/submit/test")
     public ResponseEntity<ResponseStatus> submitAnswers(@AuthenticationPrincipal UserDetailsImpl userDetails, @RequestBody List<AnswerSubmitDTO> answers) {
-        userQuestionService.processAnswers(userDetails.getUser(), answers);
+        userQuestionService.submitAnswers(userDetails.getUser(), answers);
         return ResponseEntity.ok().build();
     }
 
     // 일반 문제풀이 문제 제출
     @PostMapping("/submit/normal")
     public ResponseEntity<ResponseStatus> checkAnswer(@AuthenticationPrincipal UserDetailsImpl userDetails, @RequestBody AnswerRecordDto answer) {
-        userQuestionService.recordSolveQuestion(userDetails.getUser(), answer);
+        userQuestionService.checkAnswer(userDetails.getUser(), answer);
         return ResponseEntity.ok().build();
     }
 
