@@ -1,0 +1,149 @@
+= 시험 API 문서
+:doctype: book
+:icons: font
+:source-highlighter: highlightjs
+:toc: left
+:toclevels: 3
+:sectlinks:
+:operation-curl-request-title: 요청 예시
+:operation-http-response-title: 응답 예시
+
+[[exam-api-overview]]
+== 개요
+시험 관련 API를 상세히 설명합니다. 자격증, 과목, 문제 및 북마크 관련 엔드포인트가 포함됩니다.
+
+[[certification-api]]
+== 자격증 API
+
+=== 자격증
+==== 자격증 목록 조회
+사용 가능한 모든 자격증 목록을 조회합니다.
+
+===== 요청
+include::{snippets}/certification-list/http-request.adoc[]
+
+===== 응답
+include::{snippets}/certification-list/http-response.adoc[]
+
+===== 응답 필드
+include::{snippets}/certification-list/response-fields.adoc[]
+
+==== 자격증 연도/회차 목록 조회
+특정 자격증의 연도와 회차 정보를 조회합니다.
+
+===== 요청
+include::{snippets}/certification-year-session/http-request.adoc[]
+
+===== 경로 변수
+include::{snippets}/certification-year-session/path-parameters.adoc[]
+
+===== 응답
+include::{snippets}/certification-year-session/http-response.adoc[]
+
+===== 응답 필드
+include::{snippets}/certification-year-session/response-fields.adoc[]
+
+==== 자격증별 과목 목록 조회
+특정 자격증에 포함된 과목 목록을 조회합니다.
+
+===== 요청
+include::{snippets}/subject-list/http-request.adoc[]
+
+===== 경로 변수
+include::{snippets}/subject-list/path-parameters.adoc[]
+
+===== 응답
+include::{snippets}/subject-list/http-response.adoc[]
+
+===== 응답 필드
+include::{snippets}/subject-list/response-fields.adoc[]
+
+[[question-api]]
+== 문제 API
+
+=== 문제 조회
+==== 과목별 랜덤 문제 조회
+특정 과목에 대한 랜덤 문제를 조회합니다.
+
+===== 요청
+include::{snippets}/random-questions/http-request.adoc[]
+
+===== 경로 변수
+include::{snippets}/random-questions/path-parameters.adoc[]
+
+===== 응답
+include::{snippets}/random-questions/http-response.adoc[]
+
+===== 응답 필드
+include::{snippets}/random-questions/response-fields.adoc[]
+
+=== 문제 풀이
+==== 시험 모드 문제 제출
+시험 모드에서 여러 문제에 대한 답안을 제출합니다.
+
+===== 요청
+include::{snippets}/submit-test-answers/http-request.adoc[]
+
+===== 요청 필드
+include::{snippets}/submit-test-answers/request-fields.adoc[]
+
+===== 응답
+include::{snippets}/submit-test-answers/http-response.adoc[]
+
+==== 일반 문제 풀이 제출
+일반 모드에서 단일 문제에 대한 답안을 제출합니다.
+
+===== 요청
+include::{snippets}/submit-normal-answer/http-request.adoc[]
+
+===== 요청 필드
+include::{snippets}/submit-normal-answer/request-fields.adoc[]
+
+===== 응답
+include::{snippets}/submit-normal-answer/http-response.adoc[]
+
+==== 틀린 문제 조회
+사용자가 틀린 문제 목록을 조회합니다.
+
+===== 요청
+include::{snippets}/wrong-questions/http-request.adoc[]
+
+===== 쿼리 파라미터
+include::{snippets}/wrong-questions/query-parameters.adoc[]
+
+===== 응답
+include::{snippets}/wrong-questions/http-response.adoc[]
+
+===== 응답 필드
+include::{snippets}/wrong-questions/response-fields.adoc[]
+
+[[bookmark-api]]
+== 북마크 API
+
+=== 북마크
+==== 북마크 업데이트
+문제의 북마크 상태를 업데이트합니다.
+
+===== 요청
+include::{snippets}/update-bookmark/http-request.adoc[]
+
+===== 쿼리 파라미터
+include::{snippets}/update-bookmark/query-parameters.adoc[]
+
+===== 응답
+include::{snippets}/update-bookmark/http-response.adoc[]
+
+==== 북마크된 문제 조회
+북마크한 문제 목록을 조회합니다.
+
+===== 요청
+include::{snippets}/bookmarked-questions/http-request.adoc[]
+
+===== 쿼리 파라미터
+include::{snippets}/bookmarked-questions/query-parameters.adoc[]
+
+===== 응답
+include::{snippets}/bookmarked-questions/http-response.adoc[]
+
+===== 응답 필드
+include::{snippets}/bookmarked-questions/response-fields.adoc[]
