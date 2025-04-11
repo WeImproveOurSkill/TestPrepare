@@ -253,9 +253,6 @@ Docker와 Docker Compose를 활용한 컨테이너화 전략을 통해 개발 �
     ```
     
 
-[api 명세서](TestPrepare%20프로젝트%2017b196aab73280c780e8ee152c458fec/API%20명세서%20a8e5057b480e4dfe97d6db11541f755f.md)
-
-
 ---
 
 ## 2. 프로젝트 팀원 역할
