@@ -2,9 +2,9 @@ package com.example.be.common.domain.fixture;
 
 import com.example.be.common.domain.exam.entity.*;
 import com.example.be.common.domain.exam.dtos.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import com.example.be.common.domain.middleTable.userQuestion.entity.UserQuestion;
+
+import java.util.*;
 
 public class ExamFixture {
 
@@ -14,21 +14,10 @@ public class ExamFixture {
                 .explanation("이것이 정답인 이유는...")
                 .build();
 
-        Question question = Question.builder()
+        return Question.builder()
                 .content("테스트 문제 내용\n1. 선택지1\n2. 선택지2\n3. 선택지3\n4. 선택지4")
                 .imageLink("https://example.com/test-image.jpg")
                 .answer(answer)
-                .userQuestions(new ArrayList<>())
-                .build();
-
-        return Question.builder()
-                .content(question.getContent())
-                .imageLink(question.getImageLink())
-                .answer(Answer.builder()
-                        .answerText(answer.getAnswerText())
-                        .explanation(answer.getExplanation())
-                        .question(question)
-                        .build())
                 .userQuestions(new ArrayList<>())
                 .build();
     }
@@ -41,11 +30,7 @@ public class ExamFixture {
     }
 
     public static Answer createAnswer() {
-        Question question = Question.builder()
-                .content("테스트 문제 내용\n1. 선택지1\n2. 선택지2\n3. 선택지3\n4. 선택지4")
-                .imageLink("https://example.com/test-image.jpg")
-                .userQuestions(new ArrayList<>())
-                .build();
+        Question question = createQuestion();
 
         Answer answer = Answer.builder()
                 .answerText("2")
@@ -72,7 +57,7 @@ public class ExamFixture {
 
     public static SubjectExam createSubjectExam() {
         List<Question> questions = createQuestionList();
-        
+
         SubjectExam subjectExam = SubjectExam.builder()
                 .name("데이터베이스")
                 .questions(new ArrayList<>())
@@ -105,22 +90,49 @@ public class ExamFixture {
 
     public static QuestionDto createQuestionDto() {
         return QuestionDto.builder()
-                .content("DTO 테스트 문제 내용\n1. 선택지1\n2. 선택지2\n3. 선택지3\n4. 선택지4")
+                .questionId(1L)
+                .content("테스트 문제 내용\n1. 선택지1\n2. 선택지2\n3. 선택지3\n4. 선택지4")
+                .answer("2")
+                .explanation("이것이 정답인 이유는...")
                 .build();
+    }
+
+    public static List<QuestionDto> createQuestionDtoList() {
+        return Arrays.asList(
+                createQuestionDto(),
+                QuestionDto.builder()
+                        .questionId(2L)
+                        .content("두 번째 테스트 문제\n1. 선택지1\n2. 선택지2\n3. 선택지3\n4. 선택지4")
+                        .answer("1")
+                        .explanation("두 번째 문제의 해설입니다.")
+                        .build()
+        );
     }
 
     public static AnswerSubmitDTO createAnswerSubmitDTO() {
         return AnswerSubmitDTO.builder()
                 .questionId(1L)
+                .answer("2")
                 .userAnswer("2")
                 .build();
+    }
+
+    public static List<AnswerSubmitDTO> createAnswerSubmitDTOList() {
+        return Arrays.asList(
+                createAnswerSubmitDTO(),
+                AnswerSubmitDTO.builder()
+                        .questionId(2L)
+                        .answer("1")
+                        .userAnswer("1")
+                        .build()
+        );
     }
 
     public static ExamResultDTO createExamResultDTO() {
         int totalQuestions = 10;
         int correctAnswers = 7;
         double score = ((double) correctAnswers / totalQuestions) * 100;
-        
+
         return ExamResultDTO.builder()
                 .certificationName("정보처리기사")
                 .checkScores(null)  // 필요에 따라 채워넣을 수 있음
@@ -130,7 +142,7 @@ public class ExamFixture {
 
     public static Certification createCertification() {
         List<SubjectExam> subjectExams = Arrays.asList(createSubjectExam());
-        
+
         Certification certification = Certification.builder()
                 .name("정보처리기사")
                 .userCertifications(new ArrayList<>())
@@ -172,7 +184,7 @@ public class ExamFixture {
 
     public static CertificationType createCertificationType() {
         Certification certification = createCertification();
-        
+
         return CertificationType.builder()
                 .year(2024)
                 .session(1)
@@ -245,8 +257,19 @@ public class ExamFixture {
 
     public static CertificationDto createCertificationDto() {
         return CertificationDto.builder()
+                .certificationId(1L)
                 .certificationName("정보처리기사")
                 .build();
+    }
+
+    public static List<CertificationDto> createCertificationDtoList() {
+        return Arrays.asList(
+                createCertificationDto(),
+                CertificationDto.builder()
+                        .certificationId(2L)
+                        .certificationName("정보보안기사")
+                        .build()
+        );
     }
 
     public static CertificationTypeDto createCertificationTypeDto() {
@@ -256,9 +279,55 @@ public class ExamFixture {
                 .build();
     }
 
+    public static List<CertificationTypeDto> createCertificationTypeDtoList() {
+        return Arrays.asList(
+                createCertificationTypeDto(),
+                CertificationTypeDto.builder()
+                        .year(2024)
+                        .session(2)
+                        .build()
+        );
+    }
+
     public static SubjectDto createSubjectDto() {
         return SubjectDto.builder()
+                .subjectId(1L)
                 .subjectName("데이터베이스")
                 .build();
     }
+
+    public static List<SubjectDto> createSubjectDtoList() {
+        return Arrays.asList(
+                createSubjectDto(),
+                SubjectDto.builder()
+                        .subjectId(2L)
+                        .subjectName("전자계산기구조")
+                        .build()
+        );
+    }
+
+    public static AnswerRecordDto createAnswerRecordDto() {
+        return AnswerRecordDto.builder()
+                .questionId(1L)
+                .status(UserQuestion.Status.CORRECT)
+                .build();
+    }
+
+    // 상수 정의
+    public static final QuestionDto QUESTION_DTO = createQuestionDto();
+    public static final List<QuestionDto> QUESTION_DTOS = createQuestionDtoList();
+    
+    public static final AnswerSubmitDTO ANSWER_SUBMIT_DTO = createAnswerSubmitDTO();
+    public static final List<AnswerSubmitDTO> ANSWER_SUBMIT_DTOS = createAnswerSubmitDTOList();
+    
+    public static final AnswerRecordDto ANSWER_RECORD_DTO = createAnswerRecordDto();
+    
+    public static final CertificationDto CERTIFICATION_DTO = createCertificationDto();
+    public static final List<CertificationDto> CERTIFICATION_DTOS = createCertificationDtoList();
+    
+    public static final CertificationTypeDto CERTIFICATION_TYPE_DTO = createCertificationTypeDto();
+    public static final List<CertificationTypeDto> CERTIFICATION_TYPE_DTOS = createCertificationTypeDtoList();
+    
+    public static final SubjectDto SUBJECT_DTO = createSubjectDto();
+    public static final List<SubjectDto> SUBJECT_DTOS = createSubjectDtoList();
 }
