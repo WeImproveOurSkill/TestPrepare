@@ -74,7 +74,7 @@ public class ExamServiceImpl implements ExamService {
     }
 
     @Override
-    @Cacheable(value = "questions", key = "#subjectId + '_' + #year + '_' + #session")
+//    @Cacheable(value = "questions", key = "#subjectId + '_' + #year + '_' + #session")
     public List<QuestionDto> getQuestionsBySubject(Long subjectId, int year, int session) {
         return questionRepository.findAllQuestionBySubjectAndYearSession(subjectId, year, session);
     }

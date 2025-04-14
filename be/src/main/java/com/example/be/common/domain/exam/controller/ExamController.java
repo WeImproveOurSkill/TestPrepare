@@ -67,7 +67,7 @@ public class ExamController {
     // 과목별 기출 리스트 조회 - 시험모드
     @GetMapping("/subject/{subjectId}/year/{year}/session/{session}")
     public ResponseEntity<List<QuestionDto>> getQuestionsBySubject(
-            @PathVariable Long subjectId, @PathVariable int year, int session) {
+            @PathVariable Long subjectId, @PathVariable int year,@PathVariable  int session) {
         List<QuestionDto> Questions = examService.getQuestionsBySubject(subjectId,year, session);
         return ResponseEntity.ok(Questions);
     }

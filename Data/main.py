@@ -30,6 +30,7 @@ class Question:
     content: str = ""
     image_link: Optional[str] = None  # imageLink → image_link 변경
     subject_exam: Optional['SubjectExam'] = None
+    certification_type: Optional['CertificationType'] = None  # CertificationType과의 연관관계 추가
     answer: Optional[Answer] = None
 
     def __str__(self) -> str:
@@ -37,6 +38,7 @@ class Question:
         [문제 정보]
         - 내용: {self.content[:100]}...
         - 이미지: {self.image_link if self.image_link else '없음'}
+        - 회차: {f"{self.certification_type.year}년 {self.certification_type.session}회" if self.certification_type else '미지정'}
         {self.answer if self.answer else '- 답안 정보 없음'}
         """
 
@@ -99,10 +101,13 @@ class CertificationType:
     session: int = 0  # 시험 회차 (int로 변경)
     certification: Optional[Certification] = None
     certification_subjects: List['CertificationSubject'] = None
+    questions: List[Question] = None  # Question과의 연관관계 추가
 
     def __post_init__(self):
         if self.certification_subjects is None:
             self.certification_subjects = []
+        if self.questions is None:
+            self.questions = []
 
     def __str__(self) -> str:
         return f"""
@@ -110,6 +115,7 @@ class CertificationType:
         - 자격증: {self.certification.name if self.certification else '미지정'}
         - 년도: {self.year}
         - 회차: {self.session}
+        - 문제 수: {len(self.questions)}
         """
 
 @dataclass
@@ -207,7 +213,9 @@ def create_tables(db):
         content TEXT NOT NULL,
         image_link VARCHAR(255),
         subject_exam_id BIGINT NOT NULL,  # 타입을 BIGINT로 변경
-        FOREIGN KEY (subject_exam_id) REFERENCES subject_exam(id)
+        certification_type_id BIGINT NOT NULL,  # CertificationType과의 연관관계 추가
+        FOREIGN KEY (subject_exam_id) REFERENCES subject_exam(id),
+        FOREIGN KEY (certification_type_id) REFERENCES certification_type(id)
     )
     """)
     
@@ -860,6 +868,7 @@ class PDFExtractor:
 
 def process_pdf_files():
     """PDF 파일을 처리하고 데이터베이스에 저장"""
+    db = None
     try:
         # MySQL 연결 정보 - Docker-compose 설정에 맞게 수정
         db = mysql.connector.connect(
@@ -892,6 +901,9 @@ def process_pdf_files():
             print(f"\n처리 중인 파일: {os.path.basename(pdf_path)}")
             process_pdf_with_db(pdf_path, db)
                 
+        # 기존 데이터에 certification_type 연결 업데이트
+        update_question_certification_type_links(db)
+                
         # 과목별 문제 할당 상태 및 정답 연결 상태 확인
         verify_subject_assignments(db)
         check_answer_quality(db)
@@ -902,7 +914,7 @@ def process_pdf_files():
         traceback.print_exc()
         
     finally:
-        if 'db' in locals():
+        if db:
             try:
                 db.close()
                 print("MySQL 연결이 종료되었습니다.")
@@ -1075,9 +1087,9 @@ def process_pdf_with_db(pdf_path, db):
                 
                 # 문제 삽입
                 cursor.execute("""
-                    INSERT INTO questions (content, image_link, subject_exam_id) 
-                    VALUES (%s, %s, %s)
-                """, (q.get('text'), q.get('image_link'), subject_id_for_question))
+                    INSERT INTO questions (content, image_link, subject_exam_id, certification_type_id) 
+                    VALUES (%s, %s, %s, %s)
+                """, (q.get('text'), q.get('image_link'), subject_id_for_question, cert_type_id))
                 question_id = cursor.lastrowid
                 question_id_map[question_num] = question_id
                 inserted_questions += 1
@@ -1131,7 +1143,7 @@ def process_pdf_with_db(pdf_path, db):
             JOIN certification_subject cs ON se.id = cs.subject_exam_id
             LEFT JOIN questions q ON se.id = q.subject_exam_id
             WHERE cs.certification_type_id = %s
-            GROUP BY se.name
+            GROUP BY se.id, se.name
             ORDER BY se.id
         """, (cert_type_id,))
         
@@ -1155,7 +1167,7 @@ def process_pdf_with_db(pdf_path, db):
             LEFT JOIN certification_subject cs ON ct.id = cs.certification_type_id
             LEFT JOIN subject_exam se ON cs.subject_exam_id = se.id
             LEFT JOIN questions q ON se.id = q.subject_exam_id
-            GROUP BY c.name
+            GROUP BY c.id, c.name
         """)
         
         stats = cursor.fetchall()
@@ -1282,6 +1294,75 @@ def check_answer_quality(db):
         print(f"\n총 {total}개 문제 중 {answered}개 정답 연결됨 ({answered/total*100:.1f}%)")
     
     cursor.close()
+
+def update_question_certification_type_links(db):
+    """기존 DB에 있는 Question 데이터에 certification_type_id 연결 추가"""
+    try:
+        cursor = db.cursor()
+        
+        # certification_type_id 컬럼이 있는지 확인
+        cursor.execute("""
+            SELECT COUNT(*) FROM information_schema.columns 
+            WHERE table_name = 'questions' AND column_name = 'certification_type_id'
+        """)
+        column_exists = cursor.fetchone()[0] > 0
+        
+        if not column_exists:
+            print("questions 테이블에 certification_type_id 컬럼 추가 중...")
+            cursor.execute("""
+                ALTER TABLE questions 
+                ADD COLUMN certification_type_id BIGINT
+            """)
+            cursor.execute("""
+                ALTER TABLE questions 
+                ADD CONSTRAINT fk_question_certification_type 
+                FOREIGN KEY (certification_type_id) REFERENCES certification_type(id)
+            """)
+            print("컬럼 및 외래 키 제약 조건 추가 완료")
+        
+        # 업데이트가 필요한 질문 수 확인
+        cursor.execute("""
+            SELECT COUNT(*) FROM questions 
+            WHERE certification_type_id IS NULL
+        """)
+        null_count = cursor.fetchone()[0]
+        
+        if null_count == 0:
+            print("모든 문제에 certification_type_id가 이미 설정되어 있습니다.")
+            return
+        
+        print(f"{null_count}개의 문제에 certification_type_id 설정이 필요합니다.")
+        
+        # subject_exam을 통해 certification_type_id를 찾아 설정
+        cursor.execute("""
+            UPDATE questions q
+            JOIN subject_exam se ON q.subject_exam_id = se.id
+            JOIN certification_subject cs ON se.id = cs.subject_exam_id
+            SET q.certification_type_id = cs.certification_type_id
+            WHERE q.certification_type_id IS NULL
+        """)
+        
+        # 영향 받은 행 수 확인
+        updated = cursor.rowcount
+        db.commit()
+        print(f"{updated}개 문제의 certification_type_id 설정 완료")
+        
+        # 여전히 NULL인 항목이 있는지 확인
+        cursor.execute("""
+            SELECT COUNT(*) FROM questions 
+            WHERE certification_type_id IS NULL
+        """)
+        remaining_null = cursor.fetchone()[0]
+        
+        if remaining_null > 0:
+            print(f"주의: {remaining_null}개 문제는 여전히 certification_type_id가 NULL입니다.")
+            print("이 문제들에 대해 명시적으로 certification_type_id를 설정해야 합니다.")
+        
+    except Exception as e:
+        print(f"데이터 마이그레이션 중 오류 발생: {e}")
+        db.rollback()
+    finally:
+        cursor.close()
 
 if __name__ == "__main__":
     process_pdf_files()
