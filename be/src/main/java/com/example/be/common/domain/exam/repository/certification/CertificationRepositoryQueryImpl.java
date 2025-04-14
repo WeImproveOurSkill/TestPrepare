@@ -90,8 +90,9 @@ public class CertificationRepositoryQueryImpl implements CertificationRepository
                         CertificationTypeDto.class,
                         certificationType.year,
                         certificationType.session
-                )).from(certificationType).
-                join(certification.certificationTypes, certificationType)
-                .where(certification.id.eq(certificationId)).fetch();
+                )).from(certificationType)
+                .where(certificationType.certification.id.eq(certificationId))
+                .orderBy(certificationType.year.desc(), certificationType.session.desc())
+                .fetch();
     }
 }

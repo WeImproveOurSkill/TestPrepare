@@ -1143,7 +1143,7 @@ def process_pdf_with_db(pdf_path, db):
             JOIN certification_subject cs ON se.id = cs.subject_exam_id
             LEFT JOIN questions q ON se.id = q.subject_exam_id
             WHERE cs.certification_type_id = %s
-            GROUP BY se.id, se.name
+            GROUP BY se.name
             ORDER BY se.id
         """, (cert_type_id,))
         
@@ -1167,7 +1167,7 @@ def process_pdf_with_db(pdf_path, db):
             LEFT JOIN certification_subject cs ON ct.id = cs.certification_type_id
             LEFT JOIN subject_exam se ON cs.subject_exam_id = se.id
             LEFT JOIN questions q ON se.id = q.subject_exam_id
-            GROUP BY c.id, c.name
+            GROUP BY c.name
         """)
         
         stats = cursor.fetchall()
