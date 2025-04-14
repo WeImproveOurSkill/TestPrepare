@@ -33,6 +33,11 @@ public class Question {
     @JoinColumn(name = "subject_exam_id")
     private SubjectExam subjectExam;
 
+        @ManyToOne
+    @JoinColumn(name = "certification_type_id")
+    private CertificationType certificationType;
+
+
     @OneToOne(mappedBy = "question", cascade = CascadeType.ALL, orphanRemoval = true)
     private Answer answer;
 

@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import java.util.*;
 
 import static com.example.be.common.domain.exam.entity.QAnswer.answer;
+import static com.example.be.common.domain.exam.entity.QCertification.certification;
 import static com.example.be.common.domain.exam.entity.QCertificationType.certificationType;
 import static com.example.be.common.domain.exam.entity.QQuestion.question;
 import static com.example.be.common.domain.exam.entity.QSubjectExam.subjectExam;
@@ -71,39 +72,40 @@ public class QuestionRepositoryQueryImpl implements QuestionRepositoryQuery {
         //         .where(subjectExam.id.eq(subjectExamId)
         //                 .and(question.id.in(selectedIds)))
         //         .fetch();
-    return jpaQueryFactory
-        .select(Projections.constructor(QuestionDto.class,
-                question.id.as("questionId"),
-                question.content.as("content"),
-                answer.answerText.as("answer"),
-                answer.explanation))
-        .from(question)
-        .innerJoin(question.answer, answer)
-        .where(question.subjectExam.id.eq(subjectExamId))
-        .orderBy(Expressions.numberTemplate(Double.class, "RAND()").asc())
-        .limit(5)
-        .fetch();
-}
-
-    
-    // 과목 시험모드 문제 조회
-    @Override
-    public List<QuestionDto> findAllQuestionBySubjectAndYearSession(Long subjectId, int year, int session) {
-        return jpaQueryFactory.select(Projections.constructor(
-                        QuestionDto.class,
+        return jpaQueryFactory
+                .select(Projections.constructor(QuestionDto.class,
                         question.id.as("questionId"),
                         question.content.as("content"),
                         answer.answerText.as("answer"),
-                        answer.explanation)).from(question)
-                .leftJoin(question.answer, answer)
-                .leftJoin(question.subjectExam, subjectExam)
-                .leftJoin(subjectExam.certificationSubjects, certificationSubject)
-                .leftJoin(certificationSubject.certificationType,certificationType)
-                .where(certificationType.year.eq(year),
-                        certificationType.session.eq(session))
-                .limit(20).fetch();
-//        return null;
+                        answer.explanation))
+                .from(question)
+                .innerJoin(question.answer, answer)
+                .where(question.subjectExam.id.eq(subjectExamId))
+                .orderBy(Expressions.numberTemplate(Double.class, "RAND()").asc())
+                .limit(5)
+                .fetch();
+    }
 
+
+    // 과목 시험모드 문제 조회
+    @Override
+    public List<QuestionDto> findAllQuestionBySubjectAndYearSession(Long subjectId, int year, int session) {
+        // 중간 테이블(CertificationSubject)을 조인에 추가
+        // 1단계: 조건에 맞는 문제 ID만 조회
+        return jpaQueryFactory.select(Projections.constructor(QuestionDto.class,
+                        question.id.as("questionId"),
+                        question.content.as("content"),
+                        answer.answerText.as("answer"),
+                        answer.explanation))
+                .from(question)
+                .innerJoin(question.answer, answer)
+                .leftJoin(question.subjectExam, subjectExam)
+                .leftJoin(question.certificationType, certificationType)
+                .where(
+                        certificationType.year.eq(year),
+                        certificationType.session.eq(session),
+                        question.subjectExam.id.eq(subjectId)
+                ).limit(20).fetch();
     }
 
 

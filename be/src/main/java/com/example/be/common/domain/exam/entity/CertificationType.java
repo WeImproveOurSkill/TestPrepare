@@ -30,4 +30,7 @@ public class CertificationType {
 
     @OneToMany(mappedBy = "certificationType", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<CertificationSubject> certificationSubjects;
+
+        @OneToMany(mappedBy = "certificationType")
+    private List<Question> questions;
 }
