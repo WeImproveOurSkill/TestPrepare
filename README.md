@@ -257,17 +257,11 @@ Docker와 Docker Compose를 활용한 컨테이너화 전략을 통해 개발 �
 
 ## 2. 프로젝트 팀원 역할
 
-|  | 이현동 | 김민수 |
+|   | 이현동 | 김민수 |
 | --- | --- | --- |
-| 역할 | 프론트엔드, 앱 | 백엔드, 배포환경 |
-| 기능 | - 크로스 플랫폼으로 개발(React Native)
-- TypeScript를 이용한 프로젝트 개발
-- OAuth2.0 기반 구글, 카카오 소셜 로그인 및 회원가입 구현
-- Tanstack-query를 사용한 데이터 캐싱 구현 | - 기본 백엔드 기능 구현(Spring)
-- Jwt를 사용한 보안 구현
-- Perplexity API 및 프롬프트 사용(FastAPI)
-- Docker compose를 통한 멀티 컨테이너 환경 구현(홈서버 구축), 네트워크 세팅
-- Mysql, Redis, Nginx를 통한 아키텍쳐 설계 및 구현 |
+| 역할 | 프론트엔드, 앱 구현 | 백엔드, 배포환경 구성 |
+| 구현 | \- 크로스 플랫폼으로 개발(React Native)   \- TypeScript를 이용한 프로젝트 개발   \- Tanstack-query를 사용한 데이터 캐싱 구현 | \- 컨트롤러 + 서비스 Junit Test(단위 테스트)   \- API 설계, 개발, 문서화   \- 캐시 처리, Query 최적화(QueryDSL)   \- 개발자 로컬 환경 구축   \- 홈서버 구현을 통한 백엔드 서버 구축   \- Perplexity API 호출 및 반환   \- Docker compose를 통한 다중 컨테이너 환경의 플랫폼 환경 구현 |
+
 
 ### 2.1 프론트엔드 (front 폴더)
 
