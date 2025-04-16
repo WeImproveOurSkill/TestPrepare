@@ -260,7 +260,7 @@ Docker와 Docker Compose를 활용한 컨테이너화 전략을 통해 개발 �
 |   | 이현동 | 김민수 |
 | --- | --- | --- |
 | 역할 | 프론트엔드, 앱 구현 | 백엔드, 배포환경 구성 |
-| 구현 | \- 크로스 플랫폼으로 개발(React Native)   \ \n - TypeScript를 이용한 프로젝트 개발   \- Tanstack-query를 사용한 데이터 캐싱 구현 | \- 컨트롤러 + 서비스 Junit Test(단위 테스트)   \- API 설계, 개발, 문서화   \- 캐시 처리, Query 최적화(QueryDSL)   \- 개발자 로컬 환경 구축   \- 홈서버 구현을 통한 백엔드 서버 구축   \- Perplexity API 호출 및 반환   \- Docker compose를 통한 다중 컨테이너 환경의 플랫폼 환경 구현 |
+| 구현 | - 크로스 플랫폼으로 개발(React Native)<br>- TypeScript를 이용한 프로젝트 개발<br>- Tanstack-query를 사용한 데이터 캐싱 구현 | - 컨트롤러 + 서비스 Junit Test(단위 테스트)<br>- API 설계, 개발, 문서화<br>- 캐시 처리, Query 최적화(QueryDSL)<br>- 개발자 로컬 환경 구축<br>- 홈서버 구현을 통한 백엔드 서버 구축<br>- Perplexity API 호출 및 반환<br>- Docker compose를 통한 다중 컨테이너 환경의 플랫폼 환경 구현 |
 
 
 ### 2.1 프론트엔드 (front 폴더)
