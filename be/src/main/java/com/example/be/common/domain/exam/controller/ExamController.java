@@ -27,22 +27,16 @@ public class ExamController {
     }
     // 자격증 year, session 반환 리스트
     @GetMapping("/certification/{certificationId}/year-session")
-    public ResponseEntity<List<CertificationTypeDto>> getCertificationYearSessionList(
+    public ResponseEntity<List<CertificationTypeDto>> getCertificationYearSessionInformationList(
             @PathVariable Long certificationId
     ) {
-        return ResponseEntity.ok(examService.getCertificationYearSessionList(certificationId));
+        return ResponseEntity.ok(examService.getCertificationYearSessionInformationList(certificationId));
     }
-
-    // 기출 문제 세트 조회
-//    @GetMapping("/certification")
-//    public ResponseEntity<List<QuestionDto>> getCertificationQuestions(@RequestParam String certificationName, @RequestParam int year, @RequestParam int session) {
-//        return ResponseEntity.ok(examService.getQuestionsByCertification(certificationName, year, session));
-//    }
 
 
     // 자격증 선택후 과목 리스트 전송 (certificationId 기준으로 subjectId 리스트 응답값 전송)
     @GetMapping("/certification/{certificationId}")
-    public ResponseEntity<List<SubjectDto>> getCertification(@PathVariable Long certificationId) {
+    public ResponseEntity<List<SubjectDto>> getSubject(@PathVariable Long certificationId) {
         return ResponseEntity.ok(examService.getSubject(certificationId));
     }
 
@@ -74,15 +68,15 @@ public class ExamController {
 
     // 문제 풀이 제출 - 시험 모드
     @PostMapping("/submit/test")
-    public ResponseEntity<ResponseStatus> submitAnswers(@AuthenticationPrincipal UserDetailsImpl userDetails, @RequestBody List<AnswerSubmitDTO> answers) {
-        userQuestionService.submitAnswers(userDetails.getUser(), answers);
+    public ResponseEntity<ResponseStatus> testCheckAnswers(@AuthenticationPrincipal UserDetailsImpl userDetails, @RequestBody List<AnswerSubmitDTO> answers) {
+        userQuestionService.testCheckAnswers(userDetails.getUser(), answers);
         return ResponseEntity.ok().build();
     }
 
     // 일반 문제풀이 문제 제출
     @PostMapping("/submit/normal")
-    public ResponseEntity<ResponseStatus> checkAnswer(@AuthenticationPrincipal UserDetailsImpl userDetails, @RequestBody AnswerRecordDto answer) {
-        userQuestionService.checkAnswer(userDetails.getUser(), answer);
+    public ResponseEntity<ResponseStatus> studyCheckAnswer(@AuthenticationPrincipal UserDetailsImpl userDetails, @RequestBody AnswerRecordDto answer) {
+        userQuestionService.studyCheckAnswer(userDetails.getUser(), answer);
         return ResponseEntity.ok().build();
     }
 

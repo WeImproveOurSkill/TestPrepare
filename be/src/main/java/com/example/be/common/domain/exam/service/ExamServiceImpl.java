@@ -69,7 +69,7 @@ public class ExamServiceImpl implements ExamService {
 
     @Override
     @Cacheable(value = "yearSessions", key = "#certificationId")
-    public List<CertificationTypeDto> getCertificationYearSessionList(Long certificationId) {
+    public List<CertificationTypeDto> getCertificationYearSessionInformationList(Long certificationId) {
         return certificationRepository.findAllYearAndSessionByCertificationId(certificationId);
     }
 

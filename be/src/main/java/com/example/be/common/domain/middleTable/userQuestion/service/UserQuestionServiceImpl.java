@@ -29,29 +29,29 @@ public class UserQuestionServiceImpl implements UserQuestionService {
 
     @Override
     @Transactional // 시험 문제 풀이 처리 서비스 코드
-    public void submitAnswers(User user, List<AnswerSubmitDTO> answers) {
+    public void testCheckAnswers(User user, List<AnswerSubmitDTO> answers) {
         List<UserQuestion> list = new ArrayList<>();
         for (AnswerSubmitDTO answer : answers) {
             Question question = questionService.findById(answer.getQuestionId());
             UserQuestion.Status status = getStatus(answer);
-            UserQuestion userQuestion = getUserQuestion(user, question, status);
+            UserQuestion userQuestion = findOrCreateUserQuestionByStatus(user, question, status);
             list.add(userQuestion);
         }
         userQuestionRepository.saveAll(list);
     }
 
-    private UserQuestion getUserQuestion(User user, Question question, UserQuestion.Status status) {
+    private UserQuestion findOrCreateUserQuestionByStatus(User user, Question question, UserQuestion.Status status) {
         UserQuestion userQuestion;
         userQuestion = userQuestionRepository.findByUserAndQuestion(user, question);
-        if (userQuestion==null) {
-                userQuestion = UserQuestion.builder()
+        if (userQuestion == null) {
+            userQuestion = UserQuestion.builder()
                     .question(question)
                     .user(user)
                     .solveTime(LocalDateTime.now())
                     .isBookmarked(false)
                     .status(status)
                     .build();
-        }else{
+        } else {
             userQuestion.updateRecord(status);
         }
 
@@ -71,18 +71,18 @@ public class UserQuestionServiceImpl implements UserQuestionService {
 
     @Override
     @Transactional
-    public void checkAnswer(User user, AnswerRecordDto answer) {
+    public void studyCheckAnswer(User user, AnswerRecordDto answer) {
         Question question = questionService.findById(answer.getQuestionId());
 
-        UserQuestion userQuestion = getUserQuestion(user, answer, question);
+        UserQuestion userQuestion = findOrCreateUserQuestionByStatus(user, question, answer.getStatus());
         userQuestionRepository.save(userQuestion);
     }
 
     @Override
     @Transactional
     @Caching(evict = {
-        @CacheEvict(value = "userBookmarks", key = "#user.id + '_*'"),
-        @CacheEvict(value = "userWrongQuestions", key = "#user.id + '_*'")
+            @CacheEvict(value = "userBookmarks", key = "#user.id + '_*'"),
+            @CacheEvict(value = "userWrongQuestions", key = "#user.id + '_*'")
     })
     public void updateBookMark(User user, Long questionId) {
         Question byId = questionService.findById(questionId);
@@ -103,23 +103,15 @@ public class UserQuestionServiceImpl implements UserQuestionService {
     }
 
     @Override
+    @Transactional()
     @Cacheable(value = "userBookmarks", key = "#user.id + '_' + #certificationId")
     public List<QuestionDto> getBookMarkQuestion(User user, Long certificationId) {
         return userQuestionRepository.getBookMarkQuestion(user, certificationId);
     }
 
-    private static UserQuestion getUserQuestion(User user, AnswerRecordDto answer, Question question) {
-        UserQuestion userQuestion = UserQuestion.builder()
-                .user(user)
-                .question(question)
-                .status(answer.getStatus())
-                .solveTime(LocalDateTime.now())
-                .isBookmarked(false)
-                .build();
-        return userQuestion;
-    }
 
     @Override
+    @Transactional()
     @Cacheable(value = "userWrongQuestions", key = "#user.id + '_' + #status")
     public List<QuestionDto> getWrongQuestions(User user, UserQuestion.Status status) {
         return userQuestionRepository.findAllAboutWrongQuestionByStatus(user, status);

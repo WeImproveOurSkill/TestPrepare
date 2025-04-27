@@ -25,6 +25,7 @@ import java.time.LocalDateTime;
         this.status = status;
     }
 
+
     public enum Status {
         CORRECT, WRONG ;
     }
@@ -55,5 +56,9 @@ import java.time.LocalDateTime;
         }else{
             this.isBookmarked = false;
         }
+    }
+
+    public void checkAnswer() {
+
     }
 }

@@ -19,7 +19,7 @@ public interface ExamService {
 
     List<QuestionDto> getRandomQuestionsBySubject(Long subjectId);
 
-    List<CertificationTypeDto> getCertificationYearSessionList(Long certificationId);
+    List<CertificationTypeDto> getCertificationYearSessionInformationList(Long certificationId);
 
     List<QuestionDto> getQuestionsBySubject(Long subjectId, int year, int session);
 }
