@@ -9,8 +9,6 @@ import com.example.be.common.domain.middleTable.userQuestion.service.UserQuestio
 import com.example.be.common.domain.user.entity.User;
 import com.example.be.common.domain.utils.jwt.JwtAuthFilter;
 import com.example.be.common.domain.utils.jwt.JwtUtil;
-import com.example.be.common.domain.utils.userDetatils.UserDetailsImpl;
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -25,13 +23,11 @@ import org.springframework.context.annotation.Import;
 import org.springframework.data.jpa.mapping.JpaMetamodelMappingContext;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.restdocs.RestDocumentationContextProvider;
 import org.springframework.restdocs.RestDocumentationExtension;
 import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders;
 import org.springframework.restdocs.payload.JsonFieldType;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 import java.util.List;
@@ -41,7 +37,6 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willDoNothing;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
-import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.documentationConfiguration;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.*;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.*;
 import static org.springframework.restdocs.payload.PayloadDocumentation.*;
@@ -94,15 +89,15 @@ class ExamControllerTest {
         List<QuestionDto> questionDtos = createQuestionDtoList();
         
         given(examService.getCertificationList()).willReturn(certificationDtos);
-        given(examService.getCertificationYearSessionList(anyLong())).willReturn(certificationTypeDtos);
+        given(examService.getCertificationYearSessionInformationList(anyLong())).willReturn(certificationTypeDtos);
         given(examService.getSubject(anyLong())).willReturn(subjectDtos);
         given(examService.getRandomQuestionsBySubject(anyLong())).willReturn(questionDtos);
         given(examService.getQuestionsBySubject(anyLong(), anyInt(), anyInt())).willReturn(questionDtos);
         given(examService.getQuestionsBySubject(anyLong(), anyLong())).willReturn(createQuestionDto());
         
         // UserQuestionService 모의 설정
-        willDoNothing().given(userQuestionService).submitAnswers(any(User.class), anyList());
-        willDoNothing().given(userQuestionService).checkAnswer(any(User.class), any(AnswerRecordDto.class));
+        willDoNothing().given(userQuestionService).testCheckAnswers(any(User.class), anyList());
+        willDoNothing().given(userQuestionService).studyCheckAnswer(any(User.class), any(AnswerRecordDto.class));
         willDoNothing().given(userQuestionService).updateBookMark(any(User.class), anyLong());
         given(userQuestionService.getWrongQuestions(any(User.class), any(UserQuestion.Status.class))).willReturn(questionDtos);
         given(userQuestionService.getBookMarkQuestion(any(User.class), anyLong())).willReturn(questionDtos);
@@ -135,7 +130,7 @@ class ExamControllerTest {
 
     @Test
     @DisplayName("자격증 연도/회차 목록 조회 API")
-    void getCertificationYearSessionList() throws Exception {
+    void getSubjectYearSessionInformationList() throws Exception {
         // Given
         Long certificationId = 1L;
 
@@ -220,7 +215,7 @@ class ExamControllerTest {
 
     @Test
     @DisplayName("시험 모드 문제 제출 API")
-    void submitAnswers() throws Exception {
+    void testCheckAnswers() throws Exception {
         // Given
         List<AnswerSubmitDTO> request = createAnswerSubmitDTOList();
 
@@ -245,7 +240,7 @@ class ExamControllerTest {
 
     @Test
     @DisplayName("일반 문제 풀이 제출 API")
-    void checkAnswer() throws Exception {
+    void studyCheckAnswer() throws Exception {
         // Given
         AnswerRecordDto request = createAnswerRecordDto();
 

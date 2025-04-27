@@ -19,7 +19,7 @@ public interface UserService {
 
     JSONObject googleCallback(JSONObject object);
 
-    JSONObject refreshAccessToken(String username, String refreshToken);
+    JSONObject refreshToken(String username, String refreshToken);
 
     boolean logout(User username);
 

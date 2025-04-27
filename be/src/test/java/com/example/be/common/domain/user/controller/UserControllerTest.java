@@ -6,7 +6,6 @@ import com.example.be.common.domain.utils.jwt.JwtAuthFilter;
 import com.example.be.common.domain.utils.jwt.JwtUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import net.minidev.json.JSONObject;
-import net.minidev.json.parser.ParseException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -23,16 +22,12 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.example.be.common.domain.asciidocs.ApiDocumentUtils.getDocumentRequest;
-import static com.example.be.common.domain.asciidocs.ApiDocumentUtils.getDocumentResponse;
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
@@ -189,7 +184,7 @@ class UserControllerTest {
         responseBody.put("accessToken", "new_access_token");
         responseBody.put("refreshToken", "new_refresh_token");
         
-        given(userService.refreshAccessToken(anyString(), anyString())).willReturn(responseBody);
+        given(userService.refreshToken(anyString(), anyString())).willReturn(responseBody);
 
         // When & Then
         mockMvc.perform(

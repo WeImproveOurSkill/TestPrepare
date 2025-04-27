@@ -4,7 +4,6 @@ import com.example.be.common.domain.user.entity.User;
 import com.example.be.common.domain.user.repository.UserRepository;
 import com.example.be.common.domain.utils.jwt.JwtUtil;
 import com.example.be.common.domain.utils.oauth2.GoogleUserInfo;
-import com.example.be.common.domain.utils.oauth2.KakaoUserInfo;
 import net.minidev.json.JSONObject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -14,7 +13,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.client.RestTemplate;
 
@@ -225,7 +223,7 @@ class UserServiceImplTest {
                     .willReturn("newAccessToken");
 
             // when
-            JSONObject result = userService.refreshAccessToken(user.getUsername(), refreshToken);
+            JSONObject result = userService.refreshToken(user.getUsername(), refreshToken);
 
             // then
             assertThat(result).isNotNull();
@@ -242,7 +240,7 @@ class UserServiceImplTest {
                     .willReturn(false);
 
             // when & then
-            assertThatThrownBy(() -> userService.refreshAccessToken(user.getUsername(), refreshToken))
+            assertThatThrownBy(() -> userService.refreshToken(user.getUsername(), refreshToken))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessage("해당 사용자는 재로그인을 진행해야합니다.");
         }

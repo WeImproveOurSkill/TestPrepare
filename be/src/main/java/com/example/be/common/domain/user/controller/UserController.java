@@ -1,6 +1,5 @@
 package com.example.be.common.domain.user.controller;
 
-import com.example.be.common.domain.user.entity.User;
 import com.example.be.common.domain.user.service.UserService;
 import com.example.be.common.domain.utils.userDetatils.UserDetailsImpl;
 import lombok.RequiredArgsConstructor;
@@ -10,7 +9,6 @@ import net.minidev.json.parser.ParseException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -42,7 +40,7 @@ public class UserController {
             throw new IllegalArgumentException("사용자명과 리프레시 토큰은 필수입니다.");
         }
         
-        JSONObject response = userService.refreshAccessToken(username, refreshToken);
+        JSONObject response = userService.refreshToken(username, refreshToken);
         return ResponseEntity.ok(response);
     }
     

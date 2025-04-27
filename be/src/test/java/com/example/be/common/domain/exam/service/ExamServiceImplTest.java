@@ -269,7 +269,7 @@ class ExamServiceImplTest {
                     .willReturn(certificationTypeDtos);
 
             // when
-            List<CertificationTypeDto> result = examService.getCertificationYearSessionList(certificationId);
+            List<CertificationTypeDto> result = examService.getCertificationYearSessionInformationList(certificationId);
 
             // then
             assertThat(result).isNotEmpty();
@@ -286,7 +286,7 @@ class ExamServiceImplTest {
                     .willReturn(Collections.emptyList());
 
             // when
-            List<CertificationTypeDto> result = examService.getCertificationYearSessionList(certificationId);
+            List<CertificationTypeDto> result = examService.getCertificationYearSessionInformationList(certificationId);
 
             // then
             assertThat(result).isEmpty();
