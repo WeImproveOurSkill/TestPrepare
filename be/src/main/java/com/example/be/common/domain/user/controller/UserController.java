@@ -31,7 +31,7 @@ public class UserController {
         return userService.googleCallback(object);
     }
 
-     @PostMapping("/refresh")
+    @PostMapping("/refresh")
     public ResponseEntity<JSONObject> refreshToken(@RequestBody Map<String, String> payload) {
         String username = payload.get("username");
         String refreshToken = payload.get("refreshToken");
