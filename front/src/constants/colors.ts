@@ -1,14 +1,13 @@
 const common = {
   MAIN: '#3D6CE5',
-  PINK_200: '#FAE2E9',
   PINK_400: '#EC87A5',
   PINK_500: '#BF5C79',
-  PINK_700: '#C63B64',
   BLUE_500: '#0D8AFF',
-  RED_500: '#FF5F5F',
   RED_300: '#FFB4B4',
+  RED_500: '#FF5F5F',
   BLUE_400: '#B4E0FF',
-  GREEN_400: '#CCE6BA',
+  GREEN_300: '#52AD55',
+  GREEN_500: '#008000',
   YELLOW_300: '#FFE594',
   YELLOW_400: '#FEE500',
   YELLOW_500: '#FACC15',
@@ -64,7 +63,7 @@ const colors = {
 const colorHex = {
   RED: colors.light.PINK_400,
   BLUE: colors.light.BLUE_400,
-  GREEN: colors.light.GREEN_400,
+  GREEN: colors.light.GREEN_300,
   YELLOW: colors.light.YELLOW_400,
   PURPLE: colors.light.PURPLE_400,
 } as const;
