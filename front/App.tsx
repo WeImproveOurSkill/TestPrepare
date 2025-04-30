@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import RootStackNavigator from './src/navigation/RootStackNavigator';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { StatusBar } from 'react-native';
-import { useColorScheme } from 'react-native';
+import useThemeStorage from './src/hooks/useThemeStorage';
+import { colors } from './src/constants/colors';
+import { useBookmarkStore } from './src/store/useBookmarkStore';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -18,14 +20,17 @@ const queryClient = new QueryClient({
 
 
 function App(): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
+  const {theme} = useThemeStorage();
 
+  useEffect(() => {
+    useBookmarkStore.getState().loadBookmarks();
+  }, []);
 
   return (
-    // <StatusBar /> // 다크모드 적용시키기
     <QueryClientProvider client={queryClient}>
       <StatusBar
-        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
+        barStyle={theme === 'light' ? 'dark-content' : 'light-content'}
+        backgroundColor={colors[theme].WHITE}
       />
       <NavigationContainer>
         <RootStackNavigator />
