@@ -1,7 +1,7 @@
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import AuthHomeScreen from '../screens/oauth/AuthHomeScreen';
-import LoginScreen from '../screens/login/LoginScreen';
+import LoginScreen from '../screens/oauth/LoginScreen';
 import SelectCertificationScreen from '../screens/selectCertification/SelectCertificationScreen';
 import HomeStackNavigator, { HomeStackParamList } from './HomeStackNavigator';
 import { NavigatorScreenParams } from '@react-navigation/native';
