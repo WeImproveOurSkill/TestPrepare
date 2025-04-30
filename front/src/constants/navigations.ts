@@ -1,19 +1,23 @@
-const authNavigation = {
-  AUTH_HOME: 'AuthHome',
-  LOGIN: 'Login',
-  HOME: 'Home',
+const HomeStackNavigator = {
   EXAM: 'Exam',
   STUDY: 'Study',
-  QUIZ: 'Quiz',
   MAIN_TAB_NAVIGATOR: 'MainTabNavigator',
-  SELECT_CERTIFICATION: 'SelectCertification',
+  QUESTION_PAGER: 'QuestionPagerScreen',
 } as const;
 
 const MainTabNavigation = {
   HOME: 'TabHome',
-  // GPT_RECORD_TAB: 'GPTRecordTab',
-  // BOOKMARK_TAB: 'BookmarkTab',
-  // MYPAGE: 'MyPage',
+  WRONG_QUESTION_TAB: 'WrongQuestionTab',
+  BOOKMARK_TAB: 'BookmarkTab',
+  MYPAGE: 'MyPage',
 } as const;
-export { authNavigation, MainTabNavigation };
+
+const RootStackNavigator = {
+  AUTH_HOME: 'AuthHome',
+  LOGIN: 'Login',
+  HOME_STACK: 'StackHome',
+  SELECT_CERTIFICATION: 'SelectCertification',
+} as const;
+
+export { HomeStackNavigator, MainTabNavigation, RootStackNavigator };
 
