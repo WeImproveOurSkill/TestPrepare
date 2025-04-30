@@ -55,16 +55,10 @@ const SelectModeModal = ({
             <View style={styles.header}>
               <Text style={styles.title}>{subjectName}</Text>
             </View>
-            <Pressable style={styles.body} onPress={handleStudyMode}><Text  style={styles.modeButtonText}>공부모드</Text></Pressable>
-            <Pressable style={styles.body} onPress={handleExamMode}><Text  style={styles.modeButtonText}>시험모드</Text></Pressable>
-            <View style={styles.footer}>
-              <Pressable
-                style={styles.button}
-                onPress={onClose}
-              >
-                <Text style={styles.buttonText}>닫기</Text>
-              </Pressable>
-            </View>
+            <Pressable style={styles.modeContainer} onPress={handleStudyMode}><Text  style={styles.modeButtonText}>공부모드</Text></Pressable>
+            <Pressable style={styles.examModeContainer} onPress={handleExamMode}>
+              <Text  style={styles.modeButtonText}>시험모드</Text>
+            </Pressable>
           </Pressable>
         </View>
       </Pressable>
@@ -82,9 +76,9 @@ const styling = (theme: themeMode) => ScaledSheet.create({
   },
   modalContainer: {
     width: '80%',
-    maxWidth: 500,
-    minHeight: 200,
+    maxWidth: '360@ms',
     maxHeight: '80%',
+    minHeight: '200@mvs',
     ...Platform.select({
       ios: {
         shadowColor: '#000',
@@ -106,7 +100,7 @@ const styling = (theme: themeMode) => ScaledSheet.create({
     overflow: 'hidden',
   },
   header: {
-    padding: 15,
+    padding: '20@mvs',
     borderBottomWidth: 1,
     borderBottomColor: colors[theme].GRAY_200,
   },
@@ -116,31 +110,20 @@ const styling = (theme: themeMode) => ScaledSheet.create({
     textAlign: 'center',
     color: colors[theme].GRAY_700,
   },
-  body: {
-    padding: 15,
+  modeContainer: {
+    padding: '20@mvs',
+    alignItems: 'center',
     borderBottomWidth: 1,
     borderBottomColor: colors[theme].GRAY_200,
-    alignItems: 'center',
   },
-  footer: {
-    padding: 15,
+  examModeContainer: {
+    padding: '20@mvs',
     alignItems: 'center',
   },
   modeButtonText: {
     fontSize: '20@ms0.1',
     fontWeight: '400',
     color: colors[theme].GRAY_700,
-  },
-  button: {
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    backgroundColor: colors[theme].MAIN,
-    borderRadius: 5,
-  },
-  buttonText: {
-    color: colors[theme].WHITE,
-    fontSize: '16@ms0.1',
-    fontWeight: '600',
   },
 });
 
