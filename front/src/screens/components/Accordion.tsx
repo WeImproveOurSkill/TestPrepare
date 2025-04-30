@@ -34,7 +34,6 @@ const Accordion: React.FC<AccordionProps> = ({
 
   const onLayout = useCallback((event: any) => {
     const layoutHeight = event.nativeEvent.layout.height;
-    console.log('측정된 실제 높이:', layoutHeight);
     setContentHeight(layoutHeight);
   }, []);
 
@@ -47,7 +46,7 @@ const Accordion: React.FC<AccordionProps> = ({
       <Animated.View style={[styles.content, animatedStyle]}>
         {/* 높이 측정을 위한 숨겨진 View - 렌더링은 항상 진행 */}
         <View
-          style={{ position: 'absolute', opacity: 0 }}
+          style={styles.layout}
           onLayout={onLayout}
         >
           {children}
@@ -76,6 +75,11 @@ const styling = (theme: themeMode) => ScaledSheet.create({
     alignItems: 'center',
     padding: '10@ms',
   },
+  arrow: {
+    color: colors[theme].BLACK,
+    fontSize: '20@ms',
+    fontWeight: 'bold',
+  },
   title: {
     color: colors[theme].BLACK,
     fontSize: '16@ms',
@@ -86,13 +90,12 @@ const styling = (theme: themeMode) => ScaledSheet.create({
   content: {
     overflow: 'hidden',
   },
+  layout: {
+    position: 'absolute',
+    opacity: 0,
+  },
   scrollContent: {
     width: '100%',
-  },
-  arrow: {
-    color: colors[theme].BLACK,
-    fontSize: '20@ms',
-    fontWeight: 'bold',
   },
 });
 

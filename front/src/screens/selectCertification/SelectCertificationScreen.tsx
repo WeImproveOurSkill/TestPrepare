@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { TextInput, FlatList, Text, Pressable, View, ActivityIndicator } from 'react-native';
 import { ScaledSheet } from 'react-native-size-matters';
 import { useQuery } from '@tanstack/react-query';
@@ -23,9 +23,12 @@ const SelectCertificationScreen = () => {
   const navigation = useNavigation<NativeStackScreenProps<RootStackParamList, 'SelectCertification'>['navigation']>();
 
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const { selectedCertifications, toggleCertification } = useCertificationStore();
+  const { selectedCertifications, toggleCertification, loadCertifications } = useCertificationStore();
 
-  // tanstack-query를 사용하여 자격증 목록 가져오기
+  useEffect(() => {
+    loadCertifications();
+  }, [loadCertifications]);
+
   const { data: certifications = [], isLoading, isError } = useQuery({
     queryKey: ['certifications'],
     queryFn: async (): Promise<Certification[]> => {
@@ -33,22 +36,9 @@ const SelectCertificationScreen = () => {
         return await fetchGet<Certification[]>('exam');
       } catch (error) {
         console.error('자격증 목록을 가져오는 중 오류 발생:', error);
-        // 임시 데이터 (실제 API 연결 전 테스트용)
-        return [
-          { certificationId: 1, certificationName: '정보처리기사' },
-          { certificationId: 2, certificationName: '전기기사' },
-          { certificationId: 3, certificationName: '인테리어기사' },
-          { certificationId: 4, certificationName: '토목기사' },
-          { certificationId: 5, certificationName: '건축기사' },
-          { certificationId: 6, certificationName: '정보처리기사' },
-          { certificationId: 7, certificationName: '전기기사' },
-          { certificationId: 8, certificationName: '인테리어기사' },
-          { certificationId: 9, certificationName: '토목기사' },
-        ];
+        return [];
       }
     },
-    staleTime: 1000 * 60 * 5, // 5분 동안 데이터를 신선한 상태로 유지
-    gcTime: 1000 * 60 * 10, // 10분 동안 캐시 유지
   });
 
   // 검색 결과 필터링

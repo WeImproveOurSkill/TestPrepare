@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, Pressable } from 'react-native';
+import { View, Text, Pressable, Alert } from 'react-native';
 import { ScaledSheet } from 'react-native-size-matters';
 import { useMutation } from '@tanstack/react-query';
 import { useNavigation } from '@react-navigation/native';
@@ -10,7 +10,9 @@ import { fetchPost, fetchDelete } from '../../util/api';
 import { RootStackParamList } from '../../navigation/RootStackNavigator';
 import { removeEncryptStorage, JwtKey, UserKey } from '../../util/encryptStorage';
 import ThemeModal from './components/ThemeModal';
+
 type FetchMethod = typeof fetchPost | typeof fetchDelete;
+
 type ApiRequest = {
   url: string;
   method: FetchMethod;
@@ -26,37 +28,56 @@ function MyPageScreen({}: MyPageScreenProps) {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [isModalVisible, setIsModalVisible] = useState(false);
 
-  // URL과 HTTP 메소드를 함께 인자로 받는 mutation
   const apiMutation = useMutation({
     mutationFn: (request: ApiRequest) => {
-      console.log(request.url);
       return request.method(request.url, {});
     },
     onSuccess: () => {
-      console.log('로그아웃 성공');
       removeEncryptStorage(JwtKey);
       removeEncryptStorage(UserKey);
-      navigation.navigate('AuthHome');
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'AuthHome' }],
+      });
     },
-    onError: (error) => {
-      console.log('로그아웃 실패', error);
+    onError: () => {
     },
   });
 
   const onLogout = () => {
-    apiMutation.mutate({ url: 'user/logout', method: fetchPost });
+    Alert.alert('로그아웃', '로그아웃하시겠습니까?', [
+      {
+        text: '아니오',
+        onPress: () => {},
+        style: 'cancel',
+      },
+      {
+        text: '예',
+        onPress: () => {
+          apiMutation.mutate({ url: 'user/logout', method: fetchPost });
+        },
+      },
+    ]);
   };
 
   const onDelete = () => {
-    apiMutation.mutate({ url: 'user', method: fetchDelete });
+    Alert.alert('회원 탈퇴', '정말로 회원을 탈퇴하시겠습니까?', [
+      {
+        text: '아니오',
+        onPress: () => {},
+        style: 'cancel',
+      },
+      {
+        text: '예',
+        onPress: () => {
+          apiMutation.mutate({ url: 'user', method: fetchDelete });
+        },
+      },
+    ]);
   };
 
   const onChangeTheme = () => {
     setIsModalVisible(true);
-  };
-
-  const onGptHistory = () => {
-    console.log('gpt 이력');
   };
 
   return (
@@ -83,13 +104,6 @@ function MyPageScreen({}: MyPageScreenProps) {
         </View>
       </Pressable>
       <ThemeModal isModalVisible={isModalVisible} setIsModalVisible={setIsModalVisible} />
-      <Pressable style={styles.questionList} onPress={onGptHistory}>
-        <View >
-          <Text style={styles.questionText}>
-            Gpt 이력
-          </Text>
-        </View>
-      </Pressable>
     </View>
   );
 }

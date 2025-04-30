@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import { ScaledSheet } from 'react-native-size-matters';
 import { EdgeInsets, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -6,51 +6,207 @@ import { colors } from '../../constants/colors';
 import useThemeStore, { themeMode } from '../../store/useThemeStore';
 import CustomPagerView from './CustomPagerView';
 import ExamHeader from './ExamHeader';
-import QuestionItem, { QuestionData } from './QuestionItem';
+import QuestionItem from './QuestionItem';
 import ExplanationModal from './ExplanationModal';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { HomeStackParamList } from '../../navigation/HomeStackNavigator';
 import { useStudyLogic } from '../../hooks/useStudyLogic';
+import { useExamLogic } from '../../hooks/useExamLogic';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import SubmitExamModal from './SubmitExamModal';
+import { useMutation } from '@tanstack/react-query';
+import { fetchGPTPost, fetchPost } from '../../util/api';
+import { useSubjectStore } from '../../store/useSubjectStore';
 
 type QuestionPagerScreenProps = NativeStackScreenProps<HomeStackParamList, 'QuestionPager'>;
+
+interface ExplanationResponse {
+  explanation: string;
+}
+
+export interface UserAnswer {
+  questionId: number;
+  answer: string;
+  userAnswer: string;
+}
 
 function QuestionPagerScreen({ route }: QuestionPagerScreenProps) {
   const { theme } = useThemeStore();
   const insets = useSafeAreaInsets();
   const styles = styling(theme, insets);
+  const navigation = useNavigation<NativeStackNavigationProp<HomeStackParamList>>();
 
-  const { questions, currentPage, handlePageChange, subjectId, subjectName, mode } = route.params;
-  const [currentIndex, setCurrentIndex] = useState(currentPage ? currentPage - 1 : 0);
+  const {
+    questions,
+    currentPage,
+    handlePageChange,
+    subjectId,
+    subjectName,
+    certificationId,
+    mode,
+    year,
+    session,
+  } = route.params;
 
-  // 내부에서만 isVisible 상태 관리
+  const setCurrentExamContext = useSubjectStore((state) => state.setCurrentExamContext);
+
+  const [examModalVisible, setExamModalVisible] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
 
-  // 항상 useStudyLogic을 호출 (React Hooks 규칙)
-  const studyLogic = useStudyLogic({
+  // 로직 훅 호출을 위한 기본 파라미터
+  const studyLogicProps = {
     subjectId,
     currentPage,
     handlePageChange,
-  });
-
-  // 모드에 따라 다른 로직 사용
-  let displayQuestions: QuestionData[] = [];
-  let handleQuestionPageChange = (page: number) => {
-    setCurrentIndex(page);
-    handlePageChange?.(page);
+  };
+  const examLogicProps = {
+    subjectId: subjectId!,
+    year: year!,
+    session: session!,
+    currentPage,
+    handlePageChange,
   };
 
-  // 모드에 따라 적절한 데이터와 핸들러 선택
-  if (mode === 'study') {
-    // study 모드일 때 useStudyLogic 결과 사용
-    displayQuestions = studyLogic.displayQuestions;
-    handleQuestionPageChange = studyLogic.handlePageChange;
-  } else {
-    // study 모드가 아닐 경우 직접 questions 사용
-    displayQuestions = questions || [];
-  }
+  // 1. 상태 추가
+  const [userAnswers, setUserAnswers] = useState<UserAnswer[]>([]);
+
+  const handleUserAnswer = ({ questionId, answer, userAnswer}: UserAnswer) => {
+    if (mode !== 'exam') {return;}
+    setUserAnswers(prev =>
+      prev.some(ans => ans.questionId === questionId)
+        ? prev.map(ans =>
+            ans.questionId === questionId ? { questionId, answer, userAnswer} : ans
+          )
+        : [...prev, { questionId, answer, userAnswer}]
+    );
+  };
+
+  // 모드에 따라 다른 로직 사용
+  const StudyModeLogic = () => {
+    const studyLogic = useStudyLogic(studyLogicProps);
+    return {
+      displayQuestions: studyLogic.displayQuestions,
+      currentIndex: studyLogic.currentIndex,
+      handlePageChange: studyLogic.handlePageChange,
+    };
+  };
+
+  const ExamModeLogic = () => {
+    const examLogic = useExamLogic(examLogicProps);
+    return {
+      displayQuestions: examLogic.displayQuestions,
+      currentIndex: examLogic.currentIndex,
+      handlePageChange: examLogic.handlePageChange,
+    };
+  };
+
+  const DefaultModeLogic = () => {
+    const [currentIndex, setCurrentIndex] = useState(currentPage ? currentPage - 1 : 0);
+    return {
+      displayQuestions: questions || [],
+      currentIndex,
+      handlePageChange: (page: number) => {
+        console.log('handleQuestionPageChange', page);
+        setCurrentIndex(page);
+        handlePageChange?.(page);
+      },
+    };
+  };
+
+  // 모드에 따라 적절한 로직 선택
+  const { displayQuestions, currentIndex, handlePageChange: handleQuestionPageChange } =
+    mode === 'study'
+      ? StudyModeLogic()
+      : mode === 'exam'
+        ? ExamModeLogic()
+        : DefaultModeLogic();
 
   // 현재 보여줄 문제가 있는지 확인
   const currentQuestion = displayQuestions[currentIndex];
+
+  const postExamResult = useMutation({
+    mutationFn: async () => {
+      const endpoint = 'exam/submit/test';
+      return await fetchPost(endpoint, userAnswers);
+    },
+    onSuccess: () => {
+      if (
+        subjectId !== undefined &&
+        subjectName !== undefined &&
+        certificationId !== undefined &&
+        year !== undefined &&
+        session !== undefined
+      ) {
+        setCurrentExamContext({
+          subjectId: subjectId,
+          subjectName: subjectName,
+          certificationId: certificationId,
+        });
+        navigation.navigate('ExamResult', {
+          userAnswers,
+          year: year,
+          session: session,
+        });
+      } else {
+        console.error('Cannot navigate to results: Missing required parameters.');
+      }
+    },
+    onError: (error) => {
+      console.error('Failed to submit exam results:', error);
+    },
+  });
+
+  const handleExamCompleted = () => {
+    setExamModalVisible(false);
+    postExamResult.mutate();
+  };
+
+  const [explanationMap, setExplanationMap] = useState<{ [key: number]: string | null }>({});
+
+const gptExplanationMutation = useMutation({
+  mutationFn: async (data: any) => {
+    const response = await fetchGPTPost<ExplanationResponse>('recommend/gpt-assistance', data);
+    return response;
+  },
+  onSuccess: (response, variables) => {
+    console.log(response);
+    setExplanationMap(prev => ({
+      ...prev,
+      [variables.questionId]: response?.explanation ?? null,
+    }));
+  },
+});
+
+useEffect(() => {
+  if (
+    currentQuestion &&
+    (explanationMap[currentQuestion.questionId] === undefined || explanationMap[currentQuestion.questionId] === null) &&
+    !gptExplanationMutation.isPending
+  ) {
+    const requestData = {
+      questionId: currentQuestion.questionId,
+      content: currentQuestion.content,
+      answer: currentQuestion.answer,
+      explanation: currentQuestion.explanation,
+      subjectName: subjectName,
+    };
+    gptExplanationMutation.mutate(requestData);
+  }
+}, [currentQuestion, explanationMap, gptExplanationMutation.isPending, subjectName, gptExplanationMutation]);
+
+const handleRefetchExplanation = useCallback(() => {
+  if (currentQuestion) {
+    const requestData = {
+      questionId: currentQuestion.questionId,
+      content: currentQuestion.content,
+      answer: currentQuestion.answer,
+      explanation: currentQuestion.explanation,
+      subjectName: subjectName,
+    };
+    gptExplanationMutation.mutate(requestData);
+  }
+}, [currentQuestion, subjectName, gptExplanationMutation]);
 
   return (
     <View style={styles.container}>
@@ -67,6 +223,8 @@ function QuestionPagerScreen({ route }: QuestionPagerScreenProps) {
             <QuestionItem
               key={`${question.questionId}_${index}`}
               question={question}
+              mode={mode}
+              {...(mode === 'exam' && { handleUserAnswer })}
             />
           ))}
         </CustomPagerView>
@@ -75,19 +233,36 @@ function QuestionPagerScreen({ route }: QuestionPagerScreenProps) {
           <ActivityIndicator size="large" color={colors[theme].MAIN} />
         </View>
       )}
-
-      {/* 해설 버튼은 mode가 'exam'이 아니고 현재 문제가 있는 경우에만 표시 */}
-      {mode !== 'exam' && currentQuestion ? (
-        <Pressable style={styles.explanationButton} onPress={() => setIsVisible(true)}>
-          <Text style={styles.explanationText}>해설보기</Text>
-          <ExplanationModal
-            isVisible={isVisible}
-            onClose={() => setIsVisible(false)}
-            question={currentQuestion}
-            subjectName={subjectName ?? ''}
+      {/* 시험 완료 버튼은 mode가 'exam'일때 표시 */}
+      {mode === 'exam' ? (
+        <Pressable style={[styles.ButtonContainer, userAnswers.length === 0
+          && { backgroundColor: colors[theme].GRAY_300 },
+        ]}
+          onPress={() => setExamModalVisible(true)}
+          disabled={userAnswers.length === 0}
+        >
+          <Text style={styles.buttonText}>시험 완료</Text>
+          <SubmitExamModal
+            isVisible={examModalVisible}
+            onClose={() => setExamModalVisible(false)}
+            handleExamCompleted={handleExamCompleted}
           />
         </Pressable>
-      ) : ''}
+      ) : <Pressable style={styles.ButtonContainer} onPress={() => setIsVisible(true)}>
+            <Text style={styles.buttonText}>해설보기</Text>
+            <ExplanationModal
+              isVisible={isVisible}
+              onClose={() => setIsVisible(false)}
+              explanation={
+                gptExplanationMutation.isPending || !explanationMap[currentQuestion?.questionId]
+                  ? null
+                  : explanationMap[currentQuestion?.questionId]
+              }
+              isLoading={gptExplanationMutation.isPending}
+              onRefetch={handleRefetchExplanation}
+            />
+          </Pressable>
+      }
     </View>
   );
 }
@@ -101,7 +276,7 @@ const styling = (theme: themeMode, insets: EdgeInsets) => ScaledSheet.create({
     flex: 1,
     backgroundColor: colors[theme].GRAY_100,
   },
-  explanationButton: {
+  ButtonContainer: {
     position: 'absolute',
     bottom: insets.bottom > 0 ? '40@mvs' : '24@mvs',
     right: '24@ms',
@@ -110,7 +285,8 @@ const styling = (theme: themeMode, insets: EdgeInsets) => ScaledSheet.create({
     borderRadius: '8@ms',
     zIndex: 1,
   },
-  explanationText: {
+  buttonText: {
+    fontSize: '16@ms0.2',
     color: colors[theme].WHITE,
   },
   loadingContainer: {
@@ -125,29 +301,8 @@ const styling = (theme: themeMode, insets: EdgeInsets) => ScaledSheet.create({
   },
   errorText: {
     color: colors[theme].RED_500,
-    fontSize: '16@ms',
+    fontSize: '16@ms0.2',
   },
 });
 
 export default QuestionPagerScreen;
-
-/*
- * 모드별 기능 설명:
- *
- * 1. study 모드:
- *    - 접근 시 서버에서 questionData를 받아옴
- *    - 해설 버튼이 있음
- *    - 문제의 보기를 클릭하면 바로 정답 체크가 되는 방식
- *    - 정답 체크된 부분이 바로 서버로 true/false 형식으로 전송됨
- *
- * 2. exam 모드:
- *    - 접근 시 해설 버튼이 보이지 않음
- *    - 바로 정답 체크가 되지 않음
- *    - 20개의 문제를 다 풀면 그때 정답 체크를 함
- *    - 더 풀고 싶다면 next 버튼을 클릭해서 20개의 문제를 더 푸는 방식
- *
- * 3. wrongQuestion 모드:
- *    - 접근 전에 이미 틀린 문제들을 받아와서 클릭 시 해당 문제를 보여줌
- *    - 해설 버튼이 있음
- *    - 문제의 보기를 클릭하면 바로 정답 체크가 되는 방식
- */

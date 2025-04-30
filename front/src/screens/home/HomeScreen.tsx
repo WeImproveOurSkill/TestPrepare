@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, Pressable, ScrollView } from 'react-native';
 import { ScaledSheet } from 'react-native-size-matters';
-import { authNavigation } from '../../constants/navigations';
+import { RootStackNavigator } from '../../constants/navigations';
 import { colors } from '../../constants/colors';
 import useThemeStore, { themeMode } from '../../store/useThemeStore';
 import useCertificationStore from '../../store/useCertificationStore';
@@ -23,7 +23,7 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
     // 상위 네비게이터의 화면으로 이동하기 위해 getParent() 사용
     const parent = navigation.getParent();
     if (parent) {
-      parent.navigate(authNavigation.SELECT_CERTIFICATION);
+      parent.navigate(RootStackNavigator.SELECT_CERTIFICATION);
     }
   };
 
@@ -40,8 +40,8 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
                 />
               ))
             ) : (
-              <Pressable style={styles.loadingText} onPress={handleSelectLicense}>
-                <Text>자격증을 선택해주세요</Text>
+              <Pressable style={styles.loadingContainer} onPress={handleSelectLicense}>
+                <Text style={styles.loadingText}>자격증을 선택해주세요</Text>
               </Pressable>
             )}
           </View>
@@ -66,10 +66,14 @@ const styling = (theme: themeMode) => ScaledSheet.create({
   testLayout: {
     flex: 1,
   },
-  loadingText: {
+  loadingContainer: {
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: '20@ms',
+  },
+  loadingText: {
+    color: colors[theme].GRAY_600,
+    fontSize: '16@mvs',
   },
 });
 

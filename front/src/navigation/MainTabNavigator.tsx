@@ -25,8 +25,8 @@ const Tab = createBottomTabNavigator<mainTabParamList>();
 
 function MainTabNavigator() {
   const { theme } = useThemeStore();
+  const styles = styling(theme);
   const isTablet = useTablet();
-  const styles = styling(theme, isTablet);
 
   return (
     <View style={styles.container}>
@@ -34,11 +34,18 @@ function MainTabNavigator() {
       <Tab.Navigator
         screenOptions={{
           tabBarPosition: isTablet ? 'left' : 'bottom',
-          tabBarStyle: styles.tabBar,
+          tabBarStyle: {
+            width: isTablet ? 300 : undefined,
+            minWidth: 250,
+            minHeight: 68,
+            backgroundColor: colors[theme].WHITE,
+            borderTopWidth: 0.5,
+            borderColor: colors[theme].GRAY_600,
+          },
           tabBarLabelStyle: styles.tabBarLabel,
-        tabBarInactiveTintColor: colors[theme].GRAY_400,
-        headerShown: false,
-      }}>
+          tabBarInactiveTintColor: colors[theme].GRAY_600,
+          headerShown: false,
+        }}>
         <Tab.Screen
           name={MainTabNavigation.HOME}
           component={HomeScreen}
@@ -64,19 +71,13 @@ function MainTabNavigator() {
   );
 }
 
-const styling = (theme: themeMode, isTablet: boolean) => ScaledSheet.create({
+const styling = (theme: themeMode) => ScaledSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors[theme].WHITE,
   },
-  tabBar: {
-    width: isTablet ? 300 : undefined,
-    minWidth: 250,
-    backgroundColor: colors[theme].WHITE,
-    borderTopColor: colors[theme].GRAY_300,
-  },
   tabBarLabel: {
-    fontSize: '16@ms0.2',
+    fontSize: '16@mvs0.3',
     fontWeight: 'bold',
   },
 });
