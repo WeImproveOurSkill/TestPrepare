@@ -1,31 +1,35 @@
 import React from 'react';
 import {View, Text, ScrollView} from 'react-native';
-import useThemeStore, { themeMode } from '../../store/useThemeStore';
-import { colors } from '../../constants/colors';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useQuery } from '@tanstack/react-query';
+import useThemeStore, { themeMode } from '../../store/useThemeStore';
+import { colors } from '../../constants/colors';
 import { HomeStackParamList } from '../../navigation/HomeStackNavigator';
 import QuestionList from '../components/QuestionList';
 import { ScaledSheet } from 'react-native-size-matters';
-// import { useQuery } from '@tanstack/react-query';
-// import { fetchGet } from '../../util/api';
-// import { QuestionData } from '../components/QuestionItem';
+import { fetchGet } from '../../util/api';
+import { QuestionData } from '../components/QuestionItem';
+import { useBookmarkStore } from '../../store/useBookmarkStore';
 
-interface BookmarkScreenProps {
-
-}
-
-function BookmarkScreen({}: BookmarkScreenProps) {
+function BookmarkScreen() {
   const { theme } = useThemeStore();
   const styles = styling(theme);
   const navigation = useNavigation<NativeStackNavigationProp<HomeStackParamList>>();
+  const { bookmarks } = useBookmarkStore();
+  console.log(bookmarks);
 
-  // const { data: bookmarkQuestions } = useQuery<QuestionData[]>({
-  //   queryKey: ['bookmarkQuestions'],
-  //   queryFn: () => fetchGet('bookmarkQuestions'),
-  // });
 
-  // 문제 클릭 핸들러
+  const { data: bookmarkQuestions } = useQuery<QuestionData[]>({
+    queryKey: ['bookmarkQuestions', bookmarks],
+    queryFn: () => fetchGet('exam/book-mark/question?certificationId=1'),
+    staleTime: 0,
+    gcTime: 0,
+    // refetchOnWindowFocus: true,
+    // refetchOnMount: true,
+    // refetchOnReconnect: true,
+  });
+
   const handleQuestionSelect = (index: number) => {
     // 네비게이션을 사용하여 QuestionPager 화면으로 이동
     navigation.navigate('QuestionPager', {
@@ -36,9 +40,16 @@ function BookmarkScreen({}: BookmarkScreenProps) {
     });
   };
 
+  // useFocusEffect(
+  //   React.useCallback(() => {
+  //     refetch();
+  //   }, [refetch])
+  // );
+  console.log(bookmarkQuestions);
+
   return (
     <View style={styles.container}>
-      {bookmarkQuestions?.length === undefined ? (
+      {bookmarkQuestions?.length === 0 || bookmarkQuestions === undefined ? (
         <View style={styles.textContainer}>
           <Text style={styles.noQuestionsText}>북마크가 없습니다.</Text>
         </View>
@@ -73,99 +84,5 @@ const styling = (theme: themeMode) => ScaledSheet.create({
     textAlign: 'center',
   },
 });
-
-// 문제 데이터
-const bookmarkQuestions = [
-  {
-    questionId: '1',
-    content: '가짜 데이터 요구사항 검증(Requirements Validation)과 관련한 설명으로 틀린것은?',
-    answer: '정답',
-    explanation: '해설',
-  },
-  {
-    questionId: '2',
-    content: '가데이터 요구사항 검증(Requirements Validation)과 관련한 설명으로 틀린것은?',
-    answer: '정답',
-    explanation: '해설',
-  },
-  {
-    questionId: '3',
-    content: '가데이터 요구사항 검증(Requirements Validation)과 관련한 설명으로 틀린것은?',
-    answer: '정답',
-    explanation: '해설',
-  },
-  {
-    questionId: '4',
-    content: '가짜 데이터 요구사항 검증(Requirements Validation)과 관련한 설명으로 틀린것은? 가짜 데이터 요구사항 검증(Requirements Validation)과 관련한 설명으로 틀린것은? 가짜 데이터 요구사항 검증(Requirements Validation)과 관련한 설명으로 틀린것은?',
-    answer: '정답',
-    explanation: '해설',
-  },
-  {
-    questionId: '5',
-    content: '가짜 데이터 요구사항 검증(Requirements Validation)과 관련한 설명으로 틀린것은?',
-    answer: '정답',
-    explanation: '해설',
-  },
-  {
-    questionId: '6',
-    content: '가짜 데이터 요구사항 검증(Requirements Validation)과 관련한 설명으로 틀린것은?',
-    answer: '정답',
-    explanation: '해설',
-  },
-  {
-    questionId: '7',
-    content: '가짜 데이터 요구사항 검증(Requirements Validation)과 관련한 설명으로 틀린것은?',
-    answer: '정답',
-    explanation: '해설',
-  },
-  {
-    questionId: '8',
-    content: '가짜 데이터 요구사항 검증(Requirements Validation)과 관련한 설명으로 틀린것은?',
-    answer: '정답',
-    explanation: '해설',
-  },
-  {
-    questionId: '9',
-    content: '가짜 데이터 요구사항 검증(Requirements Validation)과 관련한 설명으로 틀린것은?',
-    answer: '정답',
-    explanation: '해설',
-  },
-  {
-    questionId: '10',
-    content: '가짜 데이터 요구사항 검증(Requirements Validation)과 관련한 설명으로 틀린것은?',
-    answer: '정답',
-    explanation: '해설',
-  },
-  {
-    questionId: '11',
-    content: '가짜 데이터 요구사항 검증(Requirements Validation)과 관련한 설명으로 틀린것은?',
-    answer: '정답',
-    explanation: '해설',
-  },
-  {
-    questionId: '12',
-    content: '가짜 데이터 요구사항 검증(Requirements Validation)과 관련한 설명으로 틀린것은?',
-    answer: '정답',
-    explanation: '해설',
-  },
-  {
-    questionId: '13',
-    content: '가짜 데이터 요구사항 검증(Requirements Validation)과 관련한 설명으로 틀린것은?',
-    answer: '정답',
-    explanation: '해설',
-  },
-  {
-    questionId: '14',
-    content: '가짜 데이터 요구사항 검증(Requirements Validation)과 관련한 설명으로 틀린것은?',
-    answer: '정답',
-    explanation: '해설',
-  },
-  {
-    questionId: '15',
-    content: '가짜 데이터 요구사항 검증(Requirements Validation)과 관련한 설명으로 틀린것은?',
-    answer: '정답',
-    explanation: '해설',
-  },
-];
 
 export default BookmarkScreen;
