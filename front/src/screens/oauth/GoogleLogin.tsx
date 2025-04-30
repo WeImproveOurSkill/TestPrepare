@@ -8,6 +8,7 @@ import Config from 'react-native-config';
 import useThemeStore, { themeMode } from '../../store/useThemeStore';
 import { colors } from '../../constants/colors';
 import { fetchPost } from '../../util/api';
+import { LoginUserResponse } from './AuthHomeScreen';
 
 GoogleSignin.configure({
   webClientId: Config.WEB_CLIENT_ID,
@@ -26,15 +27,6 @@ interface GoogleLoginResponse {
   };
 }
 
-export interface LoginUserResponse {
-  token: string;
-  user: {
-    nickname: string;
-    userId: number;
-    userName: string;
-  }
-}
-
 function GoogleLogin(
   { onLoginSuccess }: GoogleLoginProps
 ) {
@@ -44,19 +36,22 @@ function GoogleLogin(
     // 구글 로그인 정보를 백엔드로 전송하는 mutation
     const { mutate: sendTokensToBackend } = useMutation<LoginUserResponse, Error, GoogleLoginResponse>({
       mutationFn: async (loginData: GoogleLoginResponse) => {
-        // fetchPost 함수 사용하여 백엔드에 요청
-        return fetchPost('oauth/callback/google', loginData.tokens);
+        const result = await fetchPost<LoginUserResponse>('oauth/callback/google', loginData.tokens);
+        if (!result) {
+          throw new Error('로그인 응답이 없습니다.');
+        }
+        return result;
       },
       onSuccess: async (data) => {
-        console.log(data);
+        console.log('구글 로그인 성공');
         if (data.token) {
           await setEncryptStorage(JwtKey, data.token);
           await setEncryptStorage(UserKey, data.user);
           onLoginSuccess?.();
         }
       },
-      onError: (error) => {
-        console.log('Login error:', error);
+      onError: () => {
+        console.log('구글 로그인 실패');
       },
     });
 
@@ -67,18 +62,17 @@ function GoogleLogin(
       const userInfo = await GoogleSignin.signIn();
       const tokens = await GoogleSignin.getTokens();
 
-
       return {
         userInfo,
         tokens,
       };
     },
     onSuccess: (loginData) => {
-      console.log('Google login success:', loginData);
+      console.log('구글 로그인 성공');
       sendTokensToBackend(loginData);
     },
-    onError: (error) => {
-      console.error('Google login failed:', error);
+    onError: () => {
+      console.log('구글 로그인 실패');
     },
   });
 

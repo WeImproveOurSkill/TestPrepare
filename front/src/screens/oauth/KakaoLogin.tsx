@@ -7,7 +7,7 @@ import { setEncryptStorage, JwtKey, UserKey } from '../../util/encryptStorage';
 import { colors } from '../../constants/colors';
 import useThemeStore, { themeMode } from '../../store/useThemeStore';
 import { fetchPost } from '../../util/api';
-import { LoginUserResponse } from './GoogleLogin';
+import { LoginUserResponse } from './AuthHomeScreen';
 
 interface Props {
   onLoginSuccess?: () => void;
@@ -21,20 +21,20 @@ function KakaoLogin({ onLoginSuccess }: Props) {
   // 카카오 로그인 정보를 백엔드로 전송하는 mutation
   const { mutate: sendTokensToBackend } = useMutation<LoginUserResponse, Error, KakaoOAuthToken>({
     mutationFn: async (loginData: KakaoOAuthToken) => {
-      return await fetchPost('oauth/callback/kakao', loginData);
+      const result = await fetchPost<LoginUserResponse>('oauth/callback/kakao', loginData);
+      if (!result) {
+        throw new Error('로그인 응답이 없습니다.');
+      }
+      return result;
     },
     onSuccess: async (data) => {
-      console.log(data);
       onLoginSuccess?.();
-      console.log('data.token', data);
 
       if (data.token) {
+        console.log('Login successful:', data);
         await setEncryptStorage(JwtKey, data.token);
         await setEncryptStorage(UserKey, data.user);
       }
-    },
-    onError: (error) => {
-      console.log('Login error:', error);
     },
   });
 
@@ -45,11 +45,7 @@ function KakaoLogin({ onLoginSuccess }: Props) {
       return token;
     },
     onSuccess: (loginData) => {
-      console.log('Kakao login success:', loginData);
       sendTokensToBackend(loginData);
-    },
-    onError: (error) => {
-      console.error('Kakao login failed:', error);
     },
   });
 
