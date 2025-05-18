@@ -6,14 +6,15 @@ import { StatusBar } from 'react-native';
 import useThemeStorage from './src/hooks/useThemeStorage';
 import { colors } from './src/constants/colors';
 import { useBookmarkStore } from './src/store/useBookmarkStore';
+import SplashScreen from 'react-native-splash-screen';
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      retry: 1,
-      // 기본 캐시 시간 설정
-      staleTime: 5 * 60 * 1000,
-      gcTime: 10 * 60 * 1000,
+      retry: false,
+    },
+    mutations: {
+      retry: false,
     },
   },
 });
@@ -24,6 +25,9 @@ function App(): React.JSX.Element {
 
   useEffect(() => {
     useBookmarkStore.getState().loadBookmarks();
+    setTimeout(() => {
+      SplashScreen.hide();
+    }, 500);
   }, []);
 
   return (
