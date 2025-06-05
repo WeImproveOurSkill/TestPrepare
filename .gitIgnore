@@ -15,7 +15,9 @@ node_modules
 
 __pycache__
 .venv
-Data/exam_pdfs
+Data/*
 nginx/logs/*
-nginx/ssl/*
+nginx/letsencrypt-ssl/*
 be/src/main/resources/keystore.p12
+
+

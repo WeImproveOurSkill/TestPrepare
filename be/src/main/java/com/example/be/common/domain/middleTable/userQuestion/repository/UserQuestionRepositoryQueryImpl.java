@@ -48,13 +48,15 @@ public class UserQuestionRepositoryQueryImpl implements UserQuestionRepositoryQu
                         question.content.as("question"),
                         answer.answerText.as("answer"),
                         answer.explanation
-                )).from(question)
-                .rightJoin(question.subjectExam, subjectExam)
-                .rightJoin(subjectExam.certification, certification).where(
-                        userQuestion.user.id.eq(user.getId()),
-                        userQuestion.isBookmarked.eq(true),
-                        certification.id.eq(certificationId)
-                ).fetch();
+                )).from(userQuestion)
+        .join(userQuestion.question, question)
+                .join(question.certificationType.certification, certification)// question과 명시적 조인
+        .where(
+            userQuestion.user.eq(user),         // 사용자 직접 비교
+            userQuestion.isBookmarked.isTrue(), // 북마크 상태 확인
+            question.certificationType.certification.id.eq(certificationId) // certification ID 필터링
+        )
+        .fetch();
 //        return null;
 
     }

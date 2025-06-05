@@ -6,26 +6,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-@NoArgsConstructor
-@Builder
-@Getter
-@AllArgsConstructor
-public class QuestionDto {
-    @JsonProperty("questionId")
-    private Long questionId;
-    @JsonProperty("content")
-    private String content;
+public record QuestionDto(@JsonProperty("questionId") Long questionId, @JsonProperty("content") String content,
+                          @JsonProperty("answer") String answer, @JsonProperty("explantion") String explanation) {
 
-    @JsonProperty("answer")
-    private String answer;
-
-    @JsonProperty("explanation")
-    private String explanation;
-
-    public QuestionDto(Long questionId, String question, String choices, String answer, String explanation) {
-        this.questionId = questionId;
-        this.content = question;
-        this.answer = answer;
-        this.explanation = explanation;
-    }
 }

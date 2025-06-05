@@ -18,6 +18,7 @@ public class Answer {
     private String answerText;
 
     @Lob
+    @Column(columnDefinition = "TEXT")
     private String explanation;
 
     @OneToOne
