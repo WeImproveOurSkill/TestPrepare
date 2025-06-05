@@ -111,6 +111,24 @@ services:
       timeout: 5s
       retries: 5
 
+
+  spring_paypick:
+    # build:
+    #   context: ./be
+    #   dockerfile: Dockerfile
+    container_name: paypick_spring
+    image : skyriv213/paypick
+    platform: linux/amd64  # 수정된 라인
+    restart: always
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://database-master:3306/ana?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: create
+      SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.MySQL8Dialect
+
   # Spring 애플리케이션 설정
   spring-app:
     build: 
