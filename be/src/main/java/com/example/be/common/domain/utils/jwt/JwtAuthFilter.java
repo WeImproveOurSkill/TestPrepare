@@ -36,13 +36,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             String name = info.getSubject();
             String role = info.get("auth").toString();
             setAuthentication(name, role);
-        }else{
-             // 토큰이 유효하지 않을 때 401 Unauthorized 반환
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // 401
-            response.setContentType("application/json");
-            response.getWriter().write("{\"error\": \"Invalid or expired token\"}");
-            // 여기서 return을 해주어야 더 이상 필터 체인이 진행되지 않음
-            return;
         }
         // 필터 체인의 다음 필터로 넘어감
         filterChain.doFilter(request, response);

@@ -89,23 +89,14 @@ public class ExamFixture {
     }
 
     public static QuestionDto createQuestionDto() {
-        return QuestionDto.builder()
-                .questionId(1L)
-                .content("테스트 문제 내용\n1. 선택지1\n2. 선택지2\n3. 선택지3\n4. 선택지4")
-                .answer("2")
-                .explanation("이것이 정답인 이유는...")
-                .build();
+        return new QuestionDto(2L, "두 번째 테스트 문제\n1. 선택지1\n2. 선택지2\n3. 선택지3\n4. 선택지4", "1", "두 번째 문제의 해설입니다.");
+
     }
 
     public static List<QuestionDto> createQuestionDtoList() {
         return Arrays.asList(
-                createQuestionDto(),
-                QuestionDto.builder()
-                        .questionId(2L)
-                        .content("두 번째 테스트 문제\n1. 선택지1\n2. 선택지2\n3. 선택지3\n4. 선택지4")
-                        .answer("1")
-                        .explanation("두 번째 문제의 해설입니다.")
-                        .build()
+
+                new QuestionDto(2L, "두 번째 테스트 문제\n1. 선택지1\n2. 선택지2\n3. 선택지3\n4. 선택지4", "1", "두 번째 문제의 해설입니다.")
         );
     }
 
@@ -316,18 +307,18 @@ public class ExamFixture {
     // 상수 정의
     public static final QuestionDto QUESTION_DTO = createQuestionDto();
     public static final List<QuestionDto> QUESTION_DTOS = createQuestionDtoList();
-    
+
     public static final AnswerSubmitDTO ANSWER_SUBMIT_DTO = createAnswerSubmitDTO();
     public static final List<AnswerSubmitDTO> ANSWER_SUBMIT_DTOS = createAnswerSubmitDTOList();
-    
+
     public static final AnswerRecordDto ANSWER_RECORD_DTO = createAnswerRecordDto();
-    
+
     public static final CertificationDto CERTIFICATION_DTO = createCertificationDto();
     public static final List<CertificationDto> CERTIFICATION_DTOS = createCertificationDtoList();
-    
+
     public static final CertificationTypeDto CERTIFICATION_TYPE_DTO = createCertificationTypeDto();
     public static final List<CertificationTypeDto> CERTIFICATION_TYPE_DTOS = createCertificationTypeDtoList();
-    
+
     public static final SubjectDto SUBJECT_DTO = createSubjectDto();
     public static final List<SubjectDto> SUBJECT_DTOS = createSubjectDtoList();
 }
