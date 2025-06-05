@@ -5,22 +5,29 @@ import mysql.connector
 import pypdf
 import pdfplumber
 from dataclasses import dataclass, field
-from typing import List, Optional
+from typing import List, Optional, Dict
 import io
 from PIL import Image
 import uuid  # UUID 모듈 추가
+import requests
+from bs4 import BeautifulSoup
+from zipfile import ZipFile
+import shutil
+from tqdm import tqdm
+import sys
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 @dataclass
 class Answer:
     id: Optional[int] = None
-    answer_text: str = ""  # BE 프로젝트의 answerText 필드와 일치하도록 유지
+    answerText: str = ""  # answer_text -> answerText
     explanation: str = "not have explanation"
     question: Optional['Question'] = None
 
     def __str__(self) -> str:
         return f"""
         [답안 정보]
-        - 답안: {self.answer_text}
+        - 답안: {self.answerText}
         - 해설: {self.explanation}
         """
 
@@ -28,17 +35,17 @@ class Answer:
 class Question:
     id: Optional[int] = None
     content: str = ""
-    image_link: Optional[str] = None  # imageLink → image_link 변경
-    subject_exam: Optional['SubjectExam'] = None
-    certification_type: Optional['CertificationType'] = None  # CertificationType과의 연관관계 추가
+    imageLink: Optional[str] = None  # image_link -> imageLink
+    subjectExam: Optional['SubjectExam'] = None  # subject_exam -> subjectExam
+    certificationType: Optional['CertificationType'] = None  # certification_type -> certificationType
     answer: Optional[Answer] = None
 
     def __str__(self) -> str:
         return f"""
         [문제 정보]
         - 내용: {self.content[:100]}...
-        - 이미지: {self.image_link if self.image_link else '없음'}
-        - 회차: {f"{self.certification_type.year}년 {self.certification_type.session}회" if self.certification_type else '미지정'}
+        - 이미지: {self.imageLink if self.imageLink else '없음'}
+        - 회차: {f"{self.certificationType.year}년 {self.certificationType.session}회" if self.certificationType else '미지정'}
         {self.answer if self.answer else '- 답안 정보 없음'}
         """
 
@@ -58,13 +65,13 @@ class SubjectExam:
     name: str = ""
     certification: Optional['Certification'] = None
     questions: List[Question] = None
-    certification_subjects: List['CertificationSubject'] = None
+    certificationSubjects: List['CertificationSubject'] = None  # certification_subjects -> certificationSubjects
 
     def __post_init__(self):
         if self.questions is None:
             self.questions = []
-        if self.certification_subjects is None:
-            self.certification_subjects = []
+        if self.certificationSubjects is None:
+            self.certificationSubjects = []
 
     def __str__(self) -> str:
         return f"""
@@ -77,35 +84,35 @@ class SubjectExam:
 class Certification:
     id: Optional[int] = None
     name: str = ""
-    subject_exams: List[SubjectExam] = None
-    certification_types: List['CertificationType'] = None
+    subjects: List[SubjectExam] = None  # subject_exams -> subjects
+    certificationTypes: List['CertificationType'] = None  # certification_types -> certificationTypes
 
     def __post_init__(self):
-        if self.subject_exams is None:
-            self.subject_exams = []
-        if self.certification_types is None:
-            self.certification_types = []
+        if self.subjects is None:
+            self.subjects = []
+        if self.certificationTypes is None:
+            self.certificationTypes = []
 
     def __str__(self) -> str:
         return f"""
         [자격증 정보]
         - 자격증명: {self.name}
-        - 유형 수: {len(self.certification_types)}
-        - 과목 수: {len(self.subject_exams)}
+        - 유형 수: {len(self.certificationTypes)}
+        - 과목 수: {len(self.subjects)}
         """
 
 @dataclass
 class CertificationType:
     id: Optional[int] = None
-    year: int = 0  # 시험 년도
-    session: int = 0  # 시험 회차 (int로 변경)
+    year: int = 0
+    session: int = 0
     certification: Optional[Certification] = None
-    certification_subjects: List['CertificationSubject'] = None
-    questions: List[Question] = None  # Question과의 연관관계 추가
+    certificationSubjects: List['CertificationSubject'] = None  # certification_subjects -> certificationSubjects
+    questions: List[Question] = None
 
     def __post_init__(self):
-        if self.certification_subjects is None:
-            self.certification_subjects = []
+        if self.certificationSubjects is None:
+            self.certificationSubjects = []
         if self.questions is None:
             self.questions = []
 
@@ -121,14 +128,14 @@ class CertificationType:
 @dataclass
 class CertificationSubject:
     id: Optional[int] = None
-    certification_type: Optional[CertificationType] = None
-    subject_exam: Optional[SubjectExam] = None
+    certificationType: Optional[CertificationType] = None  # certification_type -> certificationType
+    subjectExam: Optional[SubjectExam] = None  # subject_exam -> subjectExam
 
     def __str__(self) -> str:
         return f"""
         [자격증-과목 관계]
-        - 자격증 유형: {self.certification_type.certification.name if self.certification_type and self.certification_type.certification else '미지정'} {self.certification_type.year}년 {self.certification_type.session}회
-        - 과목: {self.subject_exam.name if self.subject_exam else '미지정'}
+        - 자격증 유형: {self.certificationType.certification.name if self.certificationType and self.certificationType.certification else '미지정'} {self.certificationType.year}년 {self.certificationType.session}회
+        - 과목: {self.subjectExam.name if self.subjectExam else '미지정'}
         """
         
 def drop_tables(db):
@@ -162,89 +169,85 @@ def drop_tables(db):
     print("모든 테이블이 성공적으로 삭제되었습니다.")
     cursor.close()
 
-def create_tables(db):
-    """필요한 테이블 생성"""
-    cursor = db.cursor()
+def create_tables(conn):
+    """테이블 생성"""
+    cursor = conn.cursor()
     
-    # 인증 테이블 (자격증 정보) - Certification 엔티티와 일치
+    # 외래 키 제약조건 일시 비활성화
+    cursor.execute("SET FOREIGN_KEY_CHECKS = 0;")
+    
+    # 1. certification 테이블 생성
     cursor.execute("""
-    CREATE TABLE IF NOT EXISTS certification (
-        id BIGINT AUTO_INCREMENT PRIMARY KEY,  # 타입을 BIGINT로 변경
-        name VARCHAR(255) NOT NULL
-    )
+        CREATE TABLE IF NOT EXISTS certification (
+            id BIGINT AUTO_INCREMENT PRIMARY KEY,
+            name VARCHAR(100) NOT NULL UNIQUE
+        )
     """)
     
-    # 자격증 유형 테이블 - CertificationType 엔티티와 일치
+    # 2. subject_exam 테이블 생성
     cursor.execute("""
-    CREATE TABLE IF NOT EXISTS certification_type (
-        id BIGINT AUTO_INCREMENT PRIMARY KEY,  # 타입을 BIGINT로 변경
-        year INT NOT NULL,
-        session INT NOT NULL,
-        certification_id BIGINT NOT NULL,  # 타입을 BIGINT로 변경
-        FOREIGN KEY (certification_id) REFERENCES certification(id)
-    )
+        CREATE TABLE IF NOT EXISTS subject_exam (
+            id BIGINT AUTO_INCREMENT PRIMARY KEY,
+            name VARCHAR(100) NOT NULL,
+            certification_id BIGINT NOT NULL,
+            FOREIGN KEY (certification_id) REFERENCES certification(id),
+            UNIQUE KEY unique_subject (name, certification_id)
+        )
     """)
     
-    # 과목 테이블 - SubjectExam 엔티티와 일치
+    # 3. certification_type 테이블 생성
     cursor.execute("""
-    CREATE TABLE IF NOT EXISTS subject_exam (
-        id BIGINT AUTO_INCREMENT PRIMARY KEY,  # 타입을 BIGINT로 변경
-        name VARCHAR(255) NOT NULL,
-        certification_id BIGINT NOT NULL,  # 타입을 BIGINT로 변경
-        FOREIGN KEY (certification_id) REFERENCES certification(id)
-    )
+        CREATE TABLE IF NOT EXISTS certification_type (
+            id BIGINT AUTO_INCREMENT PRIMARY KEY,
+            certification_id BIGINT NOT NULL,
+            year INT NOT NULL,
+            session INT NOT NULL,
+            FOREIGN KEY (certification_id) REFERENCES certification(id),
+            UNIQUE KEY unique_cert_type (certification_id, year, session)
+        )
     """)
     
-    # 자격증-과목 연결 테이블 - CertificationSubject 엔티티와 일치
+    # 4. certification_subject 테이블 생성
     cursor.execute("""
-    CREATE TABLE IF NOT EXISTS certification_subject (
-        id BIGINT AUTO_INCREMENT PRIMARY KEY,  # 타입을 BIGINT로 변경
-        certification_type_id BIGINT NOT NULL,  # 타입을 BIGINT로 변경
-        subject_exam_id BIGINT NOT NULL,  # 타입을 BIGINT로 변경
-        FOREIGN KEY (certification_type_id) REFERENCES certification_type(id),
-        FOREIGN KEY (subject_exam_id) REFERENCES subject_exam(id)
-    )
+        CREATE TABLE IF NOT EXISTS certification_subject (
+            id BIGINT AUTO_INCREMENT PRIMARY KEY,
+            certification_type_id BIGINT NOT NULL,
+            subject_exam_id BIGINT NOT NULL,
+            FOREIGN KEY (certification_type_id) REFERENCES certification_type(id),
+            FOREIGN KEY (subject_exam_id) REFERENCES subject_exam(id),
+            UNIQUE KEY unique_cert_subject (certification_type_id, subject_exam_id)
+        )
     """)
     
-    # 문제 테이블 - Question 엔티티와 일치
+    # 5. questions 테이블 생성
     cursor.execute("""
-    CREATE TABLE IF NOT EXISTS questions (
-        id BIGINT AUTO_INCREMENT PRIMARY KEY,  # 타입을 BIGINT로 변경
-        content TEXT NOT NULL,
-        image_link VARCHAR(255),
-        subject_exam_id BIGINT NOT NULL,  # 타입을 BIGINT로 변경
-        certification_type_id BIGINT NOT NULL,  # CertificationType과의 연관관계 추가
-        FOREIGN KEY (subject_exam_id) REFERENCES subject_exam(id),
-        FOREIGN KEY (certification_type_id) REFERENCES certification_type(id)
-    )
+        CREATE TABLE IF NOT EXISTS questions (
+            id BIGINT AUTO_INCREMENT PRIMARY KEY,
+            content TEXT NOT NULL,
+            subject_exam_id BIGINT NOT NULL,
+            certification_type_id BIGINT NOT NULL,
+            FOREIGN KEY (subject_exam_id) REFERENCES subject_exam(id),
+            FOREIGN KEY (certification_type_id) REFERENCES certification_type(id)
+        )
     """)
     
-    # 답변 테이블 - Answer 엔티티와 일치
+    # 6. answers 테이블 생성
     cursor.execute("""
-    CREATE TABLE IF NOT EXISTS answers (
-        id BIGINT AUTO_INCREMENT PRIMARY KEY,  # 타입을 BIGINT로 변경
-        answer_text VARCHAR(255) NOT NULL,
-        explanation TEXT,
-        question_id BIGINT NOT NULL,  # 타입을 BIGINT로 변경
-        UNIQUE KEY unique_question_id (question_id),
-        FOREIGN KEY (question_id) REFERENCES questions(id)
-    )
+        CREATE TABLE IF NOT EXISTS answers (
+            id BIGINT AUTO_INCREMENT PRIMARY KEY,
+            answer_text TEXT NOT NULL,
+            explanation TEXT,
+            question_id BIGINT NOT NULL,
+            FOREIGN KEY (question_id) REFERENCES questions(id)
+        )
     """)
     
-    # user_question 테이블 스키마 추가 (이미 존재하는 테이블이라면)
-    cursor.execute("""
-    CREATE TABLE IF NOT EXISTS user_question (
-        id BIGINT AUTO_INCREMENT PRIMARY KEY,
-        user_id BIGINT NOT NULL,
-        question_id BIGINT NOT NULL,
-        status VARCHAR(50),
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (question_id) REFERENCES questions(id)
-    )
-    """)
+    # 외래 키 제약조건 다시 활성화
+    cursor.execute("SET FOREIGN_KEY_CHECKS = 1;")
     
-    print("필요한 테이블이 성공적으로 생성되었습니다.")
+    conn.commit()
     cursor.close()
+    print("테이블 생성 완료")
 
 def parse_filename(filename: str) -> tuple[str, int, str, Optional[str]]:
     """파일명에서 자격증 정보와 과목 정보 추출"""
@@ -548,15 +551,56 @@ class PDFExtractor:
         
         for block in question_blocks:
             question = self._parse_question_block(block)
-            if question:
+            if question and self._is_objective_question(question.get('content', '')):
+                # 선택지 추출 및 정리
+                content = question.get('content', '')
+                choices = self._extract_choices(content)
+                
+                # 문제 내용과 선택지를 하나의 문자열로 결합
+                if choices:
+                    # 문제 내용에서 선택지 부분 제거
+                    question_content = re.sub(r'[①②③④⑤].*$', '', content, flags=re.DOTALL).strip()
+                    # 선택지 추가
+                    formatted_choices = '\n'.join(choices)
+                    question['content'] = f"{question_content}\n{formatted_choices}"
+                
                 questions.append(question)
         
         return questions
     
+    def _extract_choices(self, content):
+        """문제 내용에서 선택지 추출"""
+        choices = []
+        
+        # 원형 숫자 선택지 패턴 (①②③④⑤)
+        circle_pattern = r'([①②③④⑤])\s*(.*?)(?=[①②③④⑤]|$)'
+        circle_matches = re.finditer(circle_pattern, content, re.DOTALL)
+        
+        for match in circle_matches:
+            choice_num = match.group(1)
+            choice_text = match.group(2).strip()
+            if choice_text:
+                choices.append(f"{choice_num} {choice_text}")
+        
+        # 원형 숫자가 없는 경우 다른 형식의 선택지 시도
+        if not choices:
+            # 괄호 숫자 선택지 패턴 (1) 2) 3) 4) 5)
+            bracket_pattern = r'(\d+)\)\s*(.*?)(?=\d+\)|$)'
+            bracket_matches = re.finditer(bracket_pattern, content, re.DOTALL)
+            
+            for match in bracket_matches:
+                choice_num = int(match.group(1))
+                choice_text = match.group(2).strip()
+                if choice_text and 1 <= choice_num <= 5:
+                    circle_num = "①②③④⑤"[choice_num-1]
+                    choices.append(f"{circle_num} {choice_text}")
+        
+        return choices
+    
     def _split_into_question_blocks(self, text):
         """텍스트를 문제 단위로 분리"""
         # 문제 번호로 시작하는 패턴으로 분리
-        blocks = re.split(r'(?=^\s*\d+\.)', text, flags=re.MULTILINE)
+        blocks = re.split(r'(?=\n?\d+\.)', text)
         # 빈 블록 제거하고 공백 정리
         return [b.strip() for b in blocks if b.strip()]
     
@@ -606,6 +650,9 @@ class PDFExtractor:
         # 괄호 숫자 선택지 처리
         text = re.sub(r'(\([1-5]\))', r'\n\1', text)
         
+        # 알파벳 선택지 처리
+        text = re.sub(r'([A-E][\.\)])', r'\n\1', text)
+        
         # 문제 내용이 "번호." 다음 내용이 잘 분리되도록
         text = re.sub(r'(\d+\.\s*)([^\n])', r'\1 \2', text)
         
@@ -616,6 +663,52 @@ class PDFExtractor:
         text = re.sub(r'\(\s*(\d)\s*\)', r'(\1)', text)
         
         return text
+    
+    def _is_objective_question(self, content: str) -> bool:
+        """객관식 문제인지 확인"""
+        # 객관식 문제 패턴
+        objective_patterns = [
+            r'①.*?②.*?③.*?④.*?⑤',  # 원형 숫자 선택지
+            r'\(1\).*?\(2\).*?\(3\).*?\(4\).*?\(5\)',  # 괄호 숫자 선택지
+            r'1\).*?2\).*?3\).*?4\).*?5\)',  # 괄호 없는 숫자 선택지
+            r'[A-E][\.\)].*?[A-E][\.\)].*?[A-E][\.\)].*?[A-E][\.\)]'  # 알파벳 선택지
+        ]
+        
+        # 주관식 문제 패턴
+        subjective_patterns = [
+            r'답\s*:\s*[가-힣]',  # 한글 답
+            r'답\s*:\s*[A-Za-z]',  # 영문 답
+            r'답\s*:\s*\d+',  # 숫자 답
+            r'답\s*:\s*[가-힣A-Za-z0-9]+',  # 복합 답
+            r'서술하시오',
+            r'설명하시오',
+            r'작성하시오',
+            r'기술하시오',
+            r'제시하시오',
+            r'나열하시오',
+            r'분석하시오',
+            r'비교하시오',
+            r'평가하시오',
+            r'제안하시오',
+            r'계산하시오',
+            r'도출하시오',
+            r'유도하시오',
+            r'증명하시오',
+            r'해결하시오',
+            r'구현하시오'
+        ]
+        
+        # 주관식 패턴이 있으면 제외
+        for pattern in subjective_patterns:
+            if re.search(pattern, content, re.IGNORECASE):
+                return False
+        
+        # 객관식 패턴이 있으면 포함
+        for pattern in objective_patterns:
+            if re.search(pattern, content, re.IGNORECASE):
+                return True
+        
+        return False
     
     def _find_answer_page(self, pdf):
         """정답 테이블이 있는 페이지 찾기"""
@@ -866,325 +959,307 @@ class PDFExtractor:
             print(f"분할 정답표 추출 중 오류 발생: {e}")
             return {}
 
-def process_pdf_files():
-    """PDF 파일을 처리하고 데이터베이스에 저장"""
-    db = None
-    try:
-        # MySQL 연결 정보 - Docker-compose 설정에 맞게 수정
-        db = mysql.connector.connect(
-            host="localhost",
-            user="root",
-            password="1234",  
-            database="project",  # docker-compose에서 설정된 데이터베이스명
-            port=3307,        # docker-compose에서 설정된 포트
-            auth_plugin='mysql_native_password'
-        )
-        print("MySQL 데이터베이스에 성공적으로 연결되었습니다.")
-        
-        # 기존 테이블 삭제 및 새 테이블 생성
-        drop_tables(db)
-        create_tables(db)
-        
-        # PDF 파일 찾기 - 현재 디렉토리 또는 exam_pdfs 폴더에서 찾음
-        pdf_files = []
-        if os.path.exists("./exam_pdfs"):
-            pdf_files = [os.path.join("./exam_pdfs", f) for f in os.listdir("./exam_pdfs") if f.endswith('.pdf')]
-        else:
-            pdf_files = [f for f in os.listdir() if f.endswith('.pdf')]
-        
-        if not pdf_files:
-            print("처리할 PDF 파일을 찾을 수 없습니다.")
-            return
-            
-        # PDF 파일 처리
-        for pdf_path in pdf_files:
-            print(f"\n처리 중인 파일: {os.path.basename(pdf_path)}")
-            process_pdf_with_db(pdf_path, db)
-                
-        # 기존 데이터에 certification_type 연결 업데이트
-        update_question_certification_type_links(db)
-                
-        # 과목별 문제 할당 상태 및 정답 연결 상태 확인
-        verify_subject_assignments(db)
-        check_answer_quality(db)
-                
-    except Exception as e:
-        print(f"오류 발생: {e}")
-        import traceback
-        traceback.print_exc()
-        
-    finally:
-        if db:
-            try:
-                db.close()
-                print("MySQL 연결이 종료되었습니다.")
-            except:
-                pass
+def split_text_by_questions(text, questions_per_batch=20):
+    # 문제 번호 패턴으로 분할 (예: 1. ~ 20. 까지)
+    question_blocks = re.split(r'(?=\n?\d+\.)', text)
+    batches = []
+    for i in range(0, len(question_blocks), questions_per_batch):
+        batch = ''.join(question_blocks[i:i+questions_per_batch])
+        batches.append(batch)
+    return batches
 
-def process_pdf_with_db(pdf_path, db):
-    try:
-        cursor = db.cursor()
-        
-        # PDF 파일명에서 정보 추출
-        filename = os.path.basename(pdf_path)
-        cert_name, year, session_text, initial_subject = parse_filename(filename)
-        print(f"\n파일 정보: {cert_name}, {year}년, {session_text}, 초기 과목: {initial_subject}")
-        
-        # 세션 번호 추출 (문자열에서 숫자만 추출)
-        session = int(re.sub(r'\D', '', session_text) or 1)
-        
-        # PDF에서 문제와 선택지 추출
-        extractor = PDFExtractor(pdf_path)
-        questions = extractor.extract_questions()
-        
-        print(f"\n추출된 전체 문제 수: {len(questions)}")
-        
-        # 데이터 검증
-        is_valid = validate_parsed_data(questions)
-        
-        if not is_valid:
-            print("\n경고: 추출된 데이터 품질이 낮습니다. 계속 진행하시겠습니까? (y/n)")
-            response = input().lower().strip()
-            if response != 'y':
-                print("작업이 취소되었습니다.")
-                return
-        
-        # 1. Certification 검색 또는 생성 (자격증 중복 방지)
-        cursor.execute("""
-            SELECT id FROM certification WHERE name = %s
-        """, (cert_name,))
-        cert_result = cursor.fetchone()
-        
-        if cert_result:
-            cert_id = cert_result[0]
-            print(f"기존 자격증 사용: ID {cert_id} ({cert_name})")
+def merge_json_batches(json_batches):
+    # Perplexity 응답 JSON들을 하나의 certification 구조로 합침
+    merged = None
+    question_id = 1
+    answer_id = 1
+    for batch in json_batches:
+        cert = batch.get('certification')
+        if not cert:
+            continue
+        if merged is None:
+            merged = cert
+            # 첫 번째 배치의 questions/answers id를 1부터 재정렬
+            for subj in merged.get('subjectExams', []):
+                for q in subj.get('questions', []):
+                    q['id'] = question_id
+                    q['answer']['id'] = answer_id
+                    question_id += 1
+                    answer_id += 1
         else:
-            # 새 자격증 생성
-            cursor.execute("""
-                INSERT INTO certification (name) 
-                VALUES (%s)
-            """, (cert_name,))
-            cert_id = cursor.lastrowid
-            print(f"새 자격증 생성: ID {cert_id} ({cert_name})")
-        
-        # 2. CertificationType 검색 또는 생성 (시험 유형 중복 방지)
-        cursor.execute("""
-            SELECT id FROM certification_type 
-            WHERE certification_id = %s AND year = %s AND session = %s
-        """, (cert_id, year, session))
-        cert_type_result = cursor.fetchone()
-        
-        if cert_type_result:
-            cert_type_id = cert_type_result[0]
-            print(f"기존 시험 유형 사용: ID {cert_type_id} ({year}년 {session}회)")
+            # subjectExams 병합
+            for subj in cert.get('subjectExams', []):
+                # 같은 과목명 찾기
+                found = False
+                for msubj in merged.get('subjectExams', []):
+                    if msubj['name'] == subj['name']:
+                        # 문제 추가, id 재정렬
+                        for q in subj.get('questions', []):
+                            q['id'] = question_id
+                            q['answer']['id'] = answer_id
+                            msubj['questions'].append(q)
+                            question_id += 1
+                            answer_id += 1
+                        found = True
+                        break
+                if not found:
+                    # 새로운 과목이면 추가
+                    for q in subj.get('questions', []):
+                        q['id'] = question_id
+                        q['answer']['id'] = answer_id
+                        question_id += 1
+                        answer_id += 1
+                    merged['subjectExams'].append(subj)
+    return {"certification": merged} if merged else {}
+
+def process_pdfs(pdf_dir, api_key, db, cert_name):
+    from temp import PDFProcessor, PerplexityAPI, CertificationManager
+    import json as pyjson
+    cert_manager = CertificationManager()
+    print("[3] PDF 파싱 및 DB 저장 시작...")
+    
+    # 자격증 정보 로드
+    certification = None
+    for cert in cert_manager.certifications:
+        if cert.name == cert_name:
+            certification = cert
+            break
+    
+    if not certification:
+        print(f"오류: {cert_name} 자격증 정보를 찾을 수 없습니다.")
+        return
+    
+    # 디버깅 로깅 추가: certification 객체 및 subjects 속성 확인
+    print(f"\n--- [DEBUG] Certification 객체 확인 ---")
+    print(f"Type: {type(certification)}")
+    print(f"Content: {certification}")
+    if hasattr(certification, 'subjects'):
+        print(f"Subjects Type: {type(certification.subjects)}")
+        if isinstance(certification.subjects, list):
+            print(f"Subjects count: {len(certification.subjects)}")
+            if certification.subjects:
+                print(f"Subjects sample (first 3): {[s.name for s in certification.subjects[:3]]}")
         else:
-            # 새 시험 유형 생성
-            cursor.execute("""
-                INSERT INTO certification_type (year, session, certification_id) 
-                VALUES (%s, %s, %s)
-            """, (year, session, cert_id))
-            cert_type_id = cursor.lastrowid
-            print(f"새 시험 유형 생성: ID {cert_type_id} ({year}년 {session}회)")
-        
-        # 3. 정보처리기사 5개 과목 정의
-        subjects = [
-            {"name": "소프트웨어 설계", "start": 1, "end": 20},
-            {"name": "소프트웨어 개발", "start": 21, "end": 40},
-            {"name": "데이터베이스 구축", "start": 41, "end": 60},
-            {"name": "프로그래밍 언어 활용", "start": 61, "end": 80},
-            {"name": "정보시스템 구축관리", "start": 81, "end": 100}
-        ]
-        
-        # 각 과목별 ID 저장
-        subject_ids = {}
-        
-        # 4. 각 과목 검색 또는 생성 및 관계 설정
-        for subject in subjects:
-            # 과목이 이미 존재하는지 검색
-            cursor.execute("""
-                SELECT id FROM subject_exam 
-                WHERE name = %s AND certification_id = %s
-            """, (subject["name"], cert_id))
-            subject_result = cursor.fetchone()
+            print(f"Subjects is not a list.")
+    else:
+        print(f"Certification object has no 'subjects' attribute.")
+    print(f"---")
+    
+    print(f"자격증 정보 로드 완료: {certification.name}")
+    print(f"과목 목록: {[subject.name for subject in certification.subjects]}")
+    
+    for fname in os.listdir(pdf_dir):
+        if fname.endswith(".pdf"):
+            pdf_path = os.path.join(pdf_dir, fname)
+            print(f"  - 파싱 시작: {fname} (자격증명: {cert_name})")
             
-            if subject_result:
-                subject_id = subject_result[0]
-                print(f"기존 과목 사용: ID {subject_id} ({subject['name']})")
-            else:
-                # 새 과목 생성
+            # PDF 처리
+            processor = PDFProcessor(pdf_path, cert_manager, cert_name=cert_name)
+            text = processor.extract_text()
+            print(f"    > 텍스트 추출 완료")
+            
+            # Perplexity API 호출
+            api = PerplexityAPI(api_key)
+            batches = split_text_by_questions(text, questions_per_batch=100)
+            batch_results = []
+            
+            for idx, batch_text in enumerate(batches):
+                print(f"    > Perplexity API {idx+1}/{len(batches)}번째 배치 호출 중...")
+                result = api.process_exam_text(
+                    batch_text, 
+                    processor.exam_info, 
+                    force_cert_name=cert_name,
+                    subjects=[subject.name for subject in certification.subjects]
+                )
+                print(f"    > [DEBUG] batch {idx+1} 응답 JSON:")
+                print(pyjson.dumps(result, ensure_ascii=False, indent=2))
+                batch_results.append(result)
+            
+            print(f"    > 모든 배치 응답 수신, JSON 병합 중...")
+            merged_json = merge_json_batches(batch_results)
+            
+            # API 응답 JSON 상세 로깅 추가
+            print(f"\n--- [DEBUG] 병합된 API 응답 JSON (save_json_to_db 호출 직전) ---")
+            try:
+                print(pyjson.dumps(merged_json, ensure_ascii=False, indent=2))
+            except Exception as json_e:
+                print(f"JSON 로깅 오류: {json_e}")
+                print(f"Raw merged_json type: {type(merged_json)}")
+                print(f"Raw merged_json content sample: {str(merged_json)[:500]}...")
+            print(f"---")
+            
+            # 과목 필터링
+            if merged_json and 'certification' in merged_json:
+                filtered_subjects = []
+                for subject in merged_json['certification'].get('subjectExams', []):
+                    # 자격증의 과목 목록에 있는 과목만 포함
+                    if any(s.name == subject['name'] for s in certification.subjects):
+                        filtered_subjects.append(subject)
+                merged_json['certification']['subjectExams'] = filtered_subjects
+            
+            print(f"    > [DEBUG] 병합된 전체 JSON:")
+            print(pyjson.dumps(merged_json, ensure_ascii=False, indent=2))
+            print(f"    > 병합된 JSON을 DB에 저장 중...")
+            save_json_to_db(merged_json, db)
+            print(f"    > DB 저장 완료, PDF 파일 삭제: {fname}")
+            os.remove(pdf_path)
+    
+    print("[3] PDF 파싱 및 DB 저장 전체 완료.")
+
+def save_json_to_db(json_data: Dict, conn) -> None:
+    """JSON 데이터를 DB에 저장"""
+    if not json_data or not isinstance(json_data, dict):
+        print("  - [DB 저장] 유효하지 않은 JSON 데이터")
+        return
+        
+    if 'certification' not in json_data:
+        print("  - [DB 저장] certification 키가 없습니다")
+        return
+        
+    cursor = None
+    try:
+        cursor = conn.cursor()
+        
+        # 1. 자격증 저장
+        cert_name = json_data['certification']['name']
+        print(f"  - [DB 저장] 자격증 저장 시도: {cert_name}")
+        
+        cursor.execute("""
+            INSERT INTO certification (name) 
+            VALUES (%s)
+            ON DUPLICATE KEY UPDATE id=LAST_INSERT_ID(id)
+        """, (cert_name,))
+        
+        cursor.execute("SELECT id FROM certification WHERE name = %s", (cert_name,))
+        cert_row = cursor.fetchone()
+        if not cert_row:
+            raise Exception(f"자격증 저장 실패: {cert_name}")
+        certification_id = cert_row[0]
+        print(f"  - [DB 저장] 자격증 저장/조회 완료: {cert_name} (ID: {certification_id})")
+        
+        # 2. 자격증 유형 저장
+        for cert_type in json_data['certification'].get('certificationTypes', []):
+            year = cert_type.get('year')
+            session = cert_type.get('session')
+            
+            if not year or not session:
+                print(f"  - [DB 저장] 자격증 유형 정보 누락 (year: {year}, session: {session})")
+                continue
+                
+            print(f"  - [DB 저장] 자격증 유형 저장 시도: {year}년 {session}회")
+            
+            cursor.execute("""
+                INSERT INTO certification_type (certification_id, year, session) 
+                VALUES (%s, %s, %s)
+                ON DUPLICATE KEY UPDATE id=LAST_INSERT_ID(id)
+            """, (certification_id, year, session))
+            
+            cursor.execute("""
+                SELECT id FROM certification_type 
+                WHERE certification_id = %s AND year = %s AND session = %s
+            """, (certification_id, year, session))
+            
+            cert_type_row = cursor.fetchone()
+            if not cert_type_row:
+                raise Exception(f"자격증 유형 저장 실패: {year}년 {session}회")
+            cert_type_id = cert_type_row[0]
+            print(f"  - [DB 저장] 자격증 유형 저장/조회 완료: {year}년 {session}회 (ID: {cert_type_id})")
+            
+            # 3. 과목 저장 및 문제 저장
+            for question in cert_type.get('questions', []):
+                if not isinstance(question, dict):
+                    print(f"  - [DB 저장] 유효하지 않은 문제 데이터 형식")
+                    continue
+                    
+                subject_name = question.get('subject')
+                if not subject_name:
+                    print(f"  - [DB 저장] 과목명 누락")
+                    continue
+                    
+                print(f"    - [DB 저장] 과목 저장 시도: {subject_name}")
+                
+                # 과목 저장
                 cursor.execute("""
                     INSERT INTO subject_exam (name, certification_id) 
                     VALUES (%s, %s)
-                """, (subject["name"], cert_id))
-                subject_id = cursor.lastrowid
-                print(f"새 과목 생성: ID {subject_id} ({subject['name']})")
-            
-            # 범위 저장
-            subject_ids[subject_id] = {
-                "name": subject["name"],
-                "start": subject["start"],
-                "end": subject["end"]
-            }
-            
-            # 과목과 시험 유형 간의 관계가 이미 존재하는지 확인
-            cursor.execute("""
-                SELECT id FROM certification_subject 
-                WHERE certification_type_id = %s AND subject_exam_id = %s
-            """, (cert_type_id, subject_id))
-            cert_subject_result = cursor.fetchone()
-            
-            if cert_subject_result:
-                cert_subject_id = cert_subject_result[0]
-                print(f"기존 자격증-과목 관계 사용: ID {cert_subject_id} ({subject['name']})")
-            else:
-                # 새 관계 생성
+                    ON DUPLICATE KEY UPDATE id=LAST_INSERT_ID(id)
+                """, (subject_name, certification_id))
+                
                 cursor.execute("""
-                    INSERT INTO certification_subject (certification_type_id, subject_exam_id) 
+                    SELECT id FROM subject_exam 
+                    WHERE name = %s AND certification_id = %s
+                """, (subject_name, certification_id))
+                
+                subject_row = cursor.fetchone()
+                if not subject_row:
+                    print(f"    - [DB 저장] 과목 저장 실패: {subject_name}")
+                    continue
+                    
+                subject_id = subject_row[0]
+                print(f"    - [DB 저장] 과목 저장/조회 완료: {subject_name} (ID: {subject_id})")
+                
+                # 자격증-과목 관계 저장
+                print(f"      - [DB 저장] 자격증-과목 관계 저장 시도: cert_type_id={cert_type_id}, subject_id={subject_id}")
+                cursor.execute("""
+                    INSERT INTO certification_subject (certification_type_id, subject_exam_id)
                     VALUES (%s, %s)
+                    ON DUPLICATE KEY UPDATE id=LAST_INSERT_ID(id)
                 """, (cert_type_id, subject_id))
-                cert_subject_id = cursor.lastrowid
-                print(f"새 자격증-과목 관계 생성: ID {cert_subject_id} ({subject['name']})")
-        
-        # 5. 문제 및 답안 삽입 준비
-        inserted_questions = 0
-        inserted_answers = 0
-        question_id_map = {}  # 문제 번호와 DB ID 매핑
-        
-        # DB에 이미 해당 시험 유형의 문제가 있는지 확인
-        cursor.execute("""
-            SELECT COUNT(*) FROM questions q
-            JOIN subject_exam se ON q.subject_exam_id = se.id
-            JOIN certification_subject cs ON se.id = cs.subject_exam_id
-            WHERE cs.certification_type_id = %s
-        """, (cert_type_id,))
-        existing_questions_count = cursor.fetchone()[0]
-        
-        if existing_questions_count > 0:
-            print(f"\n경고: 이 시험 유형({year}년 {session}회)에 이미 {existing_questions_count}개의 문제가 있습니다.")
-            print("계속 진행하시겠습니까? 진행하면 새 문제가 추가됩니다. (y/n)")
-            response = input().lower().strip()
-            if response != 'y':
-                print("작업이 취소되었습니다.")
-                return
-        
-        # 6. 문제 저장
-        for q in questions:
-            try:
-                question_num = q.get('question_number')
+                print(f"      - [DB 저장] 자격증-과목 관계 저장 완료")
                 
-                # 문제 번호에 따라 적절한 과목 ID 찾기
-                subject_id_for_question = None
-                for subject_id, info in subject_ids.items():
-                    if info["start"] <= question_num <= info["end"]:
-                        subject_id_for_question = subject_id
-                        break
+                # 문제 저장
+                content = question.get('content')
+                if not content:
+                    print(f"      - [DB 저장] 문제 내용 누락")
+                    continue
+                    
+                content_sample = content[:50].replace('\n', ' ') + '...'
+                print(f"        - [DB 저장] 문제 저장 시도: 내용 샘플='{content_sample}'")
                 
-                # 적절한 과목을 찾지 못한 경우 경고 출력
-                if subject_id_for_question is None:
-                    print(f"경고: 문제 {question_num}에 대한 적절한 과목을 찾을 수 없습니다.")
-                    # 첫 번째 과목에 할당 (선택적)
-                    subject_id_for_question = list(subject_ids.keys())[0]
-                
-                # 문제 삽입
                 cursor.execute("""
-                    INSERT INTO questions (content, image_link, subject_exam_id, certification_type_id) 
-                    VALUES (%s, %s, %s, %s)
-                """, (q.get('text'), q.get('image_link'), subject_id_for_question, cert_type_id))
+                    INSERT INTO questions (content, subject_exam_id, certification_type_id)
+                    VALUES (%s, %s, %s)
+                """, (content, subject_id, cert_type_id))
+                
                 question_id = cursor.lastrowid
-                question_id_map[question_num] = question_id
-                inserted_questions += 1
-                
-                # 10개 단위로 커밋
-                if inserted_questions % 10 == 0:
-                    db.commit()
-                    print(f"{inserted_questions}개 문제 저장됨...")
-            
-            except Exception as e:
-                print(f"문제 삽입 중 오류: {e}")
-                continue
-        
-        # 커밋
-        db.commit()
-        print(f"\n총 {inserted_questions}개 문제 저장 완료")
-        
-        # 7. 정답 저장 (기존 코드 유지)
-        for q in questions:
-            try:
-                question_num = q.get('question_number')
-                
-                # 정답이 있고 문제 ID가 매핑되어 있는 경우만 처리
-                if q.get('answer') and question_num in question_id_map:
-                    question_id = question_id_map[question_num]
+                if not question_id:
+                    print(f"        - [DB 저장] 문제 저장 실패")
+                    continue
                     
+                print(f"        - [DB 저장] 문제 저장 완료: ID={question_id}")
+                
+                # 답안 저장
+                answer = question.get('answer')
+                if not answer or not isinstance(answer, dict):
+                    print(f"          - [DB 저장] 답안 데이터 누락 또는 형식 오류")
+                    continue
+                    
+                answer_text = answer.get('answerText', '')
+                explanation = answer.get('explanation', '')
+                
+                if answer_text:
+                    print(f"          - [DB 저장] 답안 저장 시도: 답='{answer_text}'")
                     cursor.execute("""
-                        INSERT INTO answers (answer_text, explanation, question_id) 
+                        INSERT INTO answers (answer_text, explanation, question_id)
                         VALUES (%s, %s, %s)
-                    """, (str(q.get('answer')), "not have explanation", question_id))
-                    
-                    inserted_answers += 1
-                    
-                    # 10개 단위로 커밋
-                    if inserted_answers % 10 == 0:
-                        db.commit()
-                        print(f"{inserted_answers}개 답안 저장됨...")
-            
-            except Exception as e:
-                print(f"답안 삽입 중 오류: {e}")
-                continue
+                    """, (answer_text, explanation, question_id))
+                    print(f"          - [DB 저장] 답안 저장 완료: question_id={question_id}")
+                else:
+                    print(f"          - [DB 저장] 답안 데이터(answer_text) 누락 또는 비어있음: question_id={question_id}")
         
-        # 최종 커밋
-        db.commit()
-        print(f"\n총 {inserted_questions}개의 문제와 {inserted_answers}개의 답안이 저장되었습니다.")
-        
-        # 8. 과목별 저장된 문제 수 출력
-        cursor.execute("""
-            SELECT se.name, COUNT(q.id) as question_count
-            FROM subject_exam se
-            JOIN certification_subject cs ON se.id = cs.subject_exam_id
-            LEFT JOIN questions q ON se.id = q.subject_exam_id
-            WHERE cs.certification_type_id = %s
-            GROUP BY se.name
-            ORDER BY se.id
-        """, (cert_type_id,))
-        
-        subject_counts = cursor.fetchall()
-        print(f"\n=== {cert_name} {year}년 {session}회 과목별 문제 수 ===")
-        for name, count in subject_counts:
-            print(f"{name}: {count}문제")
-        
-        # 정답 연결 비율 확인
-        answer_ratio = inserted_answers / inserted_questions if inserted_questions > 0 else 0
-        print(f"\n정답 연결 비율: {answer_ratio:.2%}")
-        
-        if answer_ratio < 0.9:
-            print("경고: 정답 연결 비율이 90% 미만입니다. 정답 추출 로직을 확인하세요.")
-        
-        # 9. 전체 통계 출력
-        cursor.execute("""
-            SELECT c.name, COUNT(DISTINCT ct.id) as type_count, COUNT(DISTINCT se.id) as subject_count, COUNT(q.id) as question_count
-            FROM certification c
-            LEFT JOIN certification_type ct ON c.id = ct.certification_id
-            LEFT JOIN certification_subject cs ON ct.id = cs.certification_type_id
-            LEFT JOIN subject_exam se ON cs.subject_exam_id = se.id
-            LEFT JOIN questions q ON se.id = q.subject_exam_id
-            GROUP BY c.name
-        """)
-        
-        stats = cursor.fetchall()
-        print("\n=== 전체 데이터베이스 통계 ===")
-        for name, type_count, subject_count, question_count in stats:
-            print(f"{name}: {type_count}개 시험유형, {subject_count}개 과목, {question_count}개 문제")
+        # 트랜잭션 커밋
+        conn.commit()
+        print(f"  - [DB 저장] 데이터 저장 트랜잭션 커밋 완료: {cert_name}")
         
     except Exception as e:
-        try:
-            db.rollback()
-        except:
-            pass
-        print(f"PDF 처리 중 오류 발생: {e}")
+        if cursor:
+            conn.rollback()
+        print(f"  - [DB 저장] 데이터 저장 중 오류 발생: {str(e)}")
         import traceback
         traceback.print_exc()
+        raise
     finally:
-        if 'cursor' in locals():
+        if cursor:
             cursor.close()
 
 def validate_parsed_data(questions):
@@ -1364,5 +1439,93 @@ def update_question_certification_type_links(db):
     finally:
         cursor.close()
 
+def download_zip_files(base_url, download_dir, cert_keywords):
+    os.makedirs(download_dir, exist_ok=True)
+    page = 1
+    zip_links = []
+    print("[1] ZIP 파일 다운로드 시작...")
+    while True:
+        url = f"{base_url}?page={page}"
+        resp = requests.get(url)
+        soup = BeautifulSoup(resp.text, "html.parser")
+        links = soup.find_all("a", href=True, string=lambda t: t and any(k in t for k in cert_keywords) and t.endswith(".zip"))
+        if not links:
+            break
+        for link in links:
+            zip_url = link['href']
+            link_text = link.get_text(strip=True)
+            # 자격증명 추출 (예: "2023 정보처리기사 필기 기출문제")
+            cert_name_match = re.search(r'(정보처리기사|가스기사|전기기사|리눅스마스터|네트워크관리사)', link_text)
+            cert_name = cert_name_match.group(1) if cert_name_match else "알 수 없음"
+            if not zip_url.startswith("http"):
+                zip_url = "https://www.sinagong.co.kr" + zip_url
+            zip_links.append({'url': zip_url, 'cert_name': cert_name})
+        page += 1
+
+    for item in tqdm(zip_links, desc="ZIP 파일 다운로드"):
+        zip_url = item['url']
+        cert_name = item['cert_name']
+        basename = os.path.basename(zip_url)
+        if not basename.endswith('.zip'):
+            basename += '.zip'
+        filename = os.path.join(download_dir, basename)
+        print(f"  - 다운로드: {zip_url} -> {filename} (자격증명: {cert_name})")
+        with requests.get(zip_url, stream=True) as r:
+            with open(filename, "wb") as f:
+                shutil.copyfileobj(r.raw, f)
+    print(f"[1] ZIP 파일 다운로드 완료: 총 {len(zip_links)}개 파일")
+    return zip_links
+
+def extract_and_move_pdfs(zip_dir, pdf_dir):
+    os.makedirs(pdf_dir, exist_ok=True)
+    print("[2] 압축 해제 및 PDF 이동 시작...")
+    for fname in os.listdir(zip_dir):
+        if fname.endswith(".zip"):
+            print(f"  - 압축 해제: {fname}")
+            with ZipFile(os.path.join(zip_dir, fname), 'r') as zip_ref:
+                zip_ref.extractall(zip_dir)
+            os.remove(os.path.join(zip_dir, fname))
+    for fname in os.listdir(zip_dir):
+        if fname.endswith(".pdf"):
+            print(f"  - PDF 이동: {fname} -> {pdf_dir}")
+            shutil.move(os.path.join(zip_dir, fname), os.path.join(pdf_dir, fname))
+    print("[2] 압축 해제 및 PDF 이동 완료.")
+
 if __name__ == "__main__":
-    process_pdf_files()
+    # 자격증 이름을 사용자로부터 입력받음
+    cert_name = input("진행할 자격증 이름을 입력하세요 (예: 정보처리기사): ").strip()
+    # 기본 경로 설정 (모두 Data/ 하위)
+    # base_url = "https://www.sinagong.co.kr/pds/001002001/past-exams" #정보처리산업기사
+    base_url = "https://www.sinagong.co.kr/pds/001001001/past-exams" # 정보처리기사
+    zip_dir = "Data/temp_zips"         # zip 파일 임시 저장
+    pdf_dir = "Data/exam_pdfs"         # PDF 저장
+    api_key = "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"  # 실제 키로 교체 필요
+
+    # MySQL DB 연결 객체 생성 (pdf_extractor.py와 동일하게)
+    db = mysql.connector.connect(
+        host="localhost",
+        user="root",
+        password="1234",         # 실제 비밀번호로 변경
+        database="project",      # 실제 데이터베이스명으로 변경
+        port=3307,                # docker-compose에서 지정한 포트
+        auth_plugin='mysql_native_password'
+    )
+
+    # 자격증별 키워드 목록 (확장 가능)
+    cert_keywords = [cert_name]
+
+    # DB 테이블 초기화 및 생성 (개발/디버깅 시에만 사용)
+    print("\n[0] DB 테이블 초기화 및 생성 시작...")
+    drop_tables(db) # 기존 테이블 삭제
+    create_tables(db) # 새 테이블 생성
+    print("[0] DB 테이블 초기화 및 생성 완료.")
+    
+    # 1. zip 파일 다운로드
+    download_zip_files(base_url, zip_dir, cert_keywords)
+    # 2. 압축 해제 및 PDF 이동
+    extract_and_move_pdfs(zip_dir, pdf_dir)
+    # 3. PDF 파싱, API 호출, DB 저장, 파일 삭제 (입력받은 cert_name을 강제 사용)
+    process_pdfs(pdf_dir, api_key, db, cert_name)
+
+    # 모든 작업이 끝나면 DB 연결 종료
+    db.close()
