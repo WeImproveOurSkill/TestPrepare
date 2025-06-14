@@ -26,6 +26,13 @@ public class CertificationRepositoryQueryImpl implements CertificationRepository
 
     private final JPAQueryFactory jpaQueryFactory;
 
+    /***
+     *
+     * @param name
+     * @param year
+     * @param session
+     * @return
+     */
     @Override
     public List<QuestionDto> findAllQuestionByNameAndYearAndSession(String name, int year, int session) {
         //1 certification -> question
@@ -46,28 +53,7 @@ public class CertificationRepositoryQueryImpl implements CertificationRepository
                         , certification.name.eq(name)
                 ).fetch();
 
-        //2 question -> certification
-//        List<QuestionDto> questionDtos = jpaQueryFactory.select(Projections.constructor(
-//                        QuestionDto.class,
-//                        question.id.as("questionId"),
-//                        question.content.as("question"),
-//
-//                        answer.answerText.as("answer"),
-//                        answer.explanation
-//                )).from(question)
-//                .leftJoin(question.answer, answer)
-//                .rightJoin(question.subjectExam, subjectExam)
-//                .rightJoin(subjectExam.certification, certification)
-//                .rightJoin(certification.certificationTypes, certificationType)
-//                .where(
-//                        certificationType.year.eq(year)
-//                        , certificationType.session.eq(session)
-//                        , certification.name.eq(name)
-//                ).fetch();
-
-
         return questionDtos;
-//        return null;
 
     }
 
