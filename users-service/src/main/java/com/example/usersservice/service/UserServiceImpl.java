@@ -15,6 +15,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
@@ -30,6 +31,7 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final JwtUtils jwtUtil;
     private final RestTemplate restTemplate;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     @Transactional
@@ -44,7 +46,7 @@ public class UserServiceImpl implements UserService {
                 .provider(oAuth2UserInfo.getProvider())
                 .providerId(oAuth2UserInfo.getProviderId())
                 .role(User.Role.COMMON)
-                .password(oAuth2UserInfo.getName())
+                .password(passwordEncoder.encode(oAuth2UserInfo.getName()))
                 .build();
 
         userRepository.save(user);
