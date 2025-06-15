@@ -12,14 +12,14 @@ import java.util.*;
 public class UserDetailsImpl implements UserDetails, OAuth2User {
 
     private User user;
-    private Map<String, Objects> attributes;
+    private Map<String, Object> attributes;
 
     public UserDetailsImpl(User user) {
         this.user = user;
     }
 
 
-    public UserDetailsImpl(User user, Map<String, Objects> attributes) {
+    public UserDetailsImpl(User user, Map<String, Object> attributes) {
         this.user = user;
         this.attributes = attributes;
     }

@@ -240,7 +240,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public JSONObject refreshToken(String username, String refreshToken) {
-        boolean refreshTokenValid = jwtUtil.isRefreshTokenValid(refreshToken, username);
+        boolean refreshTokenValid = jwtUtil.isRefreshTokenValid(username, refreshToken);
         if (!refreshTokenValid) {
             throw new IllegalArgumentException("해당 사용자는 재로그인을 진행해야합니다.");
         }

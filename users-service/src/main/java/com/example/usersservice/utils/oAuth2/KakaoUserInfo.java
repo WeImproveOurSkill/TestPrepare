@@ -10,6 +10,7 @@ import java.util.Map;
 
 @Builder
 @NoArgsConstructor
+@AllArgsConstructor
 public class KakaoUserInfo implements OAuth2UserInfo {
 
     private Map<String, Object> attributes;
