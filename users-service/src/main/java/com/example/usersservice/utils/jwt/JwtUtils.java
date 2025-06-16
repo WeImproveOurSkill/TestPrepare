@@ -45,9 +45,10 @@ public class JwtUtils
     }
 
 
-    public String createAccessToken(String username, String role) {
+    public String createAccessToken(String username, String role,Long userId) {
 
         Claims claims = Jwts.claims();
+        claims.put("userId", userId);
         claims.put(AUTHORIZATION_KEY, role);
         claims.put("type", "access");
 

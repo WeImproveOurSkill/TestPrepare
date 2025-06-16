@@ -118,7 +118,7 @@ public class UserServiceImpl implements UserService {
             String userAccseeToken;
             String userRefreshToken;
             try {
-                userAccseeToken = jwtUtil.createAccessToken(user.getUsername(), String.valueOf(user.getRole()));
+                userAccseeToken = jwtUtil.createAccessToken(user.getUsername(), String.valueOf(user.getRole()),user.getId());
                 userRefreshToken = jwtUtil.createRefreshToken(user.getUsername(), String.valueOf(user.getRole()));
             } catch (Exception e) {
                 throw new RuntimeException("JWT 토큰 생성 중 오류 발생: " + e.getMessage(), e);
@@ -191,7 +191,7 @@ public class UserServiceImpl implements UserService {
             String userAccseeToken;
             String userRefreshToken;
             try {
-                userAccseeToken = jwtUtil.createAccessToken(user.getUsername(), String.valueOf(user.getRole()));
+                userAccseeToken = jwtUtil.createAccessToken(user.getUsername(), String.valueOf(user.getRole()),user.getId());
                 userRefreshToken = jwtUtil.createRefreshToken(user.getUsername(), String.valueOf(user.getRole()));
             } catch (Exception e) {
                 throw new RuntimeException("JWT 토큰 생성 중 오류 발생: " + e.getMessage(), e);
