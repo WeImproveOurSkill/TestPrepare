@@ -92,17 +92,6 @@ bootJar{
     }
 }
 
-tasks.withType(JavaCompile).configureEach {
-    options.annotationProcessorGeneratedSourcesDirectory = file("$buildDir/generated/sources/annotationProcessor/java/main")
-    options.getGeneratedSourceOutputDirectory().set(file("$buildDir/generated/querydsl"))
-}
-
-tasks.register('cleanGenerated', Delete) {
-    delete file("$buildDir/generated")
-}
-
-clean.dependsOn cleanGenerated
-
 def querydslDir = "$buildDir/generated/sources/annotationProcessor/java/main"
 
 sourceSets {
@@ -115,15 +104,11 @@ sourceSets {
 
 tasks.withType(JavaCompile).configureEach {
     options.annotationProcessorPath = configurations.annotationProcessor
-    options.generatedSourceOutputDirectory = file(querydslDir)
+    options.annotationProcessorGeneratedSourcesDirectory = file(querydslDir)
 }
 
 clean {
     delete file(querydslDir)
-}
-
-tasks.withType(JavaCompile).configureEach {
-    options.annotationProcessorGeneratedSourcesDirectory = file(querydslDir)
 }
 
 
