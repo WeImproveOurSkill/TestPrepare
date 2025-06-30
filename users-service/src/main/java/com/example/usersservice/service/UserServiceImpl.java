@@ -10,6 +10,8 @@ import com.example.usersservice.utils.oAuth2.OAuth2UserInfo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.minidev.json.JSONObject;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -32,6 +34,10 @@ public class UserServiceImpl implements UserService {
     private final JwtUtils jwtUtil;
     private final RestTemplate restTemplate;
     private final PasswordEncoder passwordEncoder;
+
+    @Qualifier("redisTokenValueTemplate")
+    private final RedisTemplate<String, Object> tokenRedisTemplate;
+
 
     @Override
     @Transactional
@@ -115,16 +121,15 @@ public class UserServiceImpl implements UserService {
             }
 
             // JWT 토큰 생성
-            String userAccseeToken;
-            String userRefreshToken;
+            String userAccessToken;
             try {
-                userAccseeToken = jwtUtil.createAccessToken(user.getUsername(), String.valueOf(user.getRole()),user.getId());
-                userRefreshToken = jwtUtil.createRefreshToken(user.getUsername(), String.valueOf(user.getRole()));
+                userAccessToken = jwtUtil.createAccessToken(user.getUsername(), String.valueOf(user.getRole()));
+                jwtUtil.createRefreshToken(user.getUsername(), String.valueOf(user.getRole()));
             } catch (Exception e) {
                 throw new RuntimeException("JWT 토큰 생성 중 오류 발생: " + e.getMessage(), e);
             }
             // 응답 객체 생성 (User 객체 직렬화)
-            return getJsonObject(userAccseeToken, userRefreshToken, user);
+            return getJsonObject(userAccessToken, user);
 
         } catch (Exception e) {
             // 최상위 예외 처리
@@ -135,10 +140,9 @@ public class UserServiceImpl implements UserService {
         }
     }
 
-    private static JSONObject getJsonObject(String userAccseeToken, String userRefreshToken, User user) {
+    private static JSONObject getJsonObject(String userAccessToken,  User user) {
         JSONObject response = new JSONObject();
-        response.put("token", userAccseeToken);
-        response.put("refresh", userRefreshToken);
+        response.put("token", userAccessToken);
 
         // User 객체 필요한 정보만 선택적으로 포함
         JSONObject userJson = new JSONObject();
@@ -188,15 +192,14 @@ public class UserServiceImpl implements UserService {
                 throw new RuntimeException("사용자 정보 처리 중 오류 발생: " + e.getMessage(), e);
             }
 
-            String userAccseeToken;
-            String userRefreshToken;
+            String userAccessToken;
             try {
-                userAccseeToken = jwtUtil.createAccessToken(user.getUsername(), String.valueOf(user.getRole()),user.getId());
-                userRefreshToken = jwtUtil.createRefreshToken(user.getUsername(), String.valueOf(user.getRole()));
+                userAccessToken = jwtUtil.createAccessToken(user.getUsername(), String.valueOf(user.getRole()));
+                jwtUtil.createRefreshToken(user.getUsername(), String.valueOf(user.getRole()));
             } catch (Exception e) {
                 throw new RuntimeException("JWT 토큰 생성 중 오류 발생: " + e.getMessage(), e);
             }
-            return getJsonObject(userAccseeToken, userRefreshToken, user);
+            return getJsonObject(userAccessToken,  user);
 
         } catch (Exception e) {
             // 최상위 예외 처리
@@ -240,35 +243,39 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public JSONObject refreshToken(String username, String refreshToken) {
-        boolean refreshTokenValid = jwtUtil.isRefreshTokenValid(username, refreshToken);
-        if (!refreshTokenValid) {
-            throw new IllegalArgumentException("해당 사용자는 재로그인을 진행해야합니다.");
-        }
-        User user = findByUsername(username);
-
-        String token;
         try {
-            token = jwtUtil.createAccessToken(user.getUsername(), String.valueOf(user.getRole()));
+            // 1. Redis에서 리프레시 토큰 조회
+            String storedRefreshToken = jwtUtil.getRefreshToken(username);
+            if (storedRefreshToken == null) {
+                throw new IllegalArgumentException("유효하지 않은 리프레시 토큰입니다.");
+            }
+
+            // 2. 리프레시 토큰 유효성 검증
+            if (!jwtUtil.isRefreshTokenValid(username, storedRefreshToken)) {
+                throw new IllegalArgumentException("만료되거나 유효하지 않은 리프레시 토큰입니다.");
+            }
+
+            // 3. 사용자 정보 조회
+            User user = userRepository.findByUsername(username)
+                    .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+
+            // 4. 새로운 액세스 토큰 생성
+            String newAccessToken = jwtUtil.createAccessToken(username, String.valueOf(user.getRole()));
+
+            // 5. 응답 생성
+            JSONObject response = new JSONObject();
+            response.put("token", newAccessToken);
+            response.put("message", "토큰이 성공적으로 갱신되었습니다.");
+
+            return response;
+
         } catch (Exception e) {
-            throw new RuntimeException("JWT 토큰 생성 중 오류 발생: " + e.getMessage(), e);
+            JSONObject errorResponse = new JSONObject();
+            errorResponse.put("error", "토큰 갱신 실패");
+            errorResponse.put("message", e.getMessage());
+            throw new RuntimeException("토큰 갱신 중 오류: " + e.getMessage(), e);
         }
-        System.out.println(token);
-        // 응답 객체 생성 (User 객체 직렬화)
-        JSONObject response = new JSONObject();
-        response.put("token", token);
 
-        // User 객체 필요한 정보만 선택적으로 포함
-        JSONObject userJson = new JSONObject();
-        // userJson.put("id", user.getId());
-        userJson.put("username", user.getUsername());
-        // userJson.put("email", user.getEmail());
-        userJson.put("nickname", user.getNickname());
-        // userJson.put("role", user.getRole().toString());
-        userJson.put("provider", user.getProvider());
-
-        response.put("user", userJson);
-
-        return response;
     }
 
 

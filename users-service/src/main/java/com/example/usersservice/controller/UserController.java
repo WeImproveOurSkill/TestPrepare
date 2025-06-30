@@ -37,7 +37,7 @@ public class UserController {
         String refreshToken = payload.get("refreshToken");
 
         if (username == null || refreshToken == null) {
-            throw new IllegalArgumentException("사용자명과 리프레시 토큰은 필수입니다.");
+            throw new IllegalArgumentException("사용자명은 필수입니다.");
         }
 
         JSONObject response = userService.refreshToken(username, refreshToken);

@@ -64,10 +64,9 @@ public class JwtUtils
     }
 
 
-    public String createAccessToken(String username, String role,Long userId) {
+    public String createAccessToken(String username, String role) {
 
         Claims claims = Jwts.claims();
-        claims.put("userId", userId);
         claims.put(AUTHORIZATION_KEY, role);
         claims.put("type", "access");
 
@@ -80,7 +79,7 @@ public class JwtUtils
                 .compact();
     }
 
-    public String createRefreshToken(String username, String role) {
+    public void createRefreshToken(String username, String role) {
 
         Claims claims = Jwts.claims();
         claims.put(REFRESH_KEY, role);
@@ -100,8 +99,6 @@ public class JwtUtils
                 REFRESH_TOKEN_TIME,
                 TimeUnit.MILLISECONDS
         );
-
-        return refreshToken;
     }
 
     public String resolveAccessToken(HttpServletRequest request) {
