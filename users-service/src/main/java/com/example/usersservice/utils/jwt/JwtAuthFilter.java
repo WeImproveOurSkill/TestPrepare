@@ -1,11 +1,13 @@
 package com.example.usersservice.utils.jwt;
 
+import com.example.usersservice.utils.userDetailsImpl.UserDetailsImpl;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.MDC;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
@@ -31,21 +33,36 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             Claims userInfoFromToken = jwtUtils.getUserInfoFromToken(accessToken);
             String username = userInfoFromToken.getSubject();
             String role = userInfoFromToken.get("auth").toString();
-
+            setAuthentication(username,role);
         }
-
+        try {
+            filterChain.doFilter(request, response);
+        } finally {
+            MDC.remove("userId");
+        }
     }
 
-    public void setAuthentication(String username, String role) {
+    public void setAuthentication(String username,String role) {
         SecurityContext context = SecurityContextHolder.createEmptyContext();
-        Authentication authentication = this.createAuthentication(username);
+        Authentication authentication;
+        if(role.equals("Admin")){
+            authentication = this.createAdminAuthentication(username,role);
+        }else{
+            authentication = this.createAuthentication(username,role);
+        }
+        UserDetailsImpl details = (UserDetailsImpl) authentication.getDetails();
+        String username1 = details.getUser().getUsername();
+        MDC.put("userID",username1);
         context.setAuthentication(authentication);
         SecurityContextHolder.setContext(context);
     }
 
-    public Authentication createAuthentication(String username) {
+    public Authentication createAuthentication(String username, String role) {
         UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-        return new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
-
+        return new UsernamePasswordAuthenticationToken(userDetails, role, userDetails.getAuthorities());
+    }
+    public Authentication createAdminAuthentication(String username, String role) {
+        UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+        return new UsernamePasswordAuthenticationToken(userDetails, role, userDetails.getAuthorities());
     }
 }
