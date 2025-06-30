@@ -14,7 +14,7 @@ COPY docker-entrypoint.sh docker-entrypoint.sh
 RUN chmod +x docker-entrypoint.sh && \
     apk add --no-cache netcat-openbsd
 
-EXPOSE 8441
+EXPOSE 8442
 # EXPOSE 8080
 COPY src/main/resources/keystore.p12 keystore.p12
 

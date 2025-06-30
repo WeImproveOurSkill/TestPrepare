@@ -129,42 +129,6 @@ services:
       SPRING_JPA_HIBERNATE_DDL_AUTO: create
       SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.MySQL8Dialect
 
-  # Spring 애플리케이션 설정
-  spring-app:
-    build: 
-      context: ./be
-      dockerfile: Dockerfile
-    container_name: spring-app
-    ports:
-      - "8443:8443"
-    environment:
-      - SPRING_DATASOURCE_MASTER_URL=${DB_MASTER_URL}
-      - SPRING_DATASOURCE_MASTER_USERNAME=${DB_USERNAME}
-      - SPRING_DATASOURCE_MASTER_PASSWORD=${DB_PASSWORD}
-      - SPRING_DATASOURCE_SLAVE_URL=${DB_SLAVE_URL}
-      - SPRING_DATASOURCE_SLAVE_USERNAME=${DB_USERNAME}
-      - SPRING_DATASOURCE_SLAVE_PASSWORD=${DB_PASSWORD}
-      - TZ=Asia/Seoul
-      - SECRET_KEY=${SECRET_KEY}
-      - JWT_ALGORITHM=${JWT_ALGORITHM}
-    depends_on:
-      redis:
-        condition: service_healthy
-      redis-token:
-        condition: service_healthy
-      mysql-master:
-        condition: service_healthy
-      mysql-slave:
-        condition: service_healthy
-    # networks:
-    #   - app_network
-    # healthcheck:
-    #   test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
-    #   interval: 10s
-    #   timeout: 5s
-    #   retries: 3
-    #   start_period: 40s
-
   # GPT 애플리케이션 설정
   gpt-app:
     build:
@@ -216,37 +180,72 @@ services:
     # networks:
     #   - app_network  
 
-    user-service:
-      build:
-        context: ./users-service
-        dockerfile: Dockerfile
-      container_name: user-service
-      ports:
-        - "8081:8081"
-      environment:
-        - SPRING_DATASOURCE_MASTER_URL=${DB_MASTER_URL}
-        - SPRING_DATASOURCE_MASTER_USERNAME=${DB_USERNAME}
-        - SPRING_DATASOURCE_MASTER_PASSWORD=${DB_PASSWORD}
-        - SPRING_DATASOURCE_SLAVE_URL=${DB_SLAVE_URL}
-        - SPRING_DATASOURCE_SLAVE_USERNAME=${DB_USERNAME}
-        - SPRING_DATASOURCE_SLAVE_PASSWORD=${DB_PASSWORD}
-        - TZ=Asia/Seoul
-        - SECRET_KEY=${SECRET_KEY}
-        - JWT_ALGORITHM=${JWT_ALGORITHM}
-      depends_on:
-        redis:
-          condition: service_healthy
-        redis-token:
-          condition: service_healthy
-        mysql-master:
-          condition: service_healthy
-        mysql-slave:
-          condition: service_healthy
+  user-service:
+    build:
+      context: ./users-service
+      dockerfile: Dockerfile
+    container_name: user-service
+    ports:
+      - "8441:8441"
+    environment:
+      - SPRING_DATASOURCE_MASTER_URL=${DB_MASTER_URL}
+      - SPRING_DATASOURCE_MASTER_USERNAME=${DB_USERNAME}
+      - SPRING_DATASOURCE_MASTER_PASSWORD=${DB_PASSWORD}
+      - SPRING_DATASOURCE_SLAVE_URL=${DB_SLAVE_URL}
+      - SPRING_DATASOURCE_SLAVE_USERNAME=${DB_USERNAME}
+      - SPRING_DATASOURCE_SLAVE_PASSWORD=${DB_PASSWORD}
+      - TZ=Asia/Seoul
+      - SECRET_KEY=${SECRET_KEY}
+      - JWT_ALGORITHM=${JWT_ALGORITHM}
+    depends_on:
+      redis:
+        condition: service_healthy
+      redis-token:
+        condition: service_healthy
+      mysql-master:
+        condition: service_healthy
+      mysql-slave:
+        condition: service_healthy
 
-    filebeat:
-      image: docker.elastic.co/beats/filebeat:8.15.2
-      user: root
-      
+  questions-server:
+    build:
+      context: ./questions-server
+      dockerfile: Dockerfile
+    container_name: questions-server
+    ports:
+      - "8442:8442"
+    environment:
+      - SPRING_DATASOURCE_MASTER_URL=${DB_MASTER_URL}
+      - SPRING_DATASOURCE_MASTER_USERNAME=${DB_USERNAME}
+      - SPRING_DATASOURCE_MASTER_PASSWORD=${DB_PASSWORD}
+      - SPRING_DATASOURCE_SLAVE_URL=${DB_SLAVE_URL}
+      - SPRING_DATASOURCE_SLAVE_USERNAME=${DB_USERNAME}
+      - SPRING_DATASOURCE_SLAVE_PASSWORD=${DB_PASSWORD}
+      - TZ=Asia/Seoul
+      - SECRET_KEY=${SECRET_KEY}
+      - JWT_ALGORITHM=${JWT_ALGORITHM}
+    depends_on:
+      redis:
+        condition: service_healthy
+      redis-token:
+        condition: service_healthy
+      mysql-master:
+        condition: service_healthy
+      mysql-slave:
+        condition: service_healthy
+
+  filebeat:
+    image: docker.elastic.co/beats/filebeat:8.15.2
+    user: root
+    volumes:
+      - ./filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml
+      - ./filebeat/log:/var/log/app
+    command: filebeat -e -c /usr/share/filebeat/filebeat.yml
+    depends_on:
+      - user-service
+      - questions-server
+      - nginx
+
 
 # networks:
 #   app_network:
