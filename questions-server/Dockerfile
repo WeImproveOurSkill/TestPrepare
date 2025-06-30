@@ -5,7 +5,7 @@ COPY . .
 RUN gradle build -x test --no-daemon
 
 # 실행 스테이지
-FROM openjdk:23
+FROM amazoncorretto:17-alpine
 WORKDIR /app
 COPY --from=build /app/build/libs/*.jar app.jar
 COPY docker-entrypoint.sh docker-entrypoint.sh
@@ -14,7 +14,7 @@ COPY docker-entrypoint.sh docker-entrypoint.sh
 RUN chmod +x docker-entrypoint.sh && \
     apk add --no-cache netcat-openbsd
 
-EXPOSE 8441
+EXPOSE 8442
 # EXPOSE 8080
 COPY src/main/resources/keystore.p12 keystore.p12
 
