@@ -1,0 +1,23 @@
+package com.example.questionsserver.config;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.client.RestTemplate;
+
+@Configuration
+public class RestTemplateConfig {
+
+    @Bean
+    public RestTemplate restTemplate() {
+        RestTemplate restTemplate = new RestTemplate();
+
+//        // 타임아웃 설정
+//        HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory();
+//        factory.setConnectTimeout(5000);
+//        factory.setReadTimeout(5000);
+//
+//        restTemplate.setRequestFactory(factory);
+
+        return restTemplate;
+    }
+}

@@ -1,0 +1,35 @@
+filebeat.inputs:
+  - type: log
+    enabled: true
+    paths:
+      - /var/log/app/users-service.log
+    fields:
+      service: "users-service"
+    fields_under_root: true
+
+  - type: log
+    enabled: true
+    paths:
+      - /var/log/app/questions-server.log
+    fields:
+      service: "questions-server"
+    fields_under_root: true
+    
+  -type: log
+    enabled: true
+    paths:
+      - /var/log/nginx/access.log
+    fields:
+      service: "nginx"
+    fields_under_root: true
+
+output.kafka:
+  hosts: ["kafka:9092"]
+  topic: '%{[service]}'
+  partition.round_robin: true
+  required_acks: 1
+  compression: gzip
+  max_message_bytes: 10000000
+  message_key: "%{[@metadata][traceId]}"
+  message_key_field: "@metadata.traceId"
+  message_key_delimiter: "-"

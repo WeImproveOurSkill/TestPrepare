@@ -1,38 +1,27 @@
-package com.example.be.common.domain.exam.repository.certification;
+package com.example.questionsserver.repository.main.certification;
 
-import com.example.be.common.domain.exam.dtos.CertificationDto;
-import com.example.be.common.domain.exam.dtos.CertificationTypeDto;
-import com.example.be.common.domain.exam.dtos.QuestionDto;
-import com.example.be.common.domain.exam.entity.Certification;
-import com.example.be.common.domain.exam.entity.CertificationType;
-import com.example.be.common.domain.exam.entity.QAnswer;
+import com.example.questionsserver.dtos.CertificationDto;
+import com.example.questionsserver.dtos.CertificationTypeDto;
+import com.example.questionsserver.dtos.QuestionDto;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
-import org.springframework.expression.spel.ast.Projection;
 
-import java.util.ArrayList;
+import static com.example.questionsserver.entity.QCertification.certification;
+import static com.example.questionsserver.entity.QCertificationType.certificationType;
+import static com.example.questionsserver.entity.QSubjectExam.subjectExam;
+import static com.example.questionsserver.entity.QQuestion.question;
+import static com.example.questionsserver.entity.QAnswer.answer;
+
+
+
 import java.util.List;
-
-import static com.example.be.common.domain.exam.entity.QAnswer.answer;
-import static com.example.be.common.domain.exam.entity.QCertificationType.certificationType;
-import static com.example.be.common.domain.exam.entity.QSubjectExam.subjectExam;
-import static com.example.be.common.domain.exam.entity.QCertification.certification;
-import static com.example.be.common.domain.exam.entity.QQuestion.question;
-
 
 @RequiredArgsConstructor
 public class CertificationRepositoryQueryImpl implements CertificationRepositoryQuery {
 
     private final JPAQueryFactory jpaQueryFactory;
 
-    /***
-     *
-     * @param name
-     * @param year
-     * @param session
-     * @return
-     */
     @Override
     public List<QuestionDto> findAllQuestionByNameAndYearAndSession(String name, int year, int session) {
         //1 certification -> question
@@ -60,9 +49,9 @@ public class CertificationRepositoryQueryImpl implements CertificationRepository
     @Override
     public List<CertificationDto> findAllByCertificationInformation() {
         return jpaQueryFactory.select(Projections.constructor(
-                CertificationDto.class,
-                certification.id,
-                certification.name))
+                        CertificationDto.class,
+                        certification.id,
+                        certification.name))
                 .from(certification)
                 .fetch();
 
