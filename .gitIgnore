@@ -21,3 +21,6 @@ nginx/letsencrypt-ssl/*
 be/src/main/resources/keystore.p12
 
 
+*.p12
+*.pem
+*.log

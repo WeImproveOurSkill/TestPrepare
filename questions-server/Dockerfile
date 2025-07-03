@@ -10,9 +10,9 @@ WORKDIR /app
 COPY --from=build /app/build/libs/*.jar app.jar
 COPY docker-entrypoint.sh docker-entrypoint.sh
 
-# 실행 권한 부여 및 쉘 설치 (Alpine Linux는 기본적으로 netcat이 없음)
+# 실행 권한 부여 및 필요한 패키지 설치 (Alpine Linux)
 RUN chmod +x docker-entrypoint.sh && \
-    apk add --no-cache netcat-openbsd
+    apk add --no-cache netcat-openbsd curl
 
 EXPOSE 8442
 # EXPOSE 8080

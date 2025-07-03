@@ -1,6 +1,6 @@
 <configuration>
   <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-    <file>/var/log/app/users-service.log</file>
+    <file>logs/app/users-service.log</file>
     <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
       <providers>
         <timestamp>
@@ -21,7 +21,7 @@
       </providers>
     </encoder>
     <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-      <fileNamePattern>/var/log/app/app.%d{yyyy-MM-dd}.log</fileNamePattern>
+      <fileNamePattern>logs/app/app.%d{yyyy-MM-dd}.log</fileNamePattern>
       <maxHistory>30</maxHistory>
     </rollingPolicy>
   </appender>

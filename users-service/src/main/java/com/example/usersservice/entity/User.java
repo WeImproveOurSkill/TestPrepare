@@ -1,4 +1,4 @@
-package com.example.usersservice.entiry;
+package com.example.usersservice.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;

@@ -7,43 +7,51 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 
+
 import javax.sql.DataSource;
 import java.util.HashMap;
 import java.util.Map;
 
-@Configuration
+
+@Configuration  
 public class DataSourceConfig {
 
-    @Value("${spring.datasource.master.driver-class-name}")
+    @Value("${spring.datasource.master.url}")
     private String masterUrl;
+    @Value("${spring.datasource.slave.url}")
+    private String slaveUrl;
+
     @Value("${spring.datasource.master.username}")
     private String masterUsername;
+
+    @Value("${spring.datasource.slave.username}")
+    private String slaveUsername;
+
     @Value("${spring.datasource.master.password}")
     private String masterPassword;
 
-    @Value("${spring.datasource.slave.url}")
-    private String slaveUrl;
-    @Value("${spring.datasource.slave.username}")
-    private String slaveUsername;
-    @Value("${spring.datasource.slave.password}")
+    @Value("${spring.datasource.master.password}")
     private String slavePassword;
 
     @Bean
     @Primary
     public DataSource dataSource() {
-        ReplicationRoutingDataSource replicationRoutingDataSource = new ReplicationRoutingDataSource();
-        DataSource masterDataSource = createDataSource(masterUrl, masterUsername, masterPassword);
-        DataSource slaveDataSource = createDataSource(slaveUrl, slaveUsername, slavePassword);
+        ReplicationRoutingDataSource routingDataSource = new ReplicationRoutingDataSource();
+        DataSource masterDataSource = createDataSource(
+                masterUrl,masterUsername,masterPassword);
+
+        DataSource slaveDataSource = createDataSource(
+                slaveUrl,slaveUsername,slavePassword);
 
         Map<Object, Object> targetDataSources = new HashMap<>();
         targetDataSources.put("master", masterDataSource);
         targetDataSources.put("slave", slaveDataSource);
 
-        replicationRoutingDataSource.setDefaultTargetDataSource(masterDataSource);
-        replicationRoutingDataSource.setTargetDataSources(targetDataSources);
-        replicationRoutingDataSource.afterPropertiesSet();
+        routingDataSource.setDefaultTargetDataSource(masterDataSource);
+        routingDataSource.setTargetDataSources(targetDataSources);
+        routingDataSource.afterPropertiesSet();
 
-        return replicationRoutingDataSource;
+        return routingDataSource;
 
     }
 
@@ -54,5 +62,6 @@ public class DataSourceConfig {
         config.setPassword(password);
         return new HikariDataSource(config);
     }
+
 
 }

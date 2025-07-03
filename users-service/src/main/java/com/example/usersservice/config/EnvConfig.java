@@ -7,7 +7,7 @@ import org.springframework.context.annotation.Configuration;
 public class EnvConfig {
     static{
         Dotenv load = Dotenv.configure()
-                .directory("../user-service")
+                .directory(".")
                 .ignoreIfMissing()
                 .load();
         load.entries().forEach(entry -> System.setProperty(entry.getKey(), entry.getValue()));

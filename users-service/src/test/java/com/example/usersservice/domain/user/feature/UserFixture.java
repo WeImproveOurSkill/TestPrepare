@@ -1,7 +1,7 @@
 package com.example.usersservice.domain.user.feature;
 
 
-import com.example.usersservice.entiry.User;
+import com.example.usersservice.entity.User;
 import com.example.usersservice.utils.oAuth2.GoogleUserInfo;
 import com.example.usersservice.utils.oAuth2.KakaoUserInfo;
 

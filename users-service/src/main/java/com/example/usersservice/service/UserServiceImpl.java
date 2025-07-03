@@ -1,7 +1,7 @@
 package com.example.usersservice.service;
 
 
-import com.example.usersservice.entiry.User;
+import com.example.usersservice.entity.User;
 import com.example.usersservice.repository.UserRepository;
 import com.example.usersservice.utils.jwt.JwtUtils;
 import com.example.usersservice.utils.oAuth2.GoogleUserInfo;
@@ -26,7 +26,6 @@ import java.text.ParseException;
 import java.util.Map;
 
 @Service
-@RequiredArgsConstructor
 @Slf4j
 public class UserServiceImpl implements UserService {
 
@@ -34,9 +33,19 @@ public class UserServiceImpl implements UserService {
     private final JwtUtils jwtUtil;
     private final RestTemplate restTemplate;
     private final PasswordEncoder passwordEncoder;
-
-    @Qualifier("redisTokenValueTemplate")
     private final RedisTemplate<String, Object> tokenRedisTemplate;
+
+    public UserServiceImpl(UserRepository userRepository, 
+                          JwtUtils jwtUtil, 
+                          RestTemplate restTemplate, 
+                          PasswordEncoder passwordEncoder,
+                          @Qualifier("redisTokenTemplate") RedisTemplate<String, Object> tokenRedisTemplate) {
+        this.userRepository = userRepository;
+        this.jwtUtil = jwtUtil;
+        this.restTemplate = restTemplate;
+        this.passwordEncoder = passwordEncoder;
+        this.tokenRedisTemplate = tokenRedisTemplate;
+    }
 
 
     @Override

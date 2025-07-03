@@ -1,6 +1,6 @@
 package com.example.usersservice.domain.user.service;
 
-import com.example.usersservice.entiry.User;
+import com.example.usersservice.entity.User;
 import com.example.usersservice.repository.UserRepository;
 import com.example.usersservice.service.UserServiceImpl;
 import com.example.usersservice.utils.jwt.JwtUtils;
@@ -16,7 +16,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.HashMap;

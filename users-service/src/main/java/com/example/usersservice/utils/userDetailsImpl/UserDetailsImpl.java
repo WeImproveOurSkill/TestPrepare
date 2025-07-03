@@ -1,6 +1,6 @@
 package com.example.usersservice.utils.userDetailsImpl;
 
-import com.example.usersservice.entiry.User;
+import com.example.usersservice.entity.User;
 import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;

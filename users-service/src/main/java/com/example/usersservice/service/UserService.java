@@ -1,6 +1,6 @@
 package com.example.usersservice.service;
 
-import com.example.usersservice.entiry.User;
+import com.example.usersservice.entity.User;
 import com.example.usersservice.utils.oAuth2.OAuth2UserInfo;
 import net.minidev.json.JSONObject;
 

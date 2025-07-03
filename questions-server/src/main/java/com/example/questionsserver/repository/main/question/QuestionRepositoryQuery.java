@@ -6,7 +6,7 @@ import java.util.List;
 
 public interface QuestionRepositoryQuery {
     // 단건 문제 조회
-    QuestionDto findByQuestionBySubjectSizeCount(Long subjectExamId, Long questionId);
+    QuestionDto findQuestionBySubjectAndQuestionId(Long subjectExamId, Long questionId);
 
     List<QuestionDto> findAllbySubjectIdAndRandomNumber(Long subjectId);
 

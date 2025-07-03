@@ -15,7 +15,7 @@ filebeat.inputs:
       service: "questions-server"
     fields_under_root: true
     
-  -type: log
+  - type: log
     enabled: true
     paths:
       - /var/log/nginx/access.log
@@ -26,10 +26,9 @@ filebeat.inputs:
 output.kafka:
   hosts: ["kafka:9092"]
   topic: '%{[service]}'
-  partition.round_robin: true
+  partition:
+    round_robin:
+      reachable_only: false
   required_acks: 1
   compression: gzip
   max_message_bytes: 10000000
-  message_key: "%{[@metadata][traceId]}"
-  message_key_field: "@metadata.traceId"
-  message_key_delimiter: "-"

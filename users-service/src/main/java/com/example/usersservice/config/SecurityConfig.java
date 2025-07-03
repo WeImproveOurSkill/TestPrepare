@@ -52,7 +52,9 @@ public class SecurityConfig {
 //    }
 
     @Bean
-    public SecurityFilterChain springSecurityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain filterChain
+
+            (HttpSecurity http) throws Exception {
 
         http.csrf(csrf -> csrf.disable());
         http.sessionManagement(sessionManagement ->
@@ -62,8 +64,8 @@ public class SecurityConfig {
                         .requestMatchers(permitAllArray).permitAll()
                         .anyRequest().authenticated());
 
-        http.addFilterBefore(traceIdFilter, JwtAuthFilter.class)
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+        http.addFilterBefore(traceIdFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterAfter(jwtAuthFilter, TraceIdFilter.class);
         return http.build();
     }
 

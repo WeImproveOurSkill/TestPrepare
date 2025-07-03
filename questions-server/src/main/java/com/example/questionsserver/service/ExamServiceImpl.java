@@ -48,7 +48,7 @@ public class ExamServiceImpl implements ExamService {
     @Override
     @Transactional(readOnly = true)
     public QuestionDto getQuestionsBySubject(Long subjectId, Long questionId) {
-        return questionRepository.findByQuestionBySubjectSizeCount(subjectId, questionId);
+        return questionRepository.findQuestionBySubjectAndQuestionId(subjectId, questionId);
     }
 
     @Override
