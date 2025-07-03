@@ -10,9 +10,9 @@ WORKDIR /app
 COPY --from=build /app/build/libs/*.jar app.jar
 COPY docker-entrypoint.sh docker-entrypoint.sh
 
-# 실행 권한 부여 및 netcat 설치
+# 실행 권한 부여 및 필요한 패키지 설치
 RUN chmod +x docker-entrypoint.sh && \
-    apt-get update && apt-get install -y netcat-openbsd && rm -rf /var/lib/apt/lists/*
+    apt-get update && apt-get install -y netcat-openbsd curl && rm -rf /var/lib/apt/lists/*
 
 EXPOSE 8441
 # EXPOSE 8080
