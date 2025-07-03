@@ -22,5 +22,5 @@ ENV PORT=8000
 # 포트 노출
 EXPOSE ${PORT}
 
-# 실행 명령어 (SSL 관련 옵션 제거)
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+# 실행 명령어 (HTTPS 지원)
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--ssl-keyfile", "/app/ssl_key.pem", "--ssl-certfile", "/app/ssl_cert.pem"]

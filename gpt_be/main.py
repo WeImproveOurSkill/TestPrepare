@@ -60,11 +60,11 @@ app.include_router(recommendation.router)
 logger.info("모든 라우터 설정 완료")
 
 if __name__ == "__main__":
-    # SSL 없이 HTTP로만 실행
+    # HTTPS 설정으로 실행
     uvicorn.run(
         "main:app",
         host="0.0.0.0",
         port=8000,
-        ssl_keyfile=None,
-        ssl_certfile=None,
+        ssl_keyfile="/app/ssl_key.pem",
+        ssl_certfile="/app/ssl_cert.pem",
     )
