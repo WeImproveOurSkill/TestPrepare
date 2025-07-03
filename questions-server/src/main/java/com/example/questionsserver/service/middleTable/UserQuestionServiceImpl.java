@@ -43,7 +43,7 @@ public class UserQuestionServiceImpl implements UserQuestionService {
 
     private UserQuestion findOrCreateUserQuestionByStatus(String username, Question question, UserQuestion.Status status) {
         UserQuestion userQuestion;
-        userQuestion = userQuestionRepository.findByUserAndQuestion(username, question);
+        userQuestion = userQuestionRepository.findByUserNameAndQuestion(username, question);
         if (userQuestion == null) {
             userQuestion = UserQuestion.builder()
                     .question(question)
@@ -88,8 +88,8 @@ public class UserQuestionServiceImpl implements UserQuestionService {
     public void updateBookMark(String username, Long questionId) {
         Question byId = examService.findById(questionId);
 
-        if (userQuestionRepository.existsByUserAndQuestion(username, byId)) {
-            UserQuestion byUserAndQuestion = userQuestionRepository.findByUserAndQuestion(username, byId);
+        if (userQuestionRepository.existsByUserNameAndQuestion(username, byId)) {
+            UserQuestion byUserAndQuestion = userQuestionRepository.findByUserNameAndQuestion(username, byId);
             byUserAndQuestion.updateBookmark();
         } else {
             UserQuestion userQuestion = UserQuestion.builder()

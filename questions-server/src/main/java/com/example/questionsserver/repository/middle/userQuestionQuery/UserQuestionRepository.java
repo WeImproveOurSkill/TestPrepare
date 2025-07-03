@@ -10,8 +10,8 @@ import java.util.List;
 
 @Repository
 public interface UserQuestionRepository extends JpaRepository<UserQuestion, Long>, UserQuestionRepositoryQuery {
-    UserQuestion findByUserAndQuestion(String attr0, Question question);
+    UserQuestion findByUserNameAndQuestion(String userName, Question question);
 
-    boolean existsByUserAndQuestion(String attr0, Question question);
+    boolean existsByUserNameAndQuestion(String userName, Question question);
 
 }

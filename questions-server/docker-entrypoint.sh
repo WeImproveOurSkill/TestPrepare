@@ -28,8 +28,4 @@ wait_for_mysql mysql-master 3306
 wait_for_mysql mysql-slave 3306
 
 echo "MySQL 준비 완료 (또는 타임아웃)"
-echo "애플리케이션 시작 중..."
-echo "환경변수 확인:"
-env | grep -E "(SPRING|SECRET|KAKAO|GOOGLE)"
-echo "JAR 파일 확인:"
-ls -la /app/app.jar
+exec java -jar /app/app.jar

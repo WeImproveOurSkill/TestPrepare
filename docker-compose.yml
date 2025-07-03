@@ -139,6 +139,9 @@ services:
     container_name: gpt-app
     ports:
       - "8000:8000"
+    volumes:
+      - ./gpt_be/ssl_cert.pem:/app/ssl_cert.pem:ro
+      - ./gpt_be/ssl_key.pem:/app/ssl_key.pem:ro
     environment:
       - MYSQL_HOST=mysql-master
       - MYSQL_USER=${DB_USERNAME}
@@ -149,7 +152,7 @@ services:
       - JWT_SECRET_KEY=${SECRET_KEY}
       - JWT_ALGORITHM=${JWT_ALGORITHM}
       - PERPLEXITY_API_KEY=${PERPLEXITY_API_KEY}
-      - SSL_MODE=disabled
+      - SSL_MODE=enabled
     depends_on:
       mysql-master:
         condition: service_healthy
@@ -175,7 +178,9 @@ services:
       - ./nginx/letsencrypt-ssl/certificate.crt:/etc/nginx/ssl/certificate.crt
       - ./nginx/letsencrypt-ssl/private.key:/etc/nginx/ssl/private.key
     depends_on:
-      spring-app:
+      user-service:
+        condition: service_started      
+      questions-server:
         condition: service_started
       gpt-app:
         condition: service_started
@@ -189,6 +194,8 @@ services:
     container_name: user-service
     ports:
       - "8441:8441"
+    # volumes:
+    #   - ./shared-keystore.p12:/app/keystore.p12:ro
     environment:
       - SPRING_DATASOURCE_MASTER_URL=${DB_MASTER_URL}
       - SPRING_DATASOURCE_MASTER_USERNAME=${DB_USERNAME}
@@ -198,7 +205,11 @@ services:
       - SPRING_DATASOURCE_SLAVE_PASSWORD=${DB_PASSWORD}
       - TZ=Asia/Seoul
       - SECRET_KEY=${SECRET_KEY}
-      - JWT_ALGORITHM=${JWT_ALGORITHM}
+      - JWT_ALGORITHM=HS256
+      - KAKAO_CLIENT_ID=${KAKAO_CLIENT_ID}
+      - KAKAO_CLIENT_SECRET=${KAKAO_CLIENT_SECRET}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
     depends_on:
       redis:
         condition: service_healthy
@@ -216,6 +227,8 @@ services:
     container_name: questions-server
     ports:
       - "8442:8442"
+    # volumes:
+    #   - ./shared-keystore.p12:/app/keystore.p12:ro
     environment:
       - SPRING_DATASOURCE_MASTER_URL=${DB_MASTER_URL}
       - SPRING_DATASOURCE_MASTER_USERNAME=${DB_USERNAME}
@@ -225,7 +238,7 @@ services:
       - SPRING_DATASOURCE_SLAVE_PASSWORD=${DB_PASSWORD}
       - TZ=Asia/Seoul
       - SECRET_KEY=${SECRET_KEY}
-      - JWT_ALGORITHM=${JWT_ALGORITHM}
+      - JWT_ALGORITHM=HS256
     depends_on:
       redis:
         condition: service_healthy
@@ -242,6 +255,7 @@ services:
     volumes:
       - ./filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml
       - ./filebeat/log:/var/log/app
+      - ./nginx/logs:/var/log/nginx
     command: filebeat -e -c /usr/share/filebeat/filebeat.yml
     depends_on:
       - user-service
@@ -252,22 +266,25 @@ services:
   kafka:
     image: confluentinc/cp-kafka:7.4.0
     container_name: kafka
+    user: "0:0"  # Run as root to avoid permission issues
     ports:
       - "9092:9092"
     environment:
       KAFKA_KRAFT_MODE: "true"
       KAFKA_NODE_ID: 1
+      CLUSTER_ID: "MkU3OEVBNjU1NTY0MDk5Qg"
       KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
       KAFKA_CONTROLLER_QUORUM_VOTERS: "1@kafka:9093"
       KAFKA_CONTROLLER_LISTENER_NAMES: "CONTROLLER"
       KAFKA_PROCESS_ROLES: "broker,controller"
-      KAFKA_LOG_DIRS: "/tmp/kraft-combined-logs"
+      KAFKA_LOG_DIRS: "/var/kafka-logs"
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
     volumes:
-      - kafka_data:/tmp/kraft-combined-logs
+      - kafka_data:/var/kafka-logs
     healthcheck:
       test: ["CMD-SHELL", "kafka-topics --bootstrap-server localhost:9092 --list"]
       interval: 30s
@@ -277,6 +294,7 @@ services:
     # Elasticsearch
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
+    platform: linux/amd64
     container_name: elasticsearch
     environment:
       - discovery.type=single-node

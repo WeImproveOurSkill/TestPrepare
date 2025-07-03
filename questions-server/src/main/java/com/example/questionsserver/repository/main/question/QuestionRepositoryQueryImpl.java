@@ -6,22 +6,28 @@ import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 
+import com.example.questionsserver.entity.QQuestion;
+import com.example.questionsserver.entity.QAnswer;
+import com.example.questionsserver.entity.QSubjectExam;
+import com.example.questionsserver.entity.QCertificationType;
+
 import java.util.List;
 
-import static com.example.questionsserver.entity.QAnswer.answer;
-import static com.example.questionsserver.entity.QCertificationType.certificationType;
-import static com.example.questionsserver.entity.QQuestion.question;
-import static com.example.questionsserver.entity.QSubjectExam.subjectExam;
+
 
 @RequiredArgsConstructor
-public abstract class QuestionRepositoryQueryImpl implements QuestionRepositoryQuery{
+public class QuestionRepositoryQueryImpl implements QuestionRepositoryQuery{
 
     private final JPAQueryFactory jpaQueryFactory;
 
 
     // 단건 문제 조회
     @Override
-    public QuestionDto findByQuestionBySubjectSizeCount(Long subjectExamId, Long questionId) {
+    public QuestionDto findQuestionBySubjectAndQuestionId(Long subjectExamId, Long questionId) {
+        QQuestion question = QQuestion.question;
+        QAnswer answer = QAnswer.answer;
+        QSubjectExam subjectExam = QSubjectExam.subjectExam;
+        
         QuestionDto questionDto = jpaQueryFactory
                 .select(Projections.constructor(
                         QuestionDto.class,
@@ -42,6 +48,10 @@ public abstract class QuestionRepositoryQueryImpl implements QuestionRepositoryQ
     // 랜덤 5문제 조회
     @Override
     public List<QuestionDto> findAllbySubjectIdAndRandomNumber(Long subjectExamId) {
+        QQuestion question = QQuestion.question;
+        QAnswer answer = QAnswer.answer;
+        QSubjectExam subjectExam = QSubjectExam.subjectExam;
+        
         // // 방법 3: ID 범위를 사용한 랜덤 선택
         // List<Long> questionIds = jpaQueryFactory
         //         .select(question.id)
@@ -88,6 +98,11 @@ public abstract class QuestionRepositoryQueryImpl implements QuestionRepositoryQ
     // 과목 시험모드 문제 조회
     @Override
     public List<QuestionDto> findAllQuestionBySubjectAndYearSession(Long subjectId, int year, int session) {
+        QQuestion question = QQuestion.question;
+        QAnswer answer = QAnswer.answer;
+        QSubjectExam subjectExam = QSubjectExam.subjectExam;
+        QCertificationType certificationType = QCertificationType.certificationType;
+        
         // 중간 테이블(CertificationSubject)을 조인에 추가
         // 1단계: 조건에 맞는 문제 ID만 조회
         return jpaQueryFactory.select(Projections.constructor(QuestionDto.class,

@@ -8,7 +8,7 @@ public class EnvConfig {
 
     static {
         Dotenv dotenv = Dotenv.configure()
-                .directory("../question-server")
+                .directory(".")
                 .ignoreIfMissing()
                 .load();
 

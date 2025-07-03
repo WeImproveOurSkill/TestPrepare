@@ -1,6 +1,6 @@
 package com.example.usersservice.annotation;
 
-import com.example.usersservice.entiry.User;
+import com.example.usersservice.entity.User;
 import org.springframework.security.test.context.support.WithSecurityContext;
 
 import java.lang.annotation.Retention;

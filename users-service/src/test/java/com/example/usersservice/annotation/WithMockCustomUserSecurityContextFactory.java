@@ -1,7 +1,7 @@
 package com.example.usersservice.annotation;
 
 
-import com.example.usersservice.entiry.User;
+import com.example.usersservice.entity.User;
 import com.example.usersservice.utils.userDetailsImpl.UserDetailsImpl;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
