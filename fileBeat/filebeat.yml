@@ -2,7 +2,7 @@ filebeat.inputs:
   - type: log
     enabled: true
     paths:
-      - /var/log/app/users-service.log
+      - /var/log/app/users-service/users-service.log
     fields:
       service: "users-service"
     fields_under_root: true
@@ -10,7 +10,7 @@ filebeat.inputs:
   - type: log
     enabled: true
     paths:
-      - /var/log/app/questions-server.log
+      - /var/log/app/questions-server/questions-server.log
     fields:
       service: "questions-server"
     fields_under_root: true

@@ -5,6 +5,8 @@ volumes:
   redis-token-data: {}
   kafka_data: {}
   elasticsearch_data: {}
+  users-service-logs: {}
+  questions-server-logs: {}
 
 services:
   # Redis 설정
@@ -225,6 +227,8 @@ services:
         condition: service_healthy
       mysql-slave:
         condition: service_healthy
+    volumes:
+      - users-service-logs:/app/logs/app
     healthcheck:
       test: ["CMD", "curl", "-f", "https://localhost:8441/actuator/health", "--insecure"]
       interval: 30s
@@ -267,6 +271,8 @@ services:
       timeout: 10s
       retries: 5
       start_period: 60s
+    volumes:
+      - questions-server-logs:/app/logs/app
     restart: unless-stopped
 
   filebeat:
@@ -276,6 +282,8 @@ services:
       - ./filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml
       - ./filebeat/log:/var/log/app
       - ./nginx/logs:/var/log/nginx
+      - users-service-logs:/var/log/app/users-service
+      - questions-server-logs:/var/log/app/questions-server
     command: filebeat -e -c /usr/share/filebeat/filebeat.yml
     depends_on:
       - user-service
