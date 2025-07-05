@@ -24,3 +24,7 @@ be/src/main/resources/keystore.p12
 *.p12
 *.pem
 *.log
+*.crt
+*.sh
+*.key
+ssl-certs/*

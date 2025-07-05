@@ -28,4 +28,4 @@ wait_for_mysql mysql-master 3306
 wait_for_mysql mysql-slave 3306
 
 echo "MySQL 준비 완료 (또는 타임아웃)"
-exec java -jar /app/app.jar
+exec java -Xmx1g -XX:+HeapDumpOnOutOfMemoryError -jar /app/app.jar --spring.jpa.hibernate.ddl-auto=update --logging.level.root=INFO --logging.level.org.springframework=INFO --logging.level.org.hibernate=WARN

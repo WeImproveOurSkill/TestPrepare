@@ -30,7 +30,7 @@ public class DataSourceConfig {
     @Value("${spring.datasource.master.password}")
     private String masterPassword;
 
-    @Value("${spring.datasource.master.password}")
+    @Value("${spring.datasource.slave.password}")
     private String slavePassword;
 
     @Bean

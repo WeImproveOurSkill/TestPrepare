@@ -21,7 +21,7 @@ import java.time.LocalDateTime;
         },
         indexes = {
                 // 복합 인덱스
-                @Index(name = "idx_user_question_user_status", columnList = "user_id,status")
+                @Index(name = "idx_user_question_user_status", columnList = "user_name,status")
         }
 )
 public class UserQuestion {
