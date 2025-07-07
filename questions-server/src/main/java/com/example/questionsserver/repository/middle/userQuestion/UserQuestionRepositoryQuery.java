@@ -1,4 +1,4 @@
-package com.example.questionsserver.repository.middle.userQuestionQuery;
+package com.example.questionsserver.repository.middle.userQuestion;
 
 import com.example.questionsserver.dtos.QuestionDto;
 import com.example.questionsserver.entity.middleTable.UserQuestion;
@@ -8,5 +8,5 @@ import java.util.List;
 public interface UserQuestionRepositoryQuery {
     List<QuestionDto> findAllAboutWrongQuestionByStatus(String username, UserQuestion.Status status);
 
-    List<QuestionDto> getBookMarkQuestion(String username, Long certificationId);
+//    List<QuestionDto> getBookMarkQuestion(String username, Long certificationId);
 }

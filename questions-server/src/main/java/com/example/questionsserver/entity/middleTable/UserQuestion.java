@@ -55,17 +55,5 @@ public class UserQuestion {
 
     private Status status;
 
-    private Boolean isBookmarked; // 북마크 용도
 
-    public void updateBookmark() {
-        if (!this.isBookmarked) {
-            this.isBookmarked = true;
-        } else {
-            this.isBookmarked = false;
-        }
-    }
-
-    public void checkAnswer() {
-
-    }
 }

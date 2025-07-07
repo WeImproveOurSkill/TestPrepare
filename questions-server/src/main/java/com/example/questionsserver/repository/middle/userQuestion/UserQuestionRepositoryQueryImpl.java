@@ -1,4 +1,4 @@
-package com.example.questionsserver.repository.middle.userQuestionQuery;
+package com.example.questionsserver.repository.middle.userQuestion;
 
 import com.example.questionsserver.dtos.QuestionDto;
 import com.example.questionsserver.entity.middleTable.UserQuestion;
@@ -36,24 +36,24 @@ public class UserQuestionRepositoryQueryImpl implements UserQuestionRepositoryQu
 //        return null;
     }
 
-    @Override
-    public List<QuestionDto> getBookMarkQuestion(String username, Long certificationId) {
-        return jpaQueryFactory.select(Projections.constructor(
-                        QuestionDto.class,
-                        question.id.as("questionId"),
-                        question.content.as("question"),
-                        answer.answerText.as("answer"),
-                        answer.explanation
-                )).from(userQuestion)
-                .join(userQuestion.question, question)
-                .join(question.certificationType.certification, certification)// question과 명시적 조인
-                .where(
-                        userQuestion.userName.eq(username),         // 사용자 직접 비교
-                        userQuestion.isBookmarked.isTrue(), // 북마크 상태 확인
-                        question.certificationType.certification.id.eq(certificationId) // certification ID 필터링
-                )
-                .fetch();
-//        return null;
-
-    }
+//    @Override
+//    public List<QuestionDto> getBookMarkQuestion(String username, Long certificationId) {
+//        return jpaQueryFactory.select(Projections.constructor(
+//                        QuestionDto.class,
+//                        question.id.as("questionId"),
+//                        question.content.as("question"),
+//                        answer.answerText.as("answer"),
+//                        answer.explanation
+//                )).from(userQuestion)
+//                .join(userQuestion.question, question)
+//                .join(question.certificationType.certification, certification)// question과 명시적 조인
+//                .where(
+//                        userQuestion.userName.eq(username),         // 사용자 직접 비교
+////                        userQuestion.isBookmarked.isTrue(), // 북마크 상태 확인
+//                        question.certificationType.certification.id.eq(certificationId) // certification ID 필터링
+//                )
+//                .fetch();
+////        return null;
+//
+//    }
 }

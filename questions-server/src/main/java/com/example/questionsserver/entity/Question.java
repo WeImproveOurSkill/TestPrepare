@@ -1,5 +1,6 @@
 package com.example.questionsserver.entity;
 
+import com.example.questionsserver.entity.middleTable.UserBookmark;
 import com.example.questionsserver.entity.middleTable.UserQuestion;
 import com.querydsl.core.annotations.QueryEntity;
 import jakarta.persistence.*;
@@ -43,4 +44,7 @@ public class Question {
 
     @OneToMany(mappedBy = "question", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<UserQuestion> userQuestions;
+
+    @OneToMany(mappedBy = "question", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<UserBookmark> userBookmarks;
 }

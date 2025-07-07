@@ -99,11 +99,20 @@ public class ExamController {
         return ResponseEntity.ok(userQuestionService.getWrongQuestions(username, status));
     }
 
-    @PatchMapping("/book-mark")
-    public ResponseEntity<ResponseStatus> updateBookMark(@RequestHeader("Authorization") String authHeader,
+    @PostMapping("/book-mark")
+    public ResponseEntity<ResponseStatus> createBookmark(@RequestHeader("Authorization") String authHeader,
                                                          @RequestParam Long questionId) {
         String username = jwtUtils.extractUsername(authHeader);
-        userQuestionService.updateBookMark(username, questionId);
+        userQuestionService.createBookMark(username, questionId);
+        return ResponseEntity.ok().build();
+    }
+
+
+    @DeleteMapping("/book-mark")
+    public ResponseEntity<ResponseStatus> deleteBookMark(@RequestHeader("Authorization") String authHeader,
+                                                         @RequestParam Long questionId) {
+        String username = jwtUtils.extractUsername(authHeader);
+        userQuestionService.deleteBookMark(username, questionId);
         return ResponseEntity.ok().build();
     }
 

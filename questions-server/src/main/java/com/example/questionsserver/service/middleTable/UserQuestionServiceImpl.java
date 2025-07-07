@@ -4,9 +4,11 @@ import com.example.questionsserver.dtos.AnswerRecordDto;
 import com.example.questionsserver.dtos.AnswerSubmitDTO;
 import com.example.questionsserver.dtos.QuestionDto;
 import com.example.questionsserver.entity.Question;
+import com.example.questionsserver.entity.middleTable.UserBookmark;
 import com.example.questionsserver.entity.middleTable.UserQuestion;
+import com.example.questionsserver.repository.middle.userBookmark.UserBookmarkRepository;
 import com.example.questionsserver.repository.main.question.QuestionRepository;
-import com.example.questionsserver.repository.middle.userQuestionQuery.UserQuestionRepository;
+import com.example.questionsserver.repository.middle.userQuestion.UserQuestionRepository;
 import com.example.questionsserver.service.ExamService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
@@ -27,6 +29,9 @@ public class UserQuestionServiceImpl implements UserQuestionService {
 
     private final UserQuestionRepository userQuestionRepository;
     private final ExamService examService;
+    private final UserBookmarkRepository userBookmarkRepository;
+
+
 
     @Override
     @Transactional // 시험 문제 풀이 처리 서비스 코드
@@ -49,7 +54,6 @@ public class UserQuestionServiceImpl implements UserQuestionService {
                     .question(question)
                     .userName(username)
                     .solveTime(LocalDateTime.now())
-                    .isBookmarked(false)
                     .status(status)
                     .build();
         } else {
@@ -82,32 +86,31 @@ public class UserQuestionServiceImpl implements UserQuestionService {
     @Override
     @Transactional
     @Caching(evict = {
-            @CacheEvict(value = "userBookmarks", key = "#username.id + '_*'"),
-            @CacheEvict(value = "userWrongQuestions", key = "#username.id + '_*'")
+            @CacheEvict(value = "userBookmarks", key = "#username + '_*'"),
     })
-    public void updateBookMark(String username, Long questionId) {
+    public void createBookMark(String username, Long questionId) {
+        Question byId = examService.findById(questionId);
+        UserBookmark.UserBookmarkBuilder userBookmarkBuilder = UserBookmark.builder()
+                .question(byId)
+                .username(username)
+                .createdAt(LocalDateTime.now());
+        userBookmarkRepository.save(userBookmarkBuilder.build());
+    }
+
+
+    @Override
+    public void deleteBookMark(String username, Long questionId) {
         Question byId = examService.findById(questionId);
 
-        if (userQuestionRepository.existsByUserNameAndQuestion(username, byId)) {
-            UserQuestion byUserAndQuestion = userQuestionRepository.findByUserNameAndQuestion(username, byId);
-            byUserAndQuestion.updateBookmark();
-        } else {
-            UserQuestion userQuestion = UserQuestion.builder()
-                    .isBookmarked(true)
-                    .question(byId)
-                    .userName(username)
-                    .solveTime(LocalDateTime.now())
-                    .status(UserQuestion.Status.WRONG)
-                    .build();
-            userQuestionRepository.save(userQuestion);
-        }
+        userBookmarkRepository.deleteUserBookmarkByUsernameAndQuestion(username, byId);
+
     }
 
     @Override
-    @Transactional()
+    @Transactional(readOnly = true)
     @Cacheable(value = "userBookmarks", key = "#username + '_' + #certificationId")
     public List<QuestionDto> getBookMarkQuestion(String username, Long certificationId) {
-        return userQuestionRepository.getBookMarkQuestion(username, certificationId);
+        return userBookmarkRepository.getBookMarkQuestion(username, certificationId);
     }
 
 
