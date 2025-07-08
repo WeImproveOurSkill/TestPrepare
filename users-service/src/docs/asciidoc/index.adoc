@@ -82,14 +82,14 @@ User Service는 사용자 인증 및 계정 관리 기능을 제공합니다.
 
 카카오 OAuth 인증 프로세스의 콜백을 처리합니다.
 
-operation::kakao-oauth-callback[snippets='request-fields,http-request,http-response,response-fields']
+operation::kakao-login[snippets='request-fields,http-request,http-response,response-fields']
 
 [[resources-user-google-oauth]]
 === 구글 OAuth 콜백
 
 구글 OAuth 인증 프로세스의 콜백을 처리합니다.
 
-operation::google-oauth-callback[snippets='request-fields,http-request,http-response,response-fields']
+operation::google-login[snippets='request-fields,http-request,http-response,response-fields']
 
 [[resources-user-refresh]]
 === 토큰 갱신
