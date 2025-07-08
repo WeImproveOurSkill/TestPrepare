@@ -1,4 +1,6 @@
 package com.example.questionsserver.dtos;
 
-public record CertificationTypeDto(int year, int session) {
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+public record CertificationTypeDto(@JsonProperty("year") int year, @JsonProperty("session") int session) {
 }
