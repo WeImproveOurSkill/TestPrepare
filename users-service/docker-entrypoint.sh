@@ -33,3 +33,5 @@ echo "환경변수 확인:"
 env | grep -E "(SPRING|SECRET|KAKAO|GOOGLE)"
 echo "JAR 파일 확인:"
 ls -la /app/app.jar
+echo "Java 시작 (디버그 모드)..."
+exec java -Xmx1g -XX:+HeapDumpOnOutOfMemoryError -jar /app/app.jar --spring.jpa.hibernate.ddl-auto=update --logging.level.root=DEBUG --logging.level.org.springframework=DEBUG --logging.level.org.hibernate=DEBUG --logging.level.com.zaxxer.hikari=DEBUG --logging.level.org.springframework.security=DEBUG

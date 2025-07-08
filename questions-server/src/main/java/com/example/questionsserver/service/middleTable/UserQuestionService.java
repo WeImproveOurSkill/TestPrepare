@@ -4,8 +4,6 @@ import com.example.questionsserver.dtos.AnswerRecordDto;
 import com.example.questionsserver.dtos.AnswerSubmitDTO;
 import com.example.questionsserver.dtos.QuestionDto;
 import com.example.questionsserver.entity.middleTable.UserQuestion;
-import org.springframework.cache.annotation.Cacheable;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -16,8 +14,9 @@ public interface UserQuestionService {
 
     List<QuestionDto> getWrongQuestions(String username, UserQuestion.Status status);
 
-    void updateBookMark(String username, Long questionId);
+    void createBookMark(String username, Long questionId);
 
     List<QuestionDto> getBookMarkQuestion(String username, Long certificationId);
 
+    void deleteBookMark(String username, Long questionId);
 }

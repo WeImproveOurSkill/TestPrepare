@@ -252,39 +252,30 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public JSONObject refreshToken(String username, String refreshToken) {
-        try {
-            // 1. Redis에서 리프레시 토큰 조회
-            String storedRefreshToken = jwtUtil.getRefreshToken(username);
-            if (storedRefreshToken == null) {
-                throw new IllegalArgumentException("유효하지 않은 리프레시 토큰입니다.");
-            }
-
-            // 2. 리프레시 토큰 유효성 검증
-            if (!jwtUtil.isRefreshTokenValid(username, storedRefreshToken)) {
-                throw new IllegalArgumentException("만료되거나 유효하지 않은 리프레시 토큰입니다.");
-            }
-
-            // 3. 사용자 정보 조회
-            User user = userRepository.findByUsername(username)
-                    .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
-
-            // 4. 새로운 액세스 토큰 생성
-            String newAccessToken = jwtUtil.createAccessToken(username, String.valueOf(user.getRole()));
-
-            // 5. 응답 생성
-            JSONObject response = new JSONObject();
-            response.put("token", newAccessToken);
-            response.put("message", "토큰이 성공적으로 갱신되었습니다.");
-
-            return response;
-
-        } catch (Exception e) {
-            JSONObject errorResponse = new JSONObject();
-            errorResponse.put("error", "토큰 갱신 실패");
-            errorResponse.put("message", e.getMessage());
-            throw new RuntimeException("토큰 갱신 중 오류: " + e.getMessage(), e);
+        // 1. Redis에서 리프레시 토큰 조회 및 비교
+        String storedRefreshToken = jwtUtil.getRefreshToken(username);
+        if (storedRefreshToken == null || !storedRefreshToken.equals(refreshToken)) {
+            throw new IllegalArgumentException("유효하지 않은 리프레시 토큰입니다.");
         }
 
+        // 2. 리프레시 토큰 유효성 검증
+        if (!jwtUtil.isRefreshTokenValid(username, refreshToken)) {
+            throw new IllegalArgumentException("만료되거나 유효하지 않은 리프레시 토큰입니다.");
+        }
+
+        // 3. 사용자 정보 조회
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+
+        // 4. 새로운 액세스 토큰 생성
+        String newAccessToken = jwtUtil.createAccessToken(username, String.valueOf(user.getRole()));
+
+        // 5. 응답 생성
+        JSONObject response = new JSONObject();
+        response.put("token", newAccessToken);
+        response.put("message", "토큰이 성공적으로 갱신되었습니다.");
+
+        return response;
     }
 
 

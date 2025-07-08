@@ -1,4 +1,6 @@
 package com.example.questionsserver.dtos;
 
-public record SubjectDto(Long subjectId, String subjectName) {
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+public record SubjectDto(@JsonProperty("subjectId") Long subjectId, @JsonProperty("subjectName") String subjectName) {
 }

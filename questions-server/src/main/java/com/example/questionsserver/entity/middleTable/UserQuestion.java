@@ -21,7 +21,7 @@ import java.time.LocalDateTime;
         },
         indexes = {
                 // 복합 인덱스
-                @Index(name = "idx_user_question_user_status", columnList = "user_id,status")
+                @Index(name = "idx_user_question_user_status", columnList = "user_name,status")
         }
 )
 public class UserQuestion {
@@ -55,17 +55,5 @@ public class UserQuestion {
 
     private Status status;
 
-    private Boolean isBookmarked; // 북마크 용도
 
-    public void updateBookmark() {
-        if (!this.isBookmarked) {
-            this.isBookmarked = true;
-        } else {
-            this.isBookmarked = false;
-        }
-    }
-
-    public void checkAnswer() {
-
-    }
 }

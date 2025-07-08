@@ -1,4 +1,4 @@
-package com.example.usersservice.domain.user.controller;
+package com.example.usersservice.controller;
 
 
 import com.example.usersservice.annotation.WithCustomMockUser;
@@ -44,7 +44,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @ExtendWith({RestDocumentationExtension.class, SpringExtension.class})
-@WebMvcTest(UserController.class)
+@WebMvcTest(controllers = UserController.class)
 @MockBean(JpaMetamodelMappingContext.class)
 @AutoConfigureRestDocs
 class UserControllerTest {
@@ -80,7 +80,7 @@ class UserControllerTest {
 
     @Test
     @WithMockUser
-    void kakaoCallback() throws Exception {
+    void kakaoOAuthCallback() throws Exception {
         // Given
         JSONObject requestBody = new JSONObject();
         requestBody.put("code", "test_authorization_code");
@@ -92,14 +92,14 @@ class UserControllerTest {
         responseBody.put("nickname", "test_user");
         responseBody.put("email", "test@example.com");
         
-        given(userService.kakaoCallback(any(JSONObject.class))).willReturn(responseBody);
+        given(userService.kakaoCallback(any())).willReturn(responseBody);
 
         // When & Then
         mockMvc.perform(
             post("/oauth/callback/kakao")
                 .with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(requestBody)))
+                .content(requestBody.toString()))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.accessToken").exists())
@@ -128,7 +128,7 @@ class UserControllerTest {
 
     @Test
     @WithMockUser
-    void googleCallback() throws Exception {
+    void googleOAuthCallback() throws Exception {
         // Given
         JSONObject requestBody = new JSONObject();
         requestBody.put("code", "test_google_auth_code");
@@ -140,14 +140,14 @@ class UserControllerTest {
         responseBody.put("nickname", "test_google_user");
         responseBody.put("email", "test.google@example.com");
         
-        given(userService.googleCallback(any(JSONObject.class))).willReturn(responseBody);
+        given(userService.googleCallback(any())).willReturn(responseBody);
 
         // When & Then
         mockMvc.perform(
             post("/oauth/callback/google")
                 .with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(requestBody)))
+                .content(requestBody.toString()))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.accessToken").exists())

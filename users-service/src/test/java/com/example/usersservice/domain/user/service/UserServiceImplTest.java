@@ -222,6 +222,7 @@ class UserServiceImplTest {
         void success() {
             // given
             String refreshToken = "validRefreshToken";
+            given(jwtUtil.getRefreshToken(anyString())).willReturn(refreshToken);
             given(jwtUtil.isRefreshTokenValid(anyString(), anyString()))
                     .willReturn(true);
             given(userRepository.findByUsername(anyString()))
@@ -239,17 +240,32 @@ class UserServiceImplTest {
         }
 
         @Test
+        @DisplayName("실패: 저장된 리프레시 토큰과 다를 경우 예외가 발생한다")
+        void throwExceptionWhenRefreshTokenMismatch() {
+            // given
+            String refreshToken = "validRefreshToken";
+            String storedRefreshToken = "differentRefreshToken";
+            given(jwtUtil.getRefreshToken(anyString())).willReturn(storedRefreshToken);
+
+            // when & then
+            assertThatThrownBy(() -> userService.refreshToken(user.getUsername(), refreshToken))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessage("유효하지 않은 리프레시 토큰입니다.");
+        }
+
+        @Test
         @DisplayName("실패: 유효하지 않은 리프레시 토큰으로 요청시 예외가 발생한다")
         void throwExceptionWhenInvalidRefreshToken() {
             // given
             String refreshToken = "invalidRefreshToken";
+            given(jwtUtil.getRefreshToken(anyString())).willReturn(refreshToken);
             given(jwtUtil.isRefreshTokenValid(anyString(), anyString()))
                     .willReturn(false);
 
             // when & then
             assertThatThrownBy(() -> userService.refreshToken(user.getUsername(), refreshToken))
                     .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessage("해당 사용자는 재로그인을 진행해야합니다.");
+                    .hasMessage("만료되거나 유효하지 않은 리프레시 토큰입니다.");
         }
     }
 }
