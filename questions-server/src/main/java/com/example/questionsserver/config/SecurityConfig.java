@@ -28,6 +28,10 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
+    private final String [] permitArray={
+            "/exam"
+    };
+
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -38,6 +42,7 @@ public class SecurityConfig {
                 .httpBasic(httpBasic -> httpBasic.disable()) // 추가
                 .authorizeHttpRequests(auth ->
                         auth.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                                .requestMatchers(permitArray).permitAll()
                                 .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .exceptionHandling(ex -> ex

@@ -52,9 +52,9 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         }else{
             authentication = this.createAuthentication(username,role);
         }
-        UserDetailsImpl details = (UserDetailsImpl) authentication.getDetails();
-        String username1 = details.getUser().getUsername();
-        MDC.put("userID",username1);
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+        String usernameForMDC = userDetails.getUsername();
+        MDC.put("userID", usernameForMDC);
         context.setAuthentication(authentication);
         SecurityContextHolder.setContext(context);
     }
