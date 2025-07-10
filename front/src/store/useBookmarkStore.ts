@@ -1,46 +1,46 @@
 // store/useBookmarkStore.ts
 import { create } from 'zustand';
-import { getEncryptStorage, setEncryptStorage, BookMarkKey } from '../util/encryptStorage';
+import { fetchGet } from '../util/api';
 
 interface BookmarkState {
   bookmarks: number[];
-  toggleBookmark: (id: number) => void;
-  setBookmarks: (arr: number[]) => void;
-  loadBookmarks: () => Promise<void>;
+  isLoading: boolean;
+  fetchBookmarks: (certificationId?: number) => Promise<void>;
+  addBookmarkLocally: (id: number) => void;
+  removeBookmarkLocally: (id: number) => void;
+  clearBookmarks: () => void;
 }
 
 export const useBookmarkStore = create<BookmarkState>((set) => ({
   bookmarks: [],
-  toggleBookmark: (id: number) => {
-    set((state) => {
-      const exists = state.bookmarks.includes(id);
-      const newArr = exists
-        ? state.bookmarks.filter((i) => i !== id)
-        : [...state.bookmarks, id];
-      // 상태 변경 후 EncryptedStorage에도 저장
-      setEncryptStorage(BookMarkKey, newArr);
-      console.log('newArr',newArr);
+  isLoading: false,
 
-      return { bookmarks: newArr };
-    });
-  },
-  setBookmarks: (arr: number[]) => {
-    set({ bookmarks: arr });
-    setEncryptStorage(BookMarkKey, arr);
-  },
-  loadBookmarks: async () => {
-    const raw = await getEncryptStorage(BookMarkKey);
-    if (raw) {
-      try {
-        const parsed = JSON.parse(raw);
-        if (Array.isArray(parsed)) {set({ bookmarks: parsed });}
-        else if (typeof parsed === 'number') {set({ bookmarks: [parsed] });}
-        else {set({ bookmarks: [] });}
-      } catch {
-        set({ bookmarks: [] });
-      }
-    } else {
-      set({ bookmarks: [] });
+  fetchBookmarks: async (certificationId = 1) => {
+    set({ isLoading: true });
+    try {
+      const data = await fetchGet(`exam/book-mark/question?certificationId=${certificationId}`) as Array<{ questionId: number }>;
+      const bookmarkIds = data.map(item => item.questionId);
+      set({ bookmarks: bookmarkIds, isLoading: false });
+    } catch (error) {
+      console.error('북마크 목록을 가져오는데 실패했습니다:', error);
+      set({ bookmarks: [], isLoading: false });
     }
+  },
+
+  // 서버 요청 성공 후 로컬 상태 업데이트용
+  addBookmarkLocally: (id: number) => {
+    set((state) => ({
+      bookmarks: state.bookmarks.includes(id) ? state.bookmarks : [...state.bookmarks, id],
+    }));
+  },
+
+  removeBookmarkLocally: (id: number) => {
+    set((state) => ({
+      bookmarks: state.bookmarks.filter(bookmarkId => bookmarkId !== id),
+    }));
+  },
+
+  clearBookmarks: () => {
+    set({ bookmarks: [] });
   },
 }));
