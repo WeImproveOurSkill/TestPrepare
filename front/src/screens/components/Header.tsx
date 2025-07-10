@@ -6,9 +6,9 @@ import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import useThemeStore, { themeMode } from '../../store/useThemeStore';
 import { colors } from '../../constants/colors';
-import { getEncryptStorage, UserKey } from '../../util/encryptStorage';
+import { getEncryptStorage, UserNameKey } from '../../util/encryptStorage';
 import { RootStackParamList } from '../../navigation/RootStackNavigator';
-
+import { useAuthStore } from '../../store/useAuthStore';
 
 function Header() {
   const { theme } = useThemeStore(); // 현재 테마 가져오기
@@ -16,13 +16,14 @@ function Header() {
   const styles = styling(theme, insets); // 테마별 스타일 적용
   const [userName, setUserName] = useState<string | null>(null); // 사용자 이름을 저장할 상태 변수
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+  const { isLoggedIn } = useAuthStore();
 
   async function fetchUserName() {
     try {
-      const data = await getEncryptStorage(UserKey);
+      const data = await getEncryptStorage(UserNameKey);
 
-      if (data && data.username) {
-        const originalName = data.username;
+      if (data) {
+        const originalName = data;
         // '_'가 포함되어 있는지 확인하고, 포함되어 있다면 '_' 앞부분만 사용
         const processedName = originalName.includes('_')
           ? originalName.split('_')[0]
@@ -38,7 +39,7 @@ function Header() {
 
   useEffect(() => {
     fetchUserName();
-  }, []);
+  }, [isLoggedIn]);
 
   const backToLoginScreen = () => {
     navigation.reset({
