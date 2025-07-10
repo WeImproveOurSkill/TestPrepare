@@ -1,7 +1,9 @@
 import EncryptedStorage from 'react-native-encrypted-storage';
 
-const JwtKey = 'user_jwt';
-const UserKey = 'user';
+const AccessKey = 'access_token';
+const UserNameKey = 'user_name';
+const UserProviderKey = 'user_provider';
+const UserNicknameKey = 'user_nickname';
 const CertificationKey = 'certification';
 const BookMarkKey = 'bookmarks';
 
@@ -23,4 +25,4 @@ const removeEncryptStorage = async ( key: string) => {
   }
 };
 
-export {setEncryptStorage, getEncryptStorage, removeEncryptStorage, JwtKey, UserKey, CertificationKey, BookMarkKey};
+export {setEncryptStorage, getEncryptStorage, removeEncryptStorage, AccessKey, UserNameKey, UserProviderKey, UserNicknameKey, CertificationKey, BookMarkKey };
