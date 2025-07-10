@@ -10,30 +10,30 @@ import { QuestionData } from '../components/QuestionItem';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { HomeStackParamList } from '../../navigation/HomeStackNavigator';
+import { useFocusEffect } from '@react-navigation/native';
 
 const WrongQuestionScreen = () => {
   const { theme } = useThemeStore();
   const styles = styling(theme);
   const navigation = useNavigation<NativeStackNavigationProp<HomeStackParamList>>();
 
-  const { data: wrongQuestions } = useQuery<QuestionData[]>({
+  const { data: wrongQuestions, refetch } = useQuery<QuestionData[]>({
     queryKey: ['wrongQuestions'],
-    queryFn: () => {
-      console.log('wrongQuestions fetch');
-      return fetchGet('exam/wrong-questions?status=WRONG');
-    },
-    staleTime: 0,
-    gcTime: 0,
-
+    queryFn: () => fetchGet('exam/wrong-questions?status=WRONG'),
   });
 
+  useFocusEffect(
+    React.useCallback(() => {
+      refetch();
+    }, [refetch])
+  );
   console.log(wrongQuestions);
+
   // 문제 클릭 핸들러
   const handleQuestionSelect = (index: number) => {
     navigation.navigate('QuestionPager', {
       questions: wrongQuestions,
       currentPage: index + 1,
-      handlePageChange: (page: number) => console.log('페이지 변경:', page),
       mode: 'wrongQuestion',
     });
   };

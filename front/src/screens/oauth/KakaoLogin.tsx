@@ -1,13 +1,14 @@
-import React from 'react';
-import { Pressable, Text } from 'react-native';
+import React, { useState } from 'react';
+import { Alert, Pressable, Text, View } from 'react-native';
 import { ScaledSheet } from 'react-native-size-matters';
 import { login, KakaoOAuthToken } from '@react-native-seoul/kakao-login';
 import { useMutation } from '@tanstack/react-query';
-import { setEncryptStorage, JwtKey, UserKey } from '../../util/encryptStorage';
+import { setEncryptStorage, AccessKey, UserNameKey, UserProviderKey } from '../../util/encryptStorage';
 import { colors } from '../../constants/colors';
 import useThemeStore, { themeMode } from '../../store/useThemeStore';
 import { fetchPost } from '../../util/api';
 import { LoginUserResponse } from './AuthHomeScreen';
+import { useAuthStore } from '../../store/useAuthStore';
 
 interface Props {
   onLoginSuccess?: () => void;
@@ -16,7 +17,8 @@ interface Props {
 function KakaoLogin({ onLoginSuccess }: Props) {
   const {theme} = useThemeStore();
   const styles = styling(theme);
-
+  const { setLoggedIn } = useAuthStore();
+  const [log, setLog] = useState('');
 
   // 카카오 로그인 정보를 백엔드로 전송하는 mutation
   const { mutate: sendTokensToBackend } = useMutation<LoginUserResponse, Error, KakaoOAuthToken>({
@@ -28,13 +30,19 @@ function KakaoLogin({ onLoginSuccess }: Props) {
       return result;
     },
     onSuccess: async (data) => {
+      console.log(data);
+      console.log('카카오 백엔드 서버 요청 성공');
+      setLog(prevLog => prevLog + (prevLog ? '\n' : '') + '카카오 백엔드 서버 요청 성공');
+      await setEncryptStorage(AccessKey, data.token);
+      await setEncryptStorage(UserNameKey, data.user.username);
+      await setEncryptStorage(UserProviderKey, data.user.provider);
+      setLoggedIn(true);
       onLoginSuccess?.();
-
-      if (data.token) {
-        console.log('Login successful:', data);
-        await setEncryptStorage(JwtKey, data.token);
-        await setEncryptStorage(UserKey, data.user);
-      }
+    },
+    onError: (data) => {
+      console.log('카카오 백엔드 서버 요청 실패');
+      setLog(prevLog => prevLog + (prevLog ? '\n' : '') + '카카오 백엔드 서버 요청 실패' + data);
+      Alert.alert('카카오 로그인 실패', '다시 시도해주세요');
     },
   });
 
@@ -45,21 +53,29 @@ function KakaoLogin({ onLoginSuccess }: Props) {
       return token;
     },
     onSuccess: (loginData) => {
+      console.log('카카오 서버 요청 성공');
+      setLog(prevLog => prevLog + (prevLog ? '\n' : '') + '카카오 서버 요청 성공');
       sendTokensToBackend(loginData);
+    },
+    onError: (data) => {
+      console.log('카카오 서버 요청 실패');
+      setLog(prevLog => prevLog + (prevLog ? '\n' : '') + '카카오 서버 요청 실패' + data);
     },
   });
 
-
   return (
-    <Pressable
-      style={({pressed}) => [
-        styles.button,
-        pressed && styles.buttonPressed,
-      ]}
-      onPress={() => handleKakaoLogin()}
-    >
-      <Text style={styles.buttonText}>카카오 계정으로 계속하기</Text>
-    </Pressable>
+    <View>
+      <Pressable
+        style={({pressed}) => [
+          styles.button,
+          pressed && styles.buttonPressed,
+        ]}
+        onPress={() => handleKakaoLogin()}
+      >
+        <Text style={styles.buttonText}>카카오 계정으로 계속하기</Text>
+      </Pressable>
+      <Text>{log}</Text>
+    </View>
   );
 }
 

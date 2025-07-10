@@ -5,7 +5,7 @@ import useThemeStore, { themeMode } from '../../store/useThemeStore';
 import { colors } from '../../constants/colors';
 import KakaoLogin from '../oauth/KakaoLogin';
 import GoogleLogin from '../oauth/GoogleLogin';
-import { removeEncryptStorage, JwtKey, UserKey } from '../../util/encryptStorage';
+import { removeEncryptStorage, AccessKey, UserNameKey, UserNicknameKey } from '../../util/encryptStorage';
 
 interface LoginPageProps {
   onLoginSuccess?: () => void;
@@ -24,8 +24,9 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, onNonLogin }) => 
 
   const handleNonLogin = () => {
     if (onNonLogin) {
-      removeEncryptStorage(JwtKey);
-      removeEncryptStorage(UserKey);
+      removeEncryptStorage(AccessKey);
+      removeEncryptStorage(UserNameKey);
+      removeEncryptStorage(UserNicknameKey);
       onNonLogin();
     }
   };

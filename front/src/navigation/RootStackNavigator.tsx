@@ -5,6 +5,7 @@ import LoginScreen from '../screens/oauth/LoginScreen';
 import SelectCertificationScreen from '../screens/selectCertification/SelectCertificationScreen';
 import HomeStackNavigator, { HomeStackParamList } from './HomeStackNavigator';
 import { NavigatorScreenParams } from '@react-navigation/native';
+import { useAuthStore } from '../store/useAuthStore';
 
 export type RootStackParamList = {
   AuthHome: undefined;
@@ -16,12 +17,17 @@ export type RootStackParamList = {
 const Stack = createStackNavigator<RootStackParamList>();
 
 function RootStackNavigator() {
+  const { isLoggedIn } = useAuthStore();
+
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="AuthHome" component={AuthHomeScreen} />
+      {isLoggedIn ? (
+        <Stack.Screen name="HomeStack" component={HomeStackNavigator} />
+      ) : (
+        <Stack.Screen name="AuthHome" component={AuthHomeScreen} />
+      )}
       <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="SelectCertification" component={SelectCertificationScreen} />
-      <Stack.Screen name="HomeStack" component={HomeStackNavigator} />
     </Stack.Navigator>
   );
 }

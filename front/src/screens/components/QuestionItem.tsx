@@ -6,7 +6,7 @@ import FontAwesomeIcons from 'react-native-vector-icons/FontAwesome';
 import useThemeStore, { themeMode } from '../../store/useThemeStore';
 import { colors } from '../../constants/colors';
 import { extractChoiceNumber, parseContent } from '../../constants/examParser';
-import { fetchPatch, fetchPost } from '../../util/api';
+import { fetchPost, fetchDelete } from '../../util/api';
 import ChoiceItem from './ChoiceItem';
 import { UserAnswer } from '../../screens/components/QuestionPagerScreen';
 import { useBookmarkStore } from '../../store/useBookmarkStore';
@@ -91,23 +91,24 @@ const QuestionItem = React.memo(({
     }
   };
 
-  const bookmarks = useBookmarkStore((state) => state.bookmarks);
-  const toggleBookmark = useBookmarkStore((state) => state.toggleBookmark);
   const [loading, setLoading] = useState(false);
 
+  const bookmarks = useBookmarkStore((state) => state.bookmarks);
   const isBookmarked = bookmarks.includes(question.questionId);
 
   const handleStarPress = async () => {
     if (loading) {return;}
     setLoading(true);
     try {
-      // 서버에 patch 요청
-      await fetchPatch(`exam/book-mark?questionId=${question.questionId}`);
-      // zustand 상태만 변경 (EncryptedStorage 저장은 store 내부에서 처리)
-      console.log(question.questionId);
-      toggleBookmark(question.questionId);
+      if (isBookmarked) {
+        // 북마크 제거 - DELETE 요청
+        await fetchDelete('exam/book-mark', { questionId: question.questionId });
+      } else {
+        // 북마크 추가 - POST 요청
+        await fetchPost('exam/book-mark', { questionId: question.questionId });
+      }
     } catch (e) {
-      Alert.alert('알림', '북마크를 추가할 수 없습니다.');
+      Alert.alert('알림', '북마크 처리에 실패했습니다.');
     } finally {
       setLoading(false);
     }

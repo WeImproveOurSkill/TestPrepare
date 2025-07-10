@@ -2,49 +2,52 @@ import React, { useState } from 'react';
 import { View, Text, Pressable, Alert } from 'react-native';
 import { ScaledSheet } from 'react-native-size-matters';
 import { useMutation } from '@tanstack/react-query';
-import { useNavigation } from '@react-navigation/native';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import useThemeStore, { themeMode } from '../../store/useThemeStore';
 import { colors } from '../../constants/colors';
 import { fetchPost, fetchDelete } from '../../util/api';
-import { RootStackParamList } from '../../navigation/RootStackNavigator';
-import { removeEncryptStorage, JwtKey, UserKey } from '../../util/encryptStorage';
+import { removeEncryptStorage, AccessKey, UserNameKey, UserNicknameKey, CertificationKey } from '../../util/encryptStorage';
 import ThemeModal from './components/ThemeModal';
+import { useAuthStore } from '../../store/useAuthStore';
 
 type FetchMethod = typeof fetchPost | typeof fetchDelete;
 
 type ApiRequest = {
   url: string;
   method: FetchMethod;
+  data?: any;
 };
 
-interface MyPageScreenProps {
-
-}
-
-function MyPageScreen({}: MyPageScreenProps) {
+function MyPageScreen() {
   const { theme } = useThemeStore();
   const styles = styling(theme);
-  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const { setLoggedIn, isLoggedIn } = useAuthStore();
 
   const apiMutation = useMutation({
     mutationFn: (request: ApiRequest) => {
-      return request.method(request.url, {});
+      return request.method(request.url, request.data);
     },
     onSuccess: () => {
-      removeEncryptStorage(JwtKey);
-      removeEncryptStorage(UserKey);
-      navigation.reset({
-        index: 0,
-        routes: [{ name: 'AuthHome' }],
-      });
+      // 저장소에서 데이터 제거
+      removeEncryptStorage(AccessKey);
+      removeEncryptStorage(UserNameKey);
+      removeEncryptStorage(UserNicknameKey);
+      removeEncryptStorage(CertificationKey);
+
+      // 로그인 상태 변경 (이렇게 하면 RootStackNavigator가 자동으로 AuthHome을 렌더링)
+      setLoggedIn(false);
     },
-    onError: () => {
+    onError: (error) => {
+      console.log('로그아웃 실패', error);
     },
   });
 
   const onLogout = () => {
+    if (!isLoggedIn) {
+      Alert.alert('알림', '로그인 상태가 아닙니다');
+      return;
+    }
+
     Alert.alert('로그아웃', '로그아웃하시겠습니까?', [
       {
         text: '아니오',
@@ -54,13 +57,19 @@ function MyPageScreen({}: MyPageScreenProps) {
       {
         text: '예',
         onPress: () => {
-          apiMutation.mutate({ url: 'user/logout', method: fetchPost });
+          // 빈 객체라도 body로 전송
+          apiMutation.mutate({ url: 'user/logout', method: fetchPost, data: {} });
         },
       },
     ]);
   };
 
   const onDelete = () => {
+    if (!isLoggedIn) {
+      Alert.alert('알림', '로그인 상태가 아닙니다');
+      return;
+    }
+
     Alert.alert('회원 탈퇴', '정말로 회원을 탈퇴하시겠습니까?', [
       {
         text: '아니오',

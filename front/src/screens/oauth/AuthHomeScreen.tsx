@@ -10,14 +10,16 @@ import SelectCertificationScreen from '../selectCertification/SelectCertificatio
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation/RootStackNavigator';
-import { getEncryptStorage, JwtKey } from '../../util/encryptStorage';
+import { AccessKey, getEncryptStorage } from '../../util/encryptStorage';
+import { useAuthStore } from '../../store/useAuthStore';
 
 export interface LoginUserResponse {
   token: string;
+  refresh: string;
   user: {
     nickname: string;
-    userId: number;
-    userName: string;
+    provider: string;
+    username: string;
   }
 }
 
@@ -26,27 +28,24 @@ function AuthHomeScreen() {
   const insets = useSafeAreaInsets();
   const styles = styling(theme, insets);
   const [currentPage, setCurrentPage] = useState(0);
+  const { isLoggedIn } = useAuthStore();
 
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList, 'Login'>>();
 
   useEffect(() => {
     const checkJwt = async () => {
-      try {
-        const jwt = await getEncryptStorage(JwtKey);
-        if (jwt) {
-          // 토큰이 있으면 바로 홈 화면으로 이동
-          // certifications 요청은 해당 화면에서 자동으로 이루어짐
-          navigation.navigate('HomeStack');
-          // certifications 요청이 실패하면 해당 화면의 오류 처리에서
-          // 토큰 관련 오류 처리가 자동으로 이루어질 것임
-        }
-      } catch (error) {
-        console.error('토큰 확인 오류:', error);
+      if (!isLoggedIn) {
+        return; // 로그아웃 상태면 체크하지 않음
+      }
+
+      const jwt = await getEncryptStorage(AccessKey);
+      if (jwt) {
+        navigation.navigate('HomeStack');
       }
     };
 
     checkJwt();
-  }, [navigation]);
+  }, [navigation, isLoggedIn]);
 
   const handleLoginSuccess = useCallback(() => {
     setCurrentPage(1);

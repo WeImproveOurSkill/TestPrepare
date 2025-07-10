@@ -5,8 +5,10 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { StatusBar } from 'react-native';
 import useThemeStorage from './src/hooks/useThemeStorage';
 import { colors } from './src/constants/colors';
-import { useBookmarkStore } from './src/store/useBookmarkStore';
+// import { useBookmarkStore } from './src/store/useBookmarkStore';
 import SplashScreen from 'react-native-splash-screen';
+import { useAuthStore } from './src/store/useAuthStore';
+import { initializeAuth } from './src/util/auth';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -19,16 +21,19 @@ const queryClient = new QueryClient({
   },
 });
 
-
 function App(): React.JSX.Element {
-  const {theme} = useThemeStorage();
+  const { theme } = useThemeStorage();
+  const { setLoggedIn } = useAuthStore();
 
   useEffect(() => {
-    useBookmarkStore.getState().loadBookmarks();
+    initializeAuth(setLoggedIn);
+    // 북마크 로드와 함께 인증 초기화
+    // useBookmarkStore.getState().loadBookmarks();
+
     setTimeout(() => {
       SplashScreen.hide();
     }, 500);
-  }, []);
+  }, [setLoggedIn]);
 
   return (
     <QueryClientProvider client={queryClient}>

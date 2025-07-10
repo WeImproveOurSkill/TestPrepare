@@ -10,6 +10,7 @@ import { RootStackParamList } from '../../navigation/RootStackNavigator';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useNavigation } from '@react-navigation/native';
 import useCertificationStore from '../../store/useCertificationStore';
+import { useAuthStore } from '../../store/useAuthStore';
 
 export interface Certification {
   certificationId: number;
@@ -21,6 +22,7 @@ const SelectCertificationScreen = () => {
   const insets = useSafeAreaInsets();
   const styles = styling(theme, insets);
   const navigation = useNavigation<NativeStackScreenProps<RootStackParamList, 'SelectCertification'>['navigation']>();
+  const { isLoggedIn, setLoggedIn } = useAuthStore();
 
   const [searchQuery, setSearchQuery] = useState<string>('');
   const { selectedCertifications, toggleCertification, loadCertifications } = useCertificationStore();
@@ -57,10 +59,16 @@ const SelectCertificationScreen = () => {
   };
 
   const handleComplete = () => {
-    navigation.replace('HomeStack', {
-      screen: 'MainTab',
-      params: { certifications: selectedCertifications },
-    });
+    if (isLoggedIn) {
+      // 로그인 상태: HomeStack으로 이동
+      navigation.replace('HomeStack', {
+        screen: 'MainTab',
+        params: { certifications: selectedCertifications },
+      });
+    } else {
+      // 비로그인 상태: 로그인 상태를 true로 설정 (이렇게 하면 RootStackNavigator가 HomeStack을 렌더링)
+      setLoggedIn(true);
+    }
   };
 
   return (
