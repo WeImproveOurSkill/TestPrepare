@@ -1,8 +1,7 @@
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import {View, Text, ScrollView} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { useQuery } from '@tanstack/react-query';
 import useThemeStore, { themeMode } from '../../store/useThemeStore';
 import { colors } from '../../constants/colors';
 import { HomeStackParamList } from '../../navigation/HomeStackNavigator';
@@ -11,40 +10,41 @@ import { ScaledSheet } from 'react-native-size-matters';
 import { fetchGet } from '../../util/api';
 import { QuestionData } from '../components/QuestionItem';
 import { useBookmarkStore } from '../../store/useBookmarkStore';
+import { useFocusEffect } from '@react-navigation/native';
 
 function BookmarkScreen() {
   const { theme } = useThemeStore();
   const styles = styling(theme);
   const navigation = useNavigation<NativeStackNavigationProp<HomeStackParamList>>();
   const { bookmarks } = useBookmarkStore();
+  const [bookmarkQuestions, setBookmarkQuestions] = useState<QuestionData[]>([]);
   console.log(bookmarks);
 
-
-  const { data: bookmarkQuestions } = useQuery<QuestionData[]>({
-    queryKey: ['bookmarkQuestions', bookmarks],
-    queryFn: () => fetchGet('exam/book-mark/question?certificationId=1'),
-    staleTime: 0,
-    gcTime: 0,
-    // refetchOnWindowFocus: true,
-    // refetchOnMount: true,
-    // refetchOnReconnect: true,
-  });
+  // 북마크 질문들을 가져오는 함수
+  const fetchBookmarkQuestions = useCallback(async () => {
+    try {
+      const data = await fetchGet('exam/book-mark/question?certificationId=1') as QuestionData[];
+      setBookmarkQuestions(data);
+    } catch (error) {
+      console.error('북마크 질문을 가져오는데 실패했습니다:', error);
+      setBookmarkQuestions([]);
+    }
+  }, []);
 
   const handleQuestionSelect = (index: number) => {
     // 네비게이션을 사용하여 QuestionPager 화면으로 이동
     navigation.navigate('QuestionPager', {
       questions: bookmarkQuestions,
       currentPage: index + 1,
-      handlePageChange: (page: number) => console.log('페이지 변경:', page),
       mode: 'bookmark',
     });
   };
 
-  // useFocusEffect(
-  //   React.useCallback(() => {
-  //     refetch();
-  //   }, [refetch])
-  // );
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchBookmarkQuestions();
+    }, [fetchBookmarkQuestions])
+  );
   console.log(bookmarkQuestions);
 
   return (
