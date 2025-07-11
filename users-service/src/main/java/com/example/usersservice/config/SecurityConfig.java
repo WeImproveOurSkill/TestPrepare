@@ -1,6 +1,7 @@
 package com.example.usersservice.config;
 
 import com.example.usersservice.utils.jwt.JwtAuthFilter;
+import com.example.usersservice.utils.jwt.JwtAuthenticationEntryPoint;
 import com.example.usersservice.utils.log.TraceIdFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -27,12 +28,13 @@ public class SecurityConfig {
 
     private final JwtAuthFilter jwtAuthFilter;
     private final TraceIdFilter traceIdFilter;
-
+    private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
 
     private final String[] permitAllArray = {
             "/oauth2/authorization/**",
             "/login/oauth2/code/**",
-            "/oauth/callback/**"
+            "/oauth/callback/**",
+            "/refresh"
     };
 
     @Bean
@@ -63,7 +65,9 @@ public class SecurityConfig {
                 auth.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers(permitAllArray).permitAll()
                         .anyRequest().authenticated());
-
+        http.exceptionHandling(
+                exception -> exception.authenticationEntryPoint(jwtAuthenticationEntryPoint)
+        );
         http.addFilterBefore(traceIdFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterAfter(jwtAuthFilter, TraceIdFilter.class);
         return http.build();

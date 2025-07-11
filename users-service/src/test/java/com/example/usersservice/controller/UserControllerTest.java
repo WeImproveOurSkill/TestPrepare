@@ -2,7 +2,6 @@ package com.example.usersservice.controller;
 
 
 import com.example.usersservice.annotation.WithCustomMockUser;
-import com.example.usersservice.controller.UserController;
 import com.example.usersservice.service.UserService;
 import com.example.usersservice.utils.jwt.JwtAuthFilter;
 import com.example.usersservice.utils.jwt.JwtUtils;
@@ -180,13 +179,13 @@ class UserControllerTest {
         // Given
         Map<String, String> requestBody = new HashMap<>();
         requestBody.put("username", "testUser");
-        requestBody.put("refreshToken", "test_refresh_token");
+//        requestBody.put("refreshToken", "test_refresh_token");
 
         JSONObject responseBody = new JSONObject();
         responseBody.put("accessToken", "new_access_token");
         responseBody.put("refreshToken", "new_refresh_token");
         
-        given(userService.refreshToken(anyString(), anyString())).willReturn(responseBody);
+        given(userService.refreshToken(anyString())).willReturn(responseBody);
 
         // When & Then
         mockMvc.perform(
@@ -197,15 +196,15 @@ class UserControllerTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.accessToken").exists())
-                .andExpect(jsonPath("$.refreshToken").exists())
+//                .andExpect(jsonPath("$.refreshToken").exists())
                 .andDo(document("refresh-token",
                         preprocessRequest(prettyPrint()),
                         preprocessResponse(prettyPrint()),
                         requestFields(
                                 fieldWithPath("username").type(JsonFieldType.STRING)
-                                        .description("사용자 이름"),
-                                fieldWithPath("refreshToken").type(JsonFieldType.STRING)
-                                        .description("리프레시 토큰")
+                                        .description("사용자 이름")
+//                                fieldWithPath("refreshToken").type(JsonFieldType.STRING)
+//                                        .description("리프레시 토큰")
                         ),
                         responseFields(
                                 fieldWithPath("accessToken").type(JsonFieldType.STRING)
