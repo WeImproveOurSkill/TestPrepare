@@ -1,6 +1,7 @@
 package com.example.questionsserver.config;
 
 import com.example.questionsserver.utils.jwt.JwtAuthFilter;
+import com.example.questionsserver.utils.jwt.JwtAuthenticationEntryPoint;
 import com.example.questionsserver.utils.log.TraceIdFilter;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +23,7 @@ public class SecurityConfig {
 
     private final TraceIdFilter traceIdFilter;
     private final JwtAuthFilter jwtAuthFilter;
+    private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -50,7 +52,7 @@ public class SecurityConfig {
                             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                             response.getWriter().write("Unauthorized");
                         }));
-
+        http.exceptionHandling(exception -> exception.authenticationEntryPoint(jwtAuthenticationEntryPoint));
         http.addFilterBefore(traceIdFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterAfter(jwtAuthFilter, TraceIdFilter.class);
 

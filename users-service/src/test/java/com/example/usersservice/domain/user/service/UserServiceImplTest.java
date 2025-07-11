@@ -221,8 +221,8 @@ class UserServiceImplTest {
         @DisplayName("성공: 리프레시 토큰으로 새로운 액세스 토큰을 발급한다")
         void success() {
             // given
-            String refreshToken = "validRefreshToken";
-            given(jwtUtil.getRefreshToken(anyString())).willReturn(refreshToken);
+            String username = "username";
+            given(jwtUtil.getRefreshToken(anyString())).willReturn(username);
             given(jwtUtil.isRefreshTokenValid(anyString(), anyString()))
                     .willReturn(true);
             given(userRepository.findByUsername(anyString()))
@@ -231,26 +231,26 @@ class UserServiceImplTest {
                     .willReturn("newAccessToken");
 
             // when
-            JSONObject result = userService.refreshToken(user.getUsername(),refreshToken);
+            JSONObject result = userService.refreshToken(user.getUsername());
 
             // then
             assertThat(result).isNotNull();
             assertThat(result.get("token")).isEqualTo("newAccessToken");
-            verify(jwtUtil).isRefreshTokenValid(user.getUsername(), refreshToken);
+            verify(jwtUtil).isRefreshTokenValid(user.getUsername(), username);
         }
 
         @Test
         @DisplayName("실패: 저장된 리프레시 토큰과 다를 경우 예외가 발생한다")
         void throwExceptionWhenRefreshTokenMismatch() {
             // given
-            String refreshToken = "validRefreshToken";
+//            String refreshToken = "validRefreshToken";
             String storedRefreshToken = "differentRefreshToken";
             given(jwtUtil.getRefreshToken(anyString())).willReturn(storedRefreshToken);
 
             // when & then
-            assertThatThrownBy(() -> userService.refreshToken(user.getUsername(), refreshToken))
+            assertThatThrownBy(() -> userService.refreshToken(user.getUsername()))
                     .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessage("유효하지 않은 리프레시 토큰입니다.");
+                    .hasMessage("만료되거나 유효하지 않은 리프레시 토큰입니다.");
         }
 
         @Test
@@ -263,7 +263,7 @@ class UserServiceImplTest {
                     .willReturn(false);
 
             // when & then
-            assertThatThrownBy(() -> userService.refreshToken(user.getUsername(), refreshToken))
+            assertThatThrownBy(() -> userService.refreshToken(user.getUsername()))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessage("만료되거나 유효하지 않은 리프레시 토큰입니다.");
         }

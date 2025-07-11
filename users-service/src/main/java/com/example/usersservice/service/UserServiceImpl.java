@@ -7,7 +7,6 @@ import com.example.usersservice.utils.jwt.JwtUtils;
 import com.example.usersservice.utils.oAuth2.GoogleUserInfo;
 import com.example.usersservice.utils.oAuth2.KakaoUserInfo;
 import com.example.usersservice.utils.oAuth2.OAuth2UserInfo;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.minidev.json.JSONObject;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -251,15 +250,15 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public JSONObject refreshToken(String username, String refreshToken) {
+    public JSONObject refreshToken(String username) {
         // 1. Redis에서 리프레시 토큰 조회 및 비교
         String storedRefreshToken = jwtUtil.getRefreshToken(username);
-        if (storedRefreshToken == null || !storedRefreshToken.equals(refreshToken)) {
-            throw new IllegalArgumentException("유효하지 않은 리프레시 토큰입니다.");
-        }
+//        if (storedRefreshToken == null || !storedRefreshToken.equals(refreshToken)) {
+//            throw new IllegalArgumentException("유효하지 않은 리프레시 토큰입니다.");
+//        }
 
         // 2. 리프레시 토큰 유효성 검증
-        if (!jwtUtil.isRefreshTokenValid(username, refreshToken)) {
+        if (!jwtUtil.isRefreshTokenValid(username, storedRefreshToken)) {
             throw new IllegalArgumentException("만료되거나 유효하지 않은 리프레시 토큰입니다.");
         }
 

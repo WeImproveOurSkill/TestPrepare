@@ -34,13 +34,13 @@ public class UserController {
     @PostMapping("/refresh")
     public ResponseEntity<JSONObject> refreshToken(@RequestBody Map<String, String> payload) {
         String username = payload.get("username");
-        String refreshToken = payload.get("refreshToken");
+        // String refreshToken = payload.get("refreshToken");
 
-        if (username == null || refreshToken == null) {
+        if (username == null) {
             throw new IllegalArgumentException("사용자명은 필수입니다.");
         }
 
-        JSONObject response = userService.refreshToken(username, refreshToken);
+        JSONObject response = userService.refreshToken(username);
         return ResponseEntity.ok(response);
     }
 
