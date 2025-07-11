@@ -116,12 +116,20 @@ public class ExamController {
         return ResponseEntity.ok().build();
     }
 
+    @GetMapping("/book-mark")
+    public ResponseEntity<List<QuestionInfoDto>> checkBookmarkAndQuestions(@RequestHeader("Authorization") String authHeader) {
+        String username = jwtUtils.extractUsername(authHeader);
+        return ResponseEntity.ok(userQuestionService.checkBookmarkAndQuestions(username));
+    }
+
     @GetMapping("/book-mark/question")
     public ResponseEntity<List<QuestionDto>> getBookMarkQuestions(@RequestHeader("Authorization") String authHeader,
                                                                   @RequestParam Long certificationId) {
         String username = jwtUtils.extractUsername(authHeader);
         return ResponseEntity.ok(userQuestionService.getBookMarkQuestion(username, certificationId));
     }
+
+
 
 
 }
