@@ -1,6 +1,7 @@
 package com.example.questionsserver.repository.middle.userBookmark;
 
 import com.example.questionsserver.dtos.QuestionDto;
+import com.example.questionsserver.dtos.QuestionInfoDto;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
@@ -32,4 +33,15 @@ public class UserBookmarkRepositoryQueryImpl implements UserBookmarkRepositoryQu
                 .where(userBookmark.username.eq(username), certification.id.eq(certificationId))
                 .fetch();
     }
+
+    @Override
+    public List<QuestionInfoDto> checkBookmarkAndQuestions(String username) {
+        return queryFactory.select(Projections.constructor(QuestionInfoDto.class,
+                        question.id.as("questionId")))
+                .from(userBookmark)
+                .join(userBookmark.question, question)
+                .where(userBookmark.username.eq(username))
+                .fetch();
+    }
+
 }

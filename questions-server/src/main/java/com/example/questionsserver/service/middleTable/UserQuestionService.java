@@ -3,6 +3,7 @@ package com.example.questionsserver.service.middleTable;
 import com.example.questionsserver.dtos.AnswerRecordDto;
 import com.example.questionsserver.dtos.AnswerSubmitDTO;
 import com.example.questionsserver.dtos.QuestionDto;
+import com.example.questionsserver.dtos.QuestionInfoDto;
 import com.example.questionsserver.entity.middleTable.UserQuestion;
 
 import java.util.List;
@@ -19,4 +20,6 @@ public interface UserQuestionService {
     List<QuestionDto> getBookMarkQuestion(String username, Long certificationId);
 
     void deleteBookMark(String username, Long questionId);
+
+    List<QuestionInfoDto> checkBookmarkAndQuestions(String username);
 }

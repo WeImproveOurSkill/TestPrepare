@@ -31,7 +31,9 @@ public class SecurityConfig {
     }
 
     private final String [] permitArray={
-            "/exam"
+            "/exam",
+            "/certification/{certificationId}/*",
+            "/subject/{subjectId}/*"
     };
 
 

@@ -408,6 +408,32 @@ class BasicExamControllerTest {
                 ));
     }
 
+
+    @Test
+    @DisplayName("북마크 확인 API")
+    void checkBookmarkAndQuestions() throws Exception {
+        // given
+        when(userQuestionService.checkBookmarkAndQuestions(anyString()))
+                .thenReturn(ExamFixture.createCheckBookmarkAndQuestions());
+        // when & then
+        mockMvc.perform(get("/exam/book-mark")
+                        .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                        .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer jwt-token-here"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andDo(document("check-bookmark",
+                        ApiDocumentUtils.getDocumentRequest(),
+                        ApiDocumentUtils.getDocumentResponse(),
+                        requestHeaders(
+                                headerWithName("Authorization").description("JWT 인증 토큰")
+                        ), responseFields(
+                                fieldWithPath("[].questionId").type(JsonFieldType.NUMBER)
+                                        .description("문제 ID")
+                        )
+                ));
+    }
+
     @Test
     @DisplayName("북마크 삭제 API")
     void deleteBookmark() throws Exception {

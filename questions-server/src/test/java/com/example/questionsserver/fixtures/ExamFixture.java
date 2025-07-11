@@ -4,6 +4,7 @@ import com.example.questionsserver.dtos.*;
 import com.example.questionsserver.entity.middleTable.UserQuestion;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public class ExamFixture {
@@ -61,5 +62,13 @@ public class ExamFixture {
     public static AnswerRecordDto createAnswerRecord() {
         return new AnswerRecordDto(1L, UserQuestion.Status.CORRECT);
     }
+
+    public static List<QuestionInfoDto> createCheckBookmarkAndQuestions() {
+        return Collections.singletonList(
+                new QuestionInfoDto(1L));
+    }
+
+
+
 
 }

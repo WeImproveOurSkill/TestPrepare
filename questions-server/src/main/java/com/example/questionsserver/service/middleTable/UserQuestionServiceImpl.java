@@ -3,6 +3,7 @@ package com.example.questionsserver.service.middleTable;
 import com.example.questionsserver.dtos.AnswerRecordDto;
 import com.example.questionsserver.dtos.AnswerSubmitDTO;
 import com.example.questionsserver.dtos.QuestionDto;
+import com.example.questionsserver.dtos.QuestionInfoDto;
 import com.example.questionsserver.entity.Question;
 import com.example.questionsserver.entity.middleTable.UserBookmark;
 import com.example.questionsserver.entity.middleTable.UserQuestion;
@@ -104,6 +105,11 @@ public class UserQuestionServiceImpl implements UserQuestionService {
 
         userBookmarkRepository.deleteUserBookmarkByUsernameAndQuestion(username, byId);
 
+    }
+
+    @Override
+    public List<QuestionInfoDto> checkBookmarkAndQuestions(String username) {
+        return userBookmarkRepository.checkBookmarkAndQuestions(username);
     }
 
     @Override

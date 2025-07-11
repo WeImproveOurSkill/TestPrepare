@@ -169,3 +169,11 @@ operation::delete-bookmark[snippets='request-headers,query-parameters,http-reque
 사용자가 북마크한 문제 목록을 조회합니다.
 
 operation::bookmarked-questions[snippets='request-headers,query-parameters,http-request,http-response,response-fields']
+
+
+[[resources-check-bookmark]]
+==== 북마크된 문제 번호 조회
+
+사용자가 북마크한 문제 번호 목록을 조회합니다.
+
+operation::check-bookmark[snippets='request-headers,query-parameters,http-request,http-response,response-fields']
