@@ -87,7 +87,7 @@ class UserControllerTest {
 
         JSONObject responseBody = new JSONObject();
         responseBody.put("accessToken", "test_access_token");
-        responseBody.put("refreshToken", "test_refresh_token");
+//        responseBody.put("refreshToken", "test_refresh_token");
         responseBody.put("nickname", "test_user");
         responseBody.put("email", "test@example.com");
         
@@ -102,7 +102,7 @@ class UserControllerTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.accessToken").exists())
-                .andExpect(jsonPath("$.refreshToken").exists())
+//                .andExpect(jsonPath("$.refreshToken").exists())
                 .andDo(document("kakao-login",
                         preprocessRequest(prettyPrint()),
                         preprocessResponse(prettyPrint()),
@@ -115,8 +115,8 @@ class UserControllerTest {
                         responseFields(
                                 fieldWithPath("accessToken").type(JsonFieldType.STRING)
                                         .description("액세스 토큰"),
-                                fieldWithPath("refreshToken").type(JsonFieldType.STRING)
-                                        .description("리프레시 토큰"),
+//                                fieldWithPath("refreshToken").type(JsonFieldType.STRING)
+//                                        .description("리프레시 토큰"),
                                 fieldWithPath("nickname").type(JsonFieldType.STRING)
                                         .description("사용자 닉네임"),
                                 fieldWithPath("email").type(JsonFieldType.STRING)
@@ -135,7 +135,7 @@ class UserControllerTest {
 
         JSONObject responseBody = new JSONObject();
         responseBody.put("accessToken", "test_google_access_token");
-        responseBody.put("refreshToken", "test_google_refresh_token");
+//        responseBody.put("refreshToken", "test_google_refresh_token");
         responseBody.put("nickname", "test_google_user");
         responseBody.put("email", "test.google@example.com");
         
@@ -150,7 +150,7 @@ class UserControllerTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.accessToken").exists())
-                .andExpect(jsonPath("$.refreshToken").exists())
+//                .andExpect(jsonPath("$.refreshToken").exists())
                 .andDo(document("google-login",
                         preprocessRequest(prettyPrint()),
                         preprocessResponse(prettyPrint()),
@@ -163,8 +163,8 @@ class UserControllerTest {
                         responseFields(
                                 fieldWithPath("accessToken").type(JsonFieldType.STRING)
                                         .description("액세스 토큰"),
-                                fieldWithPath("refreshToken").type(JsonFieldType.STRING)
-                                        .description("리프레시 토큰"),
+//                                fieldWithPath("refreshToken").type(JsonFieldType.STRING)
+//                                        .description("리프레시 토큰"),
                                 fieldWithPath("nickname").type(JsonFieldType.STRING)
                                         .description("사용자 닉네임"),
                                 fieldWithPath("email").type(JsonFieldType.STRING)
@@ -183,7 +183,7 @@ class UserControllerTest {
 
         JSONObject responseBody = new JSONObject();
         responseBody.put("accessToken", "new_access_token");
-        responseBody.put("refreshToken", "new_refresh_token");
+//        responseBody.put("refreshToken", "new_refresh_token");
         
         given(userService.refreshToken(anyString())).willReturn(responseBody);
 
@@ -208,9 +208,9 @@ class UserControllerTest {
                         ),
                         responseFields(
                                 fieldWithPath("accessToken").type(JsonFieldType.STRING)
-                                        .description("새로운 액세스 토큰"),
-                                fieldWithPath("refreshToken").type(JsonFieldType.STRING)
-                                        .description("새로운 리프레시 토큰")
+                                        .description("새로운 액세스 토큰")
+//                                fieldWithPath("refreshToken").type(JsonFieldType.STRING)
+//                                        .description("새로운 리프레시 토큰")
                         )
                 ));
     }
