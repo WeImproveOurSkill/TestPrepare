@@ -269,6 +269,10 @@ public class UserServiceImpl implements UserService {
         // 4. 새로운 액세스 토큰 생성
         String newAccessToken = jwtUtil.createAccessToken(username, String.valueOf(user.getRole()));
 
+        // 5. 기존 리프레시 토큰 삭제 후 재생성
+        jwtUtil.deleteRefreshToken(user.getUsername());
+        jwtUtil.createRefreshToken(user.getUsername(), String.valueOf(user.getRole()));
+
         // 5. 응답 생성
         JSONObject response = new JSONObject();
         response.put("token", newAccessToken);
@@ -282,7 +286,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public boolean logout(User user) {
         return jwtUtil.deleteRefreshToken(user.getUsername());
-    }
+}
 
     @Override
     @Transactional
