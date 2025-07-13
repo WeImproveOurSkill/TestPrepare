@@ -37,9 +37,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @ExtendWith({RestDocumentationExtension.class, SpringExtension.class})
 @WebMvcTest(controllers = ExamController.class, excludeAutoConfiguration = {
-    org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration.class,
-    org.springframework.boot.autoconfigure.security.servlet.SecurityFilterAutoConfiguration.class,
-    org.springframework.boot.autoconfigure.security.oauth2.client.servlet.OAuth2ClientAutoConfiguration.class
+        org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration.class,
+        org.springframework.boot.autoconfigure.security.servlet.SecurityFilterAutoConfiguration.class,
+        org.springframework.boot.autoconfigure.security.oauth2.client.servlet.OAuth2ClientAutoConfiguration.class
 })
 @AutoConfigureRestDocs
 class BasicExamControllerTest {
@@ -52,10 +52,10 @@ class BasicExamControllerTest {
 
     @MockBean
     private ExamService examService;
-    
+
     @MockBean
     private UserQuestionService userQuestionService;
-    
+
     @MockBean
     private JwtUtils jwtUtils;
 
@@ -392,11 +392,10 @@ class BasicExamControllerTest {
         doNothing().when(userQuestionService).createBookMark(anyString(), anyLong());
 
         // when & then
-        mockMvc.perform(post("/exam/book-mark")
+        mockMvc.perform(post("/exam/book-mark?questionId=1")
                         .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                         .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
-                        .header(HttpHeaders.AUTHORIZATION, "Bearer jwt-token-here")
-                        .param("questionId", "1"))
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer jwt-token-here"))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andDo(document("create-bookmark",
@@ -404,6 +403,9 @@ class BasicExamControllerTest {
                         ApiDocumentUtils.getDocumentResponse(),
                         requestHeaders(
                                 headerWithName("Authorization").description("JWT 인증 토큰")
+                        ),
+                        queryParameters(
+                                parameterWithName("questionId").description("문제 ID")
                         )
                 ));
     }
@@ -441,9 +443,8 @@ class BasicExamControllerTest {
         doNothing().when(userQuestionService).deleteBookMark(anyString(), anyLong());
 
         // when & then
-        mockMvc.perform(delete("/exam/book-mark")
+        mockMvc.perform(delete("/exam/book-mark?questionId=1")
                         .header(HttpHeaders.AUTHORIZATION, "Bearer jwt-token-here")
-                        .param("questionId", "1")
                         .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                         .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE))
                 .andDo(print())
@@ -453,6 +454,9 @@ class BasicExamControllerTest {
                         ApiDocumentUtils.getDocumentResponse(),
                         requestHeaders(
                                 headerWithName("Authorization").description("JWT 인증 토큰")
+                        ),
+                        queryParameters(
+                                parameterWithName("questionId").description("문제 번호")
                         )
                 ));
     }
@@ -482,7 +486,10 @@ class BasicExamControllerTest {
                         requestHeaders(
                                 headerWithName("Authorization").description("JWT 인증 토큰")
                         ),
-                        responseFields(
+                        queryParameters(
+                                parameterWithName("certificationId").description("자격증ID")
+                        )
+                        ,responseFields(
                                 fieldWithPath("[].questionId").type(JsonFieldType.NUMBER)
                                         .description("문제 ID"),
                                 fieldWithPath("[].content").type(JsonFieldType.STRING)
@@ -494,4 +501,6 @@ class BasicExamControllerTest {
                         )
                 ));
     }
+
+
 }
