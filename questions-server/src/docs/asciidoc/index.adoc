@@ -176,4 +176,4 @@ operation::bookmarked-questions[snippets='request-headers,query-parameters,http-
 
 사용자가 북마크한 문제 번호 목록을 조회합니다.
 
-operation::check-bookmark[snippets='request-headers,query-parameters,http-request,http-response,response-fields']
+operation::check-bookmark[snippets='request-headers,http-request,http-response,response-fields']

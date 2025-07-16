@@ -108,14 +108,6 @@ public class ExamController {
     }
 
 
-    @DeleteMapping("/book-mark")
-    public ResponseEntity<ResponseStatus> deleteBookMark(@RequestHeader("Authorization") String authHeader,
-                                                         @RequestParam Long questionId) {
-        String username = jwtUtils.extractUsername(authHeader);
-        userQuestionService.deleteBookMark(username, questionId);
-        return ResponseEntity.ok().build();
-    }
-
     @GetMapping("/book-mark")
     public ResponseEntity<List<QuestionInfoDto>> checkBookmarkAndQuestions(@RequestHeader("Authorization") String authHeader) {
         String username = jwtUtils.extractUsername(authHeader);
@@ -127,6 +119,14 @@ public class ExamController {
                                                                   @RequestParam Long certificationId) {
         String username = jwtUtils.extractUsername(authHeader);
         return ResponseEntity.ok(userQuestionService.getBookMarkQuestion(username, certificationId));
+    }
+
+    @DeleteMapping("/book-mark")
+    public ResponseEntity<ResponseStatus> deleteBookMark(@RequestHeader("Authorization") String authHeader,
+                                                         @RequestParam Long questionId) {
+        String username = jwtUtils.extractUsername(authHeader);
+        userQuestionService.deleteBookMark(username, questionId);
+        return ResponseEntity.ok().build();
     }
 
 
