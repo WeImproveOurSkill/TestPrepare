@@ -133,12 +133,12 @@ public class JwtUtils
                 log.warn("Refresh token not found in Redis or doesn't match");
                 return false;
             }
-
+            String actualToken = token.startsWith(BEARER_PREFIX) ? token.substring(BEARER_PREFIX.length()) : token;
             // 2. 토큰 자체 검증
             Claims claims = Jwts.parserBuilder()
                     .setSigningKey(secretKey)
                     .build()
-                    .parseClaimsJws(token)
+                    .parseClaimsJws(actualToken)
                     .getBody();
 
             // 3. 토큰 유형 검증

@@ -78,6 +78,10 @@ public class UserController {
             ));
         }
     }
+    @GetMapping("/token")
+    public ResponseEntity<ResponseStatus> checkToken(@AuthenticationPrincipal UserDetailsImpl userDetails) {
+        return ResponseEntity.ok().build();
+    }
 
     @DeleteMapping("/user")
     public ResponseEntity<?> deleteAccount(@AuthenticationPrincipal UserDetailsImpl user) {

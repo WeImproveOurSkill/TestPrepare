@@ -26,7 +26,6 @@ class GptAssistanceRequest(BaseModel):
     questionId: int
     content: str
     answer: str
-    explanation: str 
     subjectName: str
 
 class GptAssistanceResponse(BaseModel):
