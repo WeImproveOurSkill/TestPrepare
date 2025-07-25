@@ -65,7 +65,8 @@ class PerplexityClient:
                 ],
                 model="sonar",  # Perplexity API에서 지원하는 모델
                 max_tokens=150,  # 100자 정도면 충분
-                temperature=0.5  # 더 결정적인 응답을 위해 낮춤
+                temperature=0.5,  # 더 결정적인 응답을 위해 낮춤
+                timeout=30  # 30초 타임아웃 설정
             )
             
             # 응답 처리
